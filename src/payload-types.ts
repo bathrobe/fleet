@@ -163,6 +163,7 @@ export interface Agent {
         id?: string | null;
       }[]
     | null;
+  styles?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -272,6 +273,7 @@ export interface AgentsSelect<T extends boolean = true> {
         content?: T;
         id?: T;
       };
+  styles?: T;
   updatedAt?: T;
   createdAt?: T;
 }

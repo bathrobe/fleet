@@ -27,5 +27,10 @@ export const Agents: CollectionConfig = {
         },
       ],
     },
+    {
+      name: 'styles',
+      type: 'textarea',
+      label: 'Styles',
+    },
   ],
 }
