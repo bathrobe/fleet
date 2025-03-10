@@ -1,6 +1,7 @@
+import { lexicalEditor } from '@payloadcms/richtext-lexical'
 import { CollectionConfig } from 'payload'
 
-const Sources: CollectionConfig = {
+export const Sources: CollectionConfig = {
   slug: 'sources',
   admin: {
     useAsTitle: 'url',
@@ -29,15 +30,11 @@ const Sources: CollectionConfig = {
         },
       ],
     },
-    // {
-    //   name: 'notes',
-    //   type: 'richText',
-    //   editor: {
-    //     lexical: {
-    //       features: true,
-    //     },
-    //   },
-    // },
+    {
+      name: 'notes',
+      type: 'richText',
+      editor: lexicalEditor({}),
+    },
   ],
 }
 

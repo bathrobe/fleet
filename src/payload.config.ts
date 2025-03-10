@@ -13,6 +13,8 @@ import { Agents } from './collections/Agents'
 import { Journals } from './collections/Journals'
 import { Tasks } from './collections/Tasks'
 import { Posts } from './collections/Posts'
+import { Sources } from './collections/Sources'
+
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
 
@@ -23,8 +25,8 @@ export default buildConfig({
       baseDir: path.resolve(dirname),
     },
   },
-  collections: [Users, Media, Agents, Journals, Tasks, Posts],
-  editor: lexicalEditor(),
+  collections: [Users, Sources, Media, Agents, Journals, Tasks, Posts],
+  editor: lexicalEditor({}),
   secret: process.env.PAYLOAD_SECRET || '',
   typescript: {
     outputFile: path.resolve(dirname, 'payload-types.ts'),
