@@ -69,15 +69,26 @@ export interface Config {
     users: User;
     media: Media;
     agents: Agent;
+    journals: Journal;
+    tasks: Task;
+    posts: Post;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
     'payload-migrations': PayloadMigration;
   };
-  collectionsJoins: {};
+  collectionsJoins: {
+    agents: {
+      relatedJournals: 'journals';
+      relatedTasks: 'tasks';
+    };
+  };
   collectionsSelect: {
     users: UsersSelect<false> | UsersSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     agents: AgentsSelect<false> | AgentsSelect<true>;
+    journals: JournalsSelect<false> | JournalsSelect<true>;
+    tasks: TasksSelect<false> | TasksSelect<true>;
+    posts: PostsSelect<false> | PostsSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
     'payload-migrations': PayloadMigrationsSelect<false> | PayloadMigrationsSelect<true>;
@@ -164,6 +175,68 @@ export interface Agent {
       }[]
     | null;
   styles?: string | null;
+  relatedJournals?: {
+    docs?: (number | Journal)[];
+    hasNextPage?: boolean;
+    totalDocs?: number;
+  };
+  relatedTasks?: {
+    docs?: (number | Task)[];
+    hasNextPage?: boolean;
+    totalDocs?: number;
+  };
+  scheduling?: {
+    postingInterval?: number | null;
+    sleepStartHour?: number | null;
+    sleepEndHour?: number | null;
+    jitter?: number | null;
+    enabled?: boolean | null;
+  };
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "journals".
+ */
+export interface Journal {
+  id: number;
+  timeCreated?: string | null;
+  content?: string | null;
+  agent: number | Agent;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "tasks".
+ */
+export interface Task {
+  id: number;
+  title?: string | null;
+  task?: string | null;
+  agent?: (number | null) | Agent;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "posts".
+ */
+export interface Post {
+  id: number;
+  content: string;
+  timeCreated?: string | null;
+  agent: number | Agent;
+  task?: (number | null) | Task;
+  blueskyPost?: {
+    posted?: boolean | null;
+    url?: string | null;
+  };
+  twitterPost?: {
+    posted?: boolean | null;
+    url?: string | null;
+  };
   updatedAt: string;
   createdAt: string;
 }
@@ -185,6 +258,18 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'agents';
         value: number | Agent;
+      } | null)
+    | ({
+        relationTo: 'journals';
+        value: number | Journal;
+      } | null)
+    | ({
+        relationTo: 'tasks';
+        value: number | Task;
+      } | null)
+    | ({
+        relationTo: 'posts';
+        value: number | Post;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -274,6 +359,63 @@ export interface AgentsSelect<T extends boolean = true> {
         id?: T;
       };
   styles?: T;
+  relatedJournals?: T;
+  relatedTasks?: T;
+  scheduling?:
+    | T
+    | {
+        postingInterval?: T;
+        sleepStartHour?: T;
+        sleepEndHour?: T;
+        jitter?: T;
+        enabled?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "journals_select".
+ */
+export interface JournalsSelect<T extends boolean = true> {
+  timeCreated?: T;
+  content?: T;
+  agent?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "tasks_select".
+ */
+export interface TasksSelect<T extends boolean = true> {
+  title?: T;
+  task?: T;
+  agent?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "posts_select".
+ */
+export interface PostsSelect<T extends boolean = true> {
+  content?: T;
+  timeCreated?: T;
+  agent?: T;
+  task?: T;
+  blueskyPost?:
+    | T
+    | {
+        posted?: T;
+        url?: T;
+      };
+  twitterPost?:
+    | T
+    | {
+        posted?: T;
+        url?: T;
+      };
   updatedAt?: T;
   createdAt?: T;
 }
