@@ -29,15 +29,15 @@ const Sources: CollectionConfig = {
         },
       ],
     },
-    {
-      name: 'notes',
-      type: 'richText',
-      editor: {
-        lexical: {
-          features: true,
-        },
-      },
-    },
+    // {
+    //   name: 'notes',
+    //   type: 'richText',
+    //   editor: {
+    //     lexical: {
+    //       features: true,
+    //     },
+    //   },
+    // },
   ],
 }
 
