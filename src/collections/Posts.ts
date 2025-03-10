@@ -37,7 +37,7 @@ export const Posts: CollectionConfig = {
       relationTo: 'tasks',
       required: false,
       filterOptions: ({ data }: { data: any }) => {
-        if (!data?.agent) return {}
+        if (!data?.agent) return { agent: { exists: true } }
         return {
           agent: {
             equals: data.agent,

@@ -5,8 +5,6 @@ export const Agents: CollectionConfig = {
   slug: 'agents',
   admin: {
     useAsTitle: 'name',
-    group: 'Content',
-    defaultColumns: ['name'],
   },
   access: {
     read: () => true, // Allow anyone to read this collection
