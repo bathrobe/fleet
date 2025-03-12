@@ -150,6 +150,7 @@ export interface User {
  */
 export interface Source {
   id: number;
+  title: string;
   url: string;
   author?: string | null;
   publishedDate?: string | null;
@@ -159,21 +160,12 @@ export interface Source {
         id?: string | null;
       }[]
     | null;
-  notes?: {
-    root: {
-      type: string;
-      children: {
-        type: string;
-        version: number;
-        [k: string]: unknown;
-      }[];
-      direction: ('ltr' | 'rtl') | null;
-      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
-      indent: number;
-      version: number;
-    };
-    [k: string]: unknown;
-  } | null;
+  oneSentenceSummary: string;
+  mainPoints: string;
+  bulletSummary: string;
+  peopleplacesthingsevents: string;
+  quotations: string;
+  details: string;
   updatedAt: string;
   createdAt: string;
 }
@@ -372,6 +364,7 @@ export interface UsersSelect<T extends boolean = true> {
  * via the `definition` "sources_select".
  */
 export interface SourcesSelect<T extends boolean = true> {
+  title?: T;
   url?: T;
   author?: T;
   publishedDate?: T;
@@ -381,7 +374,12 @@ export interface SourcesSelect<T extends boolean = true> {
         tag?: T;
         id?: T;
       };
-  notes?: T;
+  oneSentenceSummary?: T;
+  mainPoints?: T;
+  bulletSummary?: T;
+  peopleplacesthingsevents?: T;
+  quotations?: T;
+  details?: T;
   updatedAt?: T;
   createdAt?: T;
 }

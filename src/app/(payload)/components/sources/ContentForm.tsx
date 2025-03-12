@@ -7,13 +7,11 @@ export const ContentForm = ({
   onContentChange,
   frontmatterData,
   formAction,
-  isSubmitting,
 }: {
   content: string
   onContentChange: (value: string) => void
   frontmatterData: any
   formAction: (formData: FormData) => void
-  isSubmitting: boolean
 }) => {
   return (
     <form action={formAction as any}>
@@ -28,25 +26,21 @@ export const ContentForm = ({
 
       <button
         type="submit"
-        disabled={!frontmatterData || isSubmitting}
+        disabled={!frontmatterData}
         style={{
-          backgroundColor: frontmatterData && !isSubmitting ? '#4A5568' : '#A0AEC0',
+          backgroundColor: frontmatterData ? '#4A5568' : '#A0AEC0',
           color: 'white',
           padding: '0.5rem 1rem',
           border: 'none',
           borderRadius: '0.25rem',
-          cursor: frontmatterData && !isSubmitting ? 'pointer' : 'not-allowed',
+          cursor: frontmatterData ? 'pointer' : 'not-allowed',
           fontWeight: 'bold',
           transition: 'background-color 0.2s ease',
         }}
-        onMouseOver={(e) =>
-          frontmatterData && !isSubmitting && (e.currentTarget.style.backgroundColor = '#2D3748')
-        }
-        onMouseOut={(e) =>
-          frontmatterData && !isSubmitting && (e.currentTarget.style.backgroundColor = '#4A5568')
-        }
+        onMouseOver={(e) => frontmatterData && (e.currentTarget.style.backgroundColor = '#2D3748')}
+        onMouseOut={(e) => frontmatterData && (e.currentTarget.style.backgroundColor = '#4A5568')}
       >
-        {isSubmitting ? 'Processing...' : 'Submit'}
+        Submit
       </button>
     </form>
   )

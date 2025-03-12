@@ -25,7 +25,6 @@ export default buildConfig({
       views: {
         sourceUploader: {
           Component: '/src/app/(payload)/components/sources/SourceUploader',
-          // Component: '/src/app/(payload)/components/Test',
           path: '/source-uploader',
         },
       },

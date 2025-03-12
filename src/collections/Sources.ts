@@ -11,9 +11,14 @@ export const Sources: CollectionConfig = {
     delete: allowIfApiKeyOrAuthenticated,
   },
   admin: {
-    useAsTitle: 'url',
+    useAsTitle: 'title',
   },
   fields: [
+    {
+      name: 'title',
+      type: 'text',
+      required: true,
+    },
     {
       name: 'url',
       type: 'text',
@@ -38,9 +43,34 @@ export const Sources: CollectionConfig = {
       ],
     },
     {
-      name: 'notes',
-      type: 'richText',
-      editor: lexicalEditor({}),
+      name: 'oneSentenceSummary',
+      type: 'textarea',
+      required: true,
+    },
+    {
+      name: 'mainPoints',
+      type: 'textarea',
+      required: true,
+    },
+    {
+      name: 'bulletSummary',
+      type: 'textarea',
+      required: true,
+    },
+    {
+      name: 'peopleplacesthingsevents',
+      type: 'textarea',
+      required: true,
+    },
+    {
+      name: 'quotations',
+      type: 'textarea',
+      required: true,
+    },
+    {
+      name: 'details',
+      type: 'textarea',
+      required: true,
     },
   ],
 }

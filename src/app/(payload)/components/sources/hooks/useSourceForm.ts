@@ -5,15 +5,8 @@ import { useFormState } from 'react-dom'
 import { parseFrontmatter } from '../frontmatterParser'
 import { processSourceAction } from '../actions'
 
-// Simplified state type
-interface FormState {
-  result: string | null
-  error: string | null
-  processed: boolean
-}
-
 // Initial state for form submission
-const initialState: FormState = {
+const initialState = {
   result: null,
   error: null,
   processed: false,
@@ -21,9 +14,8 @@ const initialState: FormState = {
 
 export function useSourceForm() {
   const [content, setContent] = useState('')
-  const [frontmatterData, setFrontmatterData] = useState<Record<string, any> | null>(null)
-  const [parseError, setParseError] = useState<string | null>(null)
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [frontmatterData, setFrontmatterData] = useState(null)
+  const [parseError, setParseError] = useState(null)
 
   const [state, formAction] = useFormState(processSourceAction, initialState)
 
@@ -31,10 +23,11 @@ export function useSourceForm() {
     setContent(newContent)
 
     const result = parseFrontmatter(newContent)
+    // @ts-ignore
     setFrontmatterData(result.data)
+    // @ts-ignore
     setParseError(result.error)
 
-    // Reset processed state when content changes
     if (state.processed) {
       state.processed = false
       state.result = null
@@ -42,16 +35,8 @@ export function useSourceForm() {
     }
   }
 
-  // Check if processing has completed
-  useEffect(() => {
-    if (state.processed) {
-      setIsSubmitting(false)
-    }
-  }, [state.processed])
-
   const handleFormAction = (formData: FormData) => {
     if (!frontmatterData) return
-    setIsSubmitting(true)
     return formAction(formData)
   }
 
@@ -60,7 +45,6 @@ export function useSourceForm() {
     frontmatterData,
     parseError,
     state,
-    isSubmitting,
     handleContentChange,
     handleFormAction,
   }
