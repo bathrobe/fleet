@@ -26,7 +26,7 @@ Key Insights:
 
   try {
     const response = await getCompletion(prompt, apiKey)
-    console.log(response)
+    return response
   } catch (error) {
     console.error('Error processing source with LLM:', error)
   }

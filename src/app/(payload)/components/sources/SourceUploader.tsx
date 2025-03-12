@@ -20,6 +20,9 @@ export default function SourceUploader() {
     handleFormAction,
   } = useSourceForm()
 
+  console.log('Form state:', state)
+  console.log('Has result?', Boolean(state.result))
+
   return (
     <SourcePageLayout title="Source Uploader">
       <p>Paste markdown content with frontmatter below:</p>
@@ -38,7 +41,12 @@ export default function SourceUploader() {
       {frontmatterData && <FrontmatterDisplay data={frontmatterData} />}
       {parseError && <ErrorDisplay error={parseError} />}
       {state.error && <ErrorDisplay error={state.error} />}
-      {state.result && <LLMSourceNoteDisplay result={state.result} />}
+      {state.result ? (
+        <>
+          <pre>Debug: {JSON.stringify(state.result, null, 2)}</pre>
+          <LLMSourceNoteDisplay result={state.result} />
+        </>
+      ) : null}
     </SourcePageLayout>
   )
 }

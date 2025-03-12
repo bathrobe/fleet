@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useFormState } from 'react-dom'
 import { parseFrontmatter } from '../frontmatterParser'
-import { processSourceAction } from '../server/sourceActions'
+import { processSourceAction } from '../actions'
 
 // Initial state for form submission
 const initialState = {
