@@ -1,7 +1,6 @@
 'use client'
 
-import { useState } from 'react'
-import { useFormState } from 'react-dom'
+import { useState, useActionState } from 'react'
 import { parseFrontmatter } from '../frontmatterParser'
 import { processSourceAction } from '../actions'
 
@@ -17,7 +16,7 @@ export function useSourceForm() {
   const [frontmatterData, setFrontmatterData] = useState<any>(null)
   const [parseError, setParseError] = useState<string | null>(null)
 
-  const [state, formAction] = useFormState(processSourceAction, initialState)
+  const [state, formAction] = useActionState(processSourceAction, initialState)
 
   const handleContentChange = (newContent: string) => {
     setContent(newContent)
