@@ -100,25 +100,18 @@ export async function processSourceAction(prevState: any, formData: FormData) {
       return {
         result: { ...parsedResult, id: newSource.id },
         error: null,
-        processed: true,
-        sourceCreated: true,
-        sourceId: newSource.id,
-        frontmatterDetected: frontmatterPresent,
       }
     } catch (createError: any) {
       console.error('Failed to create source document:', createError, createError.data)
       return {
         result: parsedResult,
         error: `Failed to save to database: ${createError.message}`,
-        processed: true,
-        sourceCreated: false,
       }
     }
   } catch (error: any) {
     return {
       result: null,
       error: error.message || 'An error occurred while processing the content',
-      processed: true,
     }
   }
 }

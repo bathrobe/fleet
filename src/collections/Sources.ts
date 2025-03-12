@@ -1,4 +1,3 @@
-import { lexicalEditor } from '@payloadcms/richtext-lexical'
 import { CollectionConfig } from 'payload'
 import { allowIfApiKeyOrAuthenticated } from '../utilities/accessControl'
 

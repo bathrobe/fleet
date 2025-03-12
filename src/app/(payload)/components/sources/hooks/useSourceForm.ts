@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useFormState } from 'react-dom'
 import { parseFrontmatter } from '../frontmatterParser'
 import { processSourceAction } from '../actions'
@@ -14,24 +14,21 @@ const initialState = {
 
 export function useSourceForm() {
   const [content, setContent] = useState('')
-  const [frontmatterData, setFrontmatterData] = useState(null)
-  const [parseError, setParseError] = useState(null)
+  const [frontmatterData, setFrontmatterData] = useState<any>(null)
+  const [parseError, setParseError] = useState<string | null>(null)
 
   const [state, formAction] = useFormState(processSourceAction, initialState)
 
   const handleContentChange = (newContent: string) => {
     setContent(newContent)
 
-    const result = parseFrontmatter(newContent)
-    // @ts-ignore
-    setFrontmatterData(result.data)
-    // @ts-ignore
-    setParseError(result.error)
+    const { data, error } = parseFrontmatter(newContent)
+    setFrontmatterData(data)
+    setParseError(error)
 
+    // Reset processed state when content changes
     if (state.processed) {
-      state.processed = false
-      state.result = null
-      state.error = null
+      Object.assign(state, initialState)
     }
   }
 
