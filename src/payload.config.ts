@@ -21,8 +21,14 @@ const dirname = path.dirname(filename)
 export default buildConfig({
   admin: {
     user: Users.slug,
-    importMap: {
-      baseDir: path.resolve(dirname),
+    components: {
+      views: {
+        sourceUploader: {
+          Component: '/src/app/(payload)/components/sources/SourceUploader',
+          // Component: '/src/app/(payload)/components/Test',
+          path: '/source-uploader',
+        },
+      },
     },
   },
   collections: [Users, Sources, Media, Agents, Journals, Tasks, Posts],

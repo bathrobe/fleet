@@ -15,13 +15,15 @@
     "start": "cross-env NODE_OPTIONS=--no-deprecation next start"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.39.0",
     "@payloadcms/db-postgres": "latest",
     "@payloadcms/next": "latest",
     "@payloadcms/payload-cloud": "latest",
     "@payloadcms/richtext-lexical": "^3.27.0",
     "cross-env": "^7.0.3",
     "graphql": "^16.8.1",
-    "next": "15.2.0",
+    "gray-matter": "^4.0.3",
+    "next": "15.2.2",
     "payload": "latest",
     "react": "19.0.0",
     "react-dom": "19.0.0",

@@ -1,13 +1,15 @@
 import { CollectionConfig } from 'payload'
-
+import { allowIfApiKeyOrAuthenticated } from '../utilities/accessControl'
 export const Posts: CollectionConfig = {
   slug: 'posts',
   admin: {
     useAsTitle: 'content',
   },
   access: {
-    read: () => true, // Allow anyone to read this collection
-    create: () => true, // Allow anyone to create posts
+    read: () => true,
+    create: allowIfApiKeyOrAuthenticated,
+    update: allowIfApiKeyOrAuthenticated,
+    delete: allowIfApiKeyOrAuthenticated,
   },
   fields: [
     {

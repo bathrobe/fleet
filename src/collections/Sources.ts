@@ -1,8 +1,15 @@
 import { lexicalEditor } from '@payloadcms/richtext-lexical'
 import { CollectionConfig } from 'payload'
+import { allowIfApiKeyOrAuthenticated } from '../utilities/accessControl'
 
 export const Sources: CollectionConfig = {
   slug: 'sources',
+  access: {
+    read: () => true,
+    create: allowIfApiKeyOrAuthenticated,
+    update: allowIfApiKeyOrAuthenticated,
+    delete: allowIfApiKeyOrAuthenticated,
+  },
   admin: {
     useAsTitle: 'url',
   },
