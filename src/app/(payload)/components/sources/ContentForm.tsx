@@ -12,11 +12,11 @@ export const ContentForm = ({
   content: string
   onContentChange: (value: string) => void
   frontmatterData: any
-  formAction: string
+  formAction: (formData: FormData) => void
   isSubmitting: boolean
 }) => {
   return (
-    <form action={formAction}>
+    <form action={formAction as any}>
       <textarea
         name="content"
         value={content}

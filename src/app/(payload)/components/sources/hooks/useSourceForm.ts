@@ -5,8 +5,15 @@ import { useFormState } from 'react-dom'
 import { parseFrontmatter } from '../frontmatterParser'
 import { processSourceAction } from '../actions'
 
+// Simplified state type
+interface FormState {
+  result: string | null
+  error: string | null
+  processed: boolean
+}
+
 // Initial state for form submission
-const initialState = {
+const initialState: FormState = {
   result: null,
   error: null,
   processed: false,
@@ -14,22 +21,17 @@ const initialState = {
 
 export function useSourceForm() {
   const [content, setContent] = useState('')
-  const [frontmatterData, setFrontmatterData] = useState(null)
-  const [parseError, setParseError] = useState(null)
+  const [frontmatterData, setFrontmatterData] = useState<Record<string, any> | null>(null)
+  const [parseError, setParseError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  // Use React's form state hook for the server action
   const [state, formAction] = useFormState(processSourceAction, initialState)
 
-  // Handle content changes and parse frontmatter
   const handleContentChange = (newContent: string) => {
     setContent(newContent)
 
-    // Parse frontmatter when content changes
     const result = parseFrontmatter(newContent)
-    // @ts-ignore
     setFrontmatterData(result.data)
-    // @ts-ignore
     setParseError(result.error)
 
     // Reset processed state when content changes
