@@ -4,13 +4,19 @@ import { processSourceWithLLM } from './llm/sourcePrompt'
 import { getPayload } from 'payload'
 import config from '@payload-config'
 import { parseFrontmatter, extractSourceFields } from './frontmatterParser'
+import { createAtomsFromSource } from './atoms/atomsProcessor'
 
 // Main server action exported for form handling
 export async function processSourceAction(prevState: any, formData: FormData) {
   try {
     const content = formData.get('content')
     if (!content) {
-      return { ...prevState, error: 'No content provided', processed: true }
+      return {
+        ...prevState,
+        error: 'No content provided',
+        processed: true,
+        sourceCreated: false,
+      }
     }
 
     // Parse frontmatter from content
@@ -72,6 +78,7 @@ export async function processSourceAction(prevState: any, formData: FormData) {
         result: { content: result },
         error: 'The LLM response was not valid JSON',
         processed: true,
+        sourceCreated: false,
       }
     }
 
@@ -97,21 +104,37 @@ export async function processSourceAction(prevState: any, formData: FormData) {
         data: parsedResult,
       })
 
+      // After successfully creating the source, create atoms
+      let atomsResult = null
+      if (newSource && newSource.id) {
+        atomsResult = await createAtomsFromSource(
+          newSource,
+          content.toString(), // Pass the original content
+        )
+      }
+
       return {
-        result: { ...parsedResult, id: newSource.id },
+        result: newSource,
+        atomsResult,
         error: null,
+        processed: true,
+        sourceCreated: true,
       }
     } catch (createError: any) {
       console.error('Failed to create source document:', createError, createError.data)
       return {
         result: parsedResult,
         error: `Failed to save to database: ${createError.message}`,
+        processed: true,
+        sourceCreated: false,
       }
     }
   } catch (error: any) {
     return {
       result: null,
       error: error.message || 'An error occurred while processing the content',
+      processed: true,
+      sourceCreated: false,
     }
   }
 }

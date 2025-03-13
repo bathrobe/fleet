@@ -14,6 +14,7 @@ import { Journals } from './collections/Journals'
 import { Tasks } from './collections/Tasks'
 import { Posts } from './collections/Posts'
 import { Sources } from './collections/Sources'
+import { Atoms } from './collections/Atoms'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -30,7 +31,7 @@ export default buildConfig({
       },
     },
   },
-  collections: [Users, Sources, Media, Agents, Journals, Tasks, Posts],
+  collections: [Users, Sources, Media, Agents, Journals, Tasks, Posts, Atoms],
   editor: lexicalEditor({}),
   secret: process.env.PAYLOAD_SECRET || '',
   typescript: {

@@ -73,6 +73,7 @@ export interface Config {
     journals: Journal;
     tasks: Task;
     posts: Post;
+    atoms: Atom;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
     'payload-migrations': PayloadMigration;
@@ -91,6 +92,7 @@ export interface Config {
     journals: JournalsSelect<false> | JournalsSelect<true>;
     tasks: TasksSelect<false> | TasksSelect<true>;
     posts: PostsSelect<false> | PostsSelect<true>;
+    atoms: AtomsSelect<false> | AtomsSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
     'payload-migrations': PayloadMigrationsSelect<false> | PayloadMigrationsSelect<true>;
@@ -269,6 +271,31 @@ export interface Post {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "atoms".
+ */
+export interface Atom {
+  id: number;
+  /**
+   * The full atomic idea (1-2 sentences)
+   */
+  mainContent: string;
+  /**
+   * A quote from the Source that supports this atom
+   */
+  supportingQuote?: string | null;
+  /**
+   * Additional information that supports this atom
+   */
+  supportingInfo?: string | null;
+  /**
+   * The source this atom is derived from
+   */
+  source?: (number | null) | Source;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-locked-documents".
  */
 export interface PayloadLockedDocument {
@@ -301,6 +328,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'posts';
         value: number | Post;
+      } | null)
+    | ({
+        relationTo: 'atoms';
+        value: number | Atom;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -471,6 +502,18 @@ export interface PostsSelect<T extends boolean = true> {
         posted?: T;
         url?: T;
       };
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "atoms_select".
+ */
+export interface AtomsSelect<T extends boolean = true> {
+  mainContent?: T;
+  supportingQuote?: T;
+  supportingInfo?: T;
+  source?: T;
   updatedAt?: T;
   createdAt?: T;
 }

@@ -7,8 +7,10 @@ import { processSourceAction } from '../actions'
 // Initial state for form submission
 const initialState = {
   result: null,
+  atomsResult: null,
   error: null,
   processed: false,
+  sourceCreated: false,
 }
 
 export function useSourceForm() {
@@ -33,7 +35,15 @@ export function useSourceForm() {
 
   const handleFormAction = (formData: FormData) => {
     if (!frontmatterData) return
-    return formAction(formData)
+
+    // The action will internally set processed and result fields
+    formAction(formData)
+  }
+
+  // Determine if a source was created successfully based on the sourceCreated flag directly
+  // rather than trying to infer from other properties
+  const isSourceCreated = () => {
+    return !!state.sourceCreated
   }
 
   return {
@@ -43,5 +53,7 @@ export function useSourceForm() {
     state,
     handleContentChange,
     handleFormAction,
+    isSourceCreated: isSourceCreated(),
+    sourceData: state.result,
   }
 }
