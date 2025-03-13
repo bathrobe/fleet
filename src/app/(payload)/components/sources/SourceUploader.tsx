@@ -10,7 +10,10 @@ import { SourceConfirmation } from './SourceConfirmation'
 import { useSourceForm } from './hooks/useSourceForm'
 import { AtomsDisplay } from './atoms/AtomsDisplay'
 import { LoadingIndicator } from './LoadingIndicator'
-import { checkProcessingStatus } from './actions'
+import { getPayload } from 'payload'
+
+// Status polling interval in milliseconds
+const POLLING_INTERVAL = 8000
 
 // Sidebar wrapper component for consistent styling
 const Sidebar = ({ children }: { children: React.ReactNode }) => (
@@ -47,36 +50,94 @@ export default function SourceUploader() {
     handleFormAction,
     isSourceCreated,
     sourceData,
+    clearProcessing,
   } = useSourceForm()
 
-  // Local state to track auto-refresh
-  const [refreshCount, setRefreshCount] = useState(0)
+  // Local state to track polling
+  const [pollCount, setPollCount] = useState(0)
+  const [pollStatus, setPollStatus] = useState<{
+    sourceId?: string
+    hasSource: boolean
+    hasAtoms: boolean
+    complete: boolean
+    lastUpdated: number
+  }>({
+    hasSource: false,
+    hasAtoms: false,
+    complete: false,
+    lastUpdated: Date.now(),
+  })
+
+  // Track completion - when polling shows we're done
+  useEffect(() => {
+    if (pollStatus.complete && state.isProcessing) {
+      // When poll shows complete, update the app state
+      clearProcessing()
+
+      // Force a hard refresh if sources were created to reload from server
+      if (pollStatus.hasSource && pollStatus.hasAtoms) {
+        // Wait a moment for state to be updated
+        setTimeout(() => {
+          window.location.href = '/admin/collections/sources'
+        }, 1000)
+      }
+    }
+  }, [pollStatus.complete, state.isProcessing])
 
   // Determine loading state and stage
   const isProcessing = state.isProcessing
-  const processingStage = state.processingStage
+  const processingStage = pollStatus.hasSource ? 'atoms' : 'source'
 
-  // Set up auto-refresh while processing
+  // Set up polling while processing - NOT full page refresh
   useEffect(() => {
     let intervalId: NodeJS.Timeout | null = null
 
-    // If we're processing, start the refresh interval
+    // Only poll if we have a process ID and are in processing state
     if (isProcessing) {
-      intervalId = setInterval(() => {
-        setRefreshCount((prev) => prev + 1)
+      const sourceId = state.sourceId
+      const checkStatus = async () => {
+        try {
+          // Get current source ID from state
+          const currentSourceId = state.sourceId
 
-        // Refresh the page to check for updates
-        // This is a simple approach - in a production app you might
-        // want to implement a more sophisticated polling mechanism
-        window.location.reload()
-      }, 10000) // Refresh every 10 seconds
+          // Skip if no process to check
+          if (!currentSourceId) {
+            return
+          }
+
+          const response = await fetch(`/api/source-status?sourceId=${currentSourceId}`)
+          if (response.ok) {
+            const data = await response.json()
+
+            // Update polling status based on the response
+            setPollStatus({
+              sourceId: currentSourceId,
+              hasSource: data.hasSource,
+              hasAtoms: data.hasAtoms,
+              complete: data.complete,
+              lastUpdated: Date.now(),
+            })
+
+            // Increment poll count for UI updates
+            setPollCount((prev) => prev + 1)
+          }
+        } catch (error) {
+          console.error('Error polling for status:', error)
+        }
+      }
+
+      // Start polling
+      intervalId = setInterval(checkStatus, POLLING_INTERVAL)
+
+      // Do an immediate check too
+      checkStatus()
     }
 
-    // Clean up on unmount
+    // Clean up interval on unmount
     return () => {
       if (intervalId) clearInterval(intervalId)
     }
-  }, [isProcessing])
+  }, [isProcessing, state.sourceId])
 
   // For debugging
   console.log('State:', {
@@ -87,7 +148,8 @@ export default function SourceUploader() {
     isSourceCreated,
     isProcessing,
     processingStage,
-    refreshCount,
+    pollCount,
+    pollStatus,
   })
 
   // Sidebar content with frontmatter validator and atoms (if available)
@@ -102,6 +164,12 @@ export default function SourceUploader() {
       )}
     </Sidebar>
   )
+
+  // Calculate how long we've been processing
+  const processingTime =
+    isProcessing && pollStatus.lastUpdated
+      ? Math.floor((Date.now() - pollStatus.lastUpdated) / 1000)
+      : 0
 
   return (
     <SourcePageLayout title="Source Uploader" sidebar={sidebar}>
@@ -127,7 +195,10 @@ export default function SourceUploader() {
               marginTop: '0.5rem',
             }}
           >
-            This may take a minute or two. The page will refresh automatically to show progress.
+            {pollStatus.hasSource ? 'Creating atoms from source...' : 'Processing with LLM...'}
+            <div style={{ marginTop: '0.25rem' }}>
+              {pollCount > 0 && `Status check: ${pollCount}`}
+            </div>
           </div>
         </>
       )}

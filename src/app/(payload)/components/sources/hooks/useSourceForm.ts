@@ -18,7 +18,12 @@ const initialState = {
   processingStage: null as ProcessingStage,
   message: null,
   frontmatterData: null,
+  sourceId: null, // Track the source ID for polling
+  originalContent: null, // Store the original content
 }
+
+// Storage key for persisting state
+const STORAGE_KEY = 'sourceUploadState'
 
 export function useSourceForm() {
   const [content, setContent] = useState('')
@@ -33,12 +38,13 @@ export function useSourceForm() {
   // Init from localStorage if available (client-side only)
   useEffect(() => {
     if (typeof window !== 'undefined' && !isInitialized) {
-      const savedState = localStorage.getItem('sourceUploadState')
-      if (savedState) {
-        try {
+      try {
+        const savedState = localStorage.getItem(STORAGE_KEY)
+        if (savedState) {
           const parsed = JSON.parse(savedState)
           // Only restore if we were previously processing
-          if (parsed.isProcessing) {
+          if (parsed.isProcessing && parsed.sourceId) {
+            console.log('Restoring processing state from storage:', parsed.sourceId)
             Object.assign(state, parsed)
 
             // If there was content, restore it
@@ -48,9 +54,9 @@ export function useSourceForm() {
               setFrontmatterData(data)
             }
           }
-        } catch (e) {
-          console.error('Error parsing saved state:', e)
         }
+      } catch (e) {
+        console.error('Error parsing saved state:', e)
       }
       setIsInitialized(true)
     }
@@ -58,16 +64,18 @@ export function useSourceForm() {
 
   // Save state to localStorage when it changes and we're processing
   useEffect(() => {
-    if (typeof window !== 'undefined' && isInitialized && state.isProcessing) {
-      localStorage.setItem(
-        'sourceUploadState',
-        JSON.stringify({
-          ...state,
-          originalContent: content,
-        }),
-      )
+    if (typeof window !== 'undefined' && isInitialized && state.isProcessing && state.sourceId) {
+      const stateToSave = {
+        isProcessing: state.isProcessing,
+        sourceId: state.sourceId,
+        processingStage: state.processingStage,
+        originalContent: content,
+      }
+
+      console.log('Saving processing state to storage:', state.sourceId)
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(stateToSave))
     }
-  }, [state, content, isInitialized])
+  }, [state.isProcessing, state.sourceId, state.processingStage, content, isInitialized])
 
   const handleContentChange = (newContent: string) => {
     setContent(newContent)
@@ -82,7 +90,7 @@ export function useSourceForm() {
 
       // Also clear localStorage
       if (typeof window !== 'undefined') {
-        localStorage.removeItem('sourceUploadState')
+        localStorage.removeItem(STORAGE_KEY)
       }
     }
   }
@@ -115,16 +123,19 @@ export function useSourceForm() {
     state.processingStage = null
   }
 
-  // Determine if a source was created successfully based on the sourceCreated flag directly
+  // Determine if a source was created successfully
   const isSourceCreated = () => {
     return !!state.sourceCreated
   }
 
-  // Clear processing state if finished
+  // Clear processing state
   const clearProcessing = () => {
     if (typeof window !== 'undefined') {
-      localStorage.removeItem('sourceUploadState')
+      console.log('Clearing processing state')
+      localStorage.removeItem(STORAGE_KEY)
     }
+
+    // Reset processing-related state but keep results
     Object.assign(state, {
       ...state,
       isProcessing: false,
