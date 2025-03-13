@@ -78,7 +78,7 @@ export const AtomsDisplay = ({ atoms }: AtomDisplayProps) => {
                 paddingLeft: '0.5rem',
               }}
             >
-              "{atom.supportingQuote}"
+              &ldquo;{atom.supportingQuote}&rdquo;
             </div>
           </div>
         ))}
