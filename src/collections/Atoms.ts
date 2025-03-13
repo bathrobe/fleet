@@ -3,15 +3,26 @@ import { CollectionConfig } from 'payload'
 export const Atoms: CollectionConfig = {
   slug: 'atoms',
   admin: {
-    useAsTitle: 'mainContent',
-    defaultColumns: ['mainContent', 'source', 'tags'],
+    useAsTitle: 'title',
+    defaultColumns: ['title', 'source', 'mainContent'],
   },
   fields: [
+    {
+      name: 'title',
+      type: 'text',
+      required: true,
+      admin: {
+        description:
+          'A concise, descriptive title (4-8 words), shorter and different from the mainContent',
+      },
+    },
     {
       name: 'pineconeId',
       type: 'text',
       admin: {
         description: 'The ID of the atom in Pinecone',
+        readOnly: true,
+        position: 'sidebar',
       },
     },
     {

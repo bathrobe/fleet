@@ -276,6 +276,10 @@ export interface Post {
 export interface Atom {
   id: number;
   /**
+   * A concise, descriptive title (4-8 words), shorter and different from the mainContent
+   */
+  title: string;
+  /**
    * The ID of the atom in Pinecone
    */
   pineconeId?: string | null;
@@ -514,6 +518,7 @@ export interface PostsSelect<T extends boolean = true> {
  * via the `definition` "atoms_select".
  */
 export interface AtomsSelect<T extends boolean = true> {
+  title?: T;
   pineconeId?: T;
   mainContent?: T;
   supportingQuote?: T;

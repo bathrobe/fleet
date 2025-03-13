@@ -134,7 +134,7 @@ The JSON should have this structure:
 {
   "content": [
     {
-      "title": "A concise, descriptive title (4-8 words)",
+      "title": "A concise, descriptive title (4-8 words), shorter and different from the mainContent",
       "mainContent": "A single, coherent idea that stands on its own (1-2 sentences)",
       "supportingInfo": "- First supporting point as a complete sentence.\\n- Second supporting point as a complete sentence.\\n- Third supporting point as a complete sentence.",
       "supportingQuote": "A direct quote from the source that supports the main idea (2-3 sentences, verbatim)."
