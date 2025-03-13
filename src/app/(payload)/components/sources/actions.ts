@@ -5,10 +5,8 @@ import { getPayload } from 'payload'
 import config from '@payload-config'
 import { parseFrontmatter, extractSourceFields } from './frontmatterParser'
 import { createAtomsFromSource } from './atoms/atomsProcessor'
-import { revalidatePath } from 'next/cache'
-import { randomUUID } from 'crypto'
 
-// This is the first step of the process - it validates content and queues the LLM processing
+// Main server action exported for form handling
 export async function processSourceAction(prevState: any, formData: FormData) {
   try {
     const content = formData.get('content')
@@ -23,17 +21,12 @@ export async function processSourceAction(prevState: any, formData: FormData) {
       }
     }
 
-    // Generate a unique ID for this processing session
-    const processingId = randomUUID()
-
     // Update state to show we're processing source
     const processingState = {
       ...prevState,
       isProcessing: true,
       processingStage: 'source',
       error: null,
-      originalContent: content.toString(),
-      sourceId: processingId, // We'll use this to track the process until we have a real source ID
     }
 
     // Parse frontmatter from content
@@ -53,74 +46,18 @@ export async function processSourceAction(prevState: any, formData: FormData) {
       ? ['title', 'url'].filter((field) => !frontmatterData[field])
       : []
 
-    if (frontmatterPresent && frontmatterMissingFields.length > 0) {
-      return {
-        ...processingState,
-        error: `Missing required frontmatter fields: ${frontmatterMissingFields.join(', ')}`,
-        processed: true,
-        isProcessing: false,
-        processingStage: null,
-      }
-    }
-
-    // Instead of waiting for the LLM response here, immediately return with processing state
-    // and start the async processing chain
-    scheduleLLMProcessing(
+    // Pass the content without frontmatter to the LLM
+    const result = await processSourceWithLLM(
       contentWithoutFrontmatter || content.toString(),
-      frontmatterData,
-      processingId, // Pass the processing ID for tracking
+      process.env.ANTHROPIC_API_KEY || '',
     )
 
-    return {
+    // Update state to show we've completed source processing
+    const sourceProcessedState = {
       ...processingState,
-      frontmatterData,
-      message:
-        'Processing started. Please wait while the content is processed. This may take a minute or two.',
-      // Include the original content to be used in subsequent steps
-      originalContent: content.toString(),
+      result,
+      processingStage: 'atoms',
     }
-  } catch (error: any) {
-    return {
-      ...prevState,
-      result: null,
-      error: error.message || 'An error occurred while processing the content',
-      processed: true,
-      sourceCreated: false,
-      isProcessing: false,
-      processingStage: null,
-    }
-  }
-}
-
-// This function starts the LLM processing in the background
-async function scheduleLLMProcessing(content: string, frontmatterData: any, processingId: string) {
-  try {
-    console.log(`Starting LLM processing for session ${processingId}`)
-
-    // Process with LLM and handle the result
-    processSourceWithLLM(content, process.env.ANTHROPIC_API_KEY || '')
-      .then((result) => {
-        console.log(`LLM processing completed for session ${processingId}`)
-        // After LLM processing, schedule the source creation
-        handleLLMResult(result, frontmatterData, content, processingId)
-      })
-      .catch((error) => {
-        console.error(`Error in LLM processing for session ${processingId}:`, error)
-      })
-  } catch (error) {
-    console.error(`Error scheduling LLM processing for session ${processingId}:`, error)
-  }
-}
-
-// This function handles the LLM result and creates the source
-async function handleLLMResult(
-  result: any,
-  frontmatterData: any,
-  originalContent: string,
-  processingId: string,
-) {
-  try {
-    console.log(`Handling LLM result for session ${processingId}`)
 
     // Parse the result as JSON if it's a string
     let parsedResult: any
@@ -152,104 +89,90 @@ async function handleLLMResult(
       parsedResult = frontmatterData
         ? { ...parsedResult, ...extractSourceFields(frontmatterData) }
         : parsedResult
-
-      // Check for missing required fields
-      const missingRequiredFields = ['title', 'url'].filter((field) => !parsedResult[field])
-
-      if (missingRequiredFields.length > 0) {
-        console.error(`Missing required fields: ${missingRequiredFields.join(', ')}`)
-        return
-      }
-
-      // Add the processing ID as a temporary field for tracking
-      parsedResult.processingId = processingId
-
-      // Create the source
-      await createSourceDocument(parsedResult, originalContent, processingId)
     } catch (parseError) {
-      console.error(`Failed to parse LLM response as JSON for session ${processingId}:`, parseError)
-    }
-  } catch (error) {
-    console.error(`Error handling LLM result for session ${processingId}:`, error)
-  }
-}
-
-// This function creates the source document and triggers atom generation
-async function createSourceDocument(
-  sourceData: any,
-  originalContent: string,
-  processingId: string,
-) {
-  try {
-    console.log(`Creating source document for session ${processingId}`)
-
-    // @ts-ignore
-    const payload = await getPayload({ config, importMap: {} })
-
-    // Create the source document
-    const newSource = await payload.create({
-      collection: 'sources',
-      data: sourceData,
-    })
-
-    console.log(`Source document created for session ${processingId}, ID: ${newSource.id}`)
-
-    // After creating the source, schedule atom generation
-    if (newSource && newSource.id) {
-      console.log(`Starting atom generation for source ${newSource.id}`)
-
-      try {
-        // Create atoms for this source
-        const atomsResult = await createAtomsFromSource(newSource, originalContent)
-
-        console.log(`Atom generation completed for source ${newSource.id}:`, atomsResult)
-
-        // Revalidate the path to update UI
-        revalidatePath('/admin/source-uploader')
-        revalidatePath('/admin/collections/sources')
-      } catch (error) {
-        console.error(`Error creating atoms for source ${newSource.id}:`, error)
+      console.error('Failed to parse LLM response as JSON:', parseError)
+      return {
+        ...sourceProcessedState,
+        result: { content: result },
+        error: 'The LLM response was not valid JSON',
+        processed: true,
+        sourceCreated: false,
+        isProcessing: false,
+        processingStage: null,
       }
     }
-  } catch (error) {
-    console.error(`Error creating source document for session ${processingId}:`, error)
-  }
-}
 
-// New function to check processing status
-export async function checkProcessingStatus(sourceId: string) {
-  try {
+    // Check for missing required fields
+    const missingRequiredFields = ['title', 'url'].filter((field) => !parsedResult[field])
+
+    if (missingRequiredFields.length > 0) {
+      return {
+        ...sourceProcessedState,
+        result: parsedResult,
+        error: `Missing required fields: ${missingRequiredFields.join(', ')}`,
+        processed: true,
+        sourceCreated: false,
+        isProcessing: false,
+        processingStage: null,
+        frontmatterMissingFields:
+          frontmatterMissingFields.length > 0 ? frontmatterMissingFields : null,
+      }
+    }
+
     // @ts-ignore
     const payload = await getPayload({ config })
+    try {
+      // Update state to show we're in atoms generation stage
+      const atomsProcessingState = {
+        ...sourceProcessedState,
+        processingStage: 'atoms',
+      }
 
-    // Check if source exists
-    const source = await payload.findByID({
-      collection: 'sources',
-      id: sourceId,
-    })
+      const newSource = await payload.create({
+        collection: 'sources',
+        data: parsedResult,
+      })
 
-    if (!source) {
-      return { isProcessing: true, stage: 'source' }
+      // After successfully creating the source, create atoms
+      let atomsResult = null
+      if (newSource && newSource.id) {
+        atomsResult = await createAtomsFromSource(
+          newSource,
+          content.toString(), // Pass the original content
+        )
+      }
+
+      return {
+        ...atomsProcessingState,
+        result: newSource,
+        atomsResult,
+        error: null,
+        processed: true,
+        sourceCreated: true,
+        isProcessing: false,
+        processingStage: null,
+      }
+    } catch (createError: any) {
+      console.error('Failed to create source document:', createError, createError.data)
+      return {
+        ...sourceProcessedState,
+        result: parsedResult,
+        error: `Failed to save to database: ${createError.message}`,
+        processed: true,
+        sourceCreated: false,
+        isProcessing: false,
+        processingStage: null,
+      }
     }
-
-    // Check if atoms exist for this source
-    const atoms = await payload.find({
-      collection: 'atoms',
-      where: {
-        source: {
-          equals: sourceId,
-        },
-      },
-    })
-
-    if (!atoms || atoms.docs.length === 0) {
-      return { isProcessing: true, stage: 'atoms' }
+  } catch (error: any) {
+    return {
+      ...prevState,
+      result: null,
+      error: error.message || 'An error occurred while processing the content',
+      processed: true,
+      sourceCreated: false,
+      isProcessing: false,
+      processingStage: null,
     }
-
-    // Processing is complete
-    return { isProcessing: false, stage: null }
-  } catch (error) {
-    console.error('Error checking processing status:', error)
-    return { isProcessing: false, stage: null, error: 'Error checking status' }
   }
 }
