@@ -2,14 +2,12 @@
 
 import React, { useEffect, useState } from 'react'
 
-type ProcessingStage = 'source' | 'atoms' | null
-
 interface LoadingIndicatorProps {
   isProcessing: boolean
-  stage: ProcessingStage
+  stage: 'source' | 'atoms' | null // keeping the type but not using stage for display
 }
 
-export const LoadingIndicator: React.FC<LoadingIndicatorProps> = ({ isProcessing, stage }) => {
+export const LoadingIndicator: React.FC<LoadingIndicatorProps> = ({ isProcessing }) => {
   const [dots, setDots] = useState('')
 
   // Animation for the blinking dots
@@ -28,14 +26,6 @@ export const LoadingIndicator: React.FC<LoadingIndicatorProps> = ({ isProcessing
   }, [isProcessing])
 
   if (!isProcessing) return null
-
-  let message = 'Processing'
-
-  if (stage === 'source') {
-    message = 'Analyzing source with Claude'
-  } else if (stage === 'atoms') {
-    message = 'Generating atoms from source'
-  }
 
   return (
     <div
@@ -85,63 +75,9 @@ export const LoadingIndicator: React.FC<LoadingIndicatorProps> = ({ isProcessing
           />
         </svg>
         <span style={{ fontSize: '1rem', fontWeight: 500 }}>
-          {message}
+          Processing
           <span style={{ width: '1.5rem', display: 'inline-block' }}>{dots}</span>
         </span>
-      </div>
-
-      {/* Progress stages */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          marginTop: '1rem',
-          width: '100%',
-          maxWidth: '300px',
-        }}
-      >
-        <div
-          style={{
-            flex: 1,
-            height: '4px',
-            backgroundColor: stage === 'source' ? '#90CDF4' : '#4A5568',
-            borderRadius: '2px',
-          }}
-        />
-        <div
-          style={{
-            width: '16px',
-            height: '16px',
-            borderRadius: '50%',
-            backgroundColor: stage === 'atoms' ? '#90CDF4' : '#4A5568',
-            margin: '0 0.5rem',
-            transition: 'background-color 0.3s ease',
-          }}
-        />
-        <div
-          style={{
-            flex: 1,
-            height: '4px',
-            backgroundColor: stage === 'atoms' ? '#90CDF4' : '#4A5568',
-            borderRadius: '2px',
-          }}
-        />
-      </div>
-
-      {/* Stage labels */}
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          width: '100%',
-          maxWidth: '300px',
-          fontSize: '0.75rem',
-          marginTop: '0.25rem',
-          color: '#A0AEC0',
-        }}
-      >
-        <span style={{ color: stage === 'source' ? '#90CDF4' : '#A0AEC0' }}>Source Analysis</span>
-        <span style={{ color: stage === 'atoms' ? '#90CDF4' : '#A0AEC0' }}>Atoms Generation</span>
       </div>
     </div>
   )
