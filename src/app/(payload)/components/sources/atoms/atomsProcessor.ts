@@ -3,13 +3,14 @@
 import { getPayload } from 'payload'
 import config from '@payload-config'
 import { generateAtomsWithLLM } from './atomsPrompt'
+import { upsertVectors } from '../vectors/actions'
 
 interface AtomData {
   title: string
   mainContent: string
   supportingInfo: string[]
   supportingQuote: string
-  source?: string // Payload ID of the source document
+  source?: any // Payload ID of the source document
 }
 
 /**
@@ -44,6 +45,7 @@ export async function createAtomsFromSource(
     for (const atom of atoms) {
       try {
         // Prepare atom data with reference to source
+
         const atomData = {
           ...atom,
           source: sourceData.id, // Link to the source document
@@ -55,6 +57,29 @@ export async function createAtomsFromSource(
           data: atomData,
         })
 
+        try {
+          console.log('Upserting vector for atom:', createdAtom)
+          const vectorResult = await upsertVectors(createdAtom)
+          console.log(`Vector created for atom: ${createdAtom.id}`, vectorResult)
+          // Update the atom with the pineconeId from the vector result
+          if (vectorResult && vectorResult.pineconeAtomId) {
+            await payload.update({
+              collection: 'atoms',
+              id: vectorResult.payloadAtomId,
+              data: {
+                pineconeId: vectorResult.pineconeAtomId,
+              },
+            })
+            console.log(
+              `Updated atom ${vectorResult.payloadAtomId} with pineconeId: ${vectorResult.pineconeAtomId}`,
+            )
+          }
+        } catch (vectorError: any) {
+          console.error(
+            `Failed to create vector for atom ${createdAtom.id}: ${vectorError.message}`,
+          )
+          // Continue processing other atoms even if vector creation fails
+        }
         createdAtoms.push(createdAtom)
       } catch (atomError: any) {
         console.error(`Failed to create atom: ${atomError.message}`, atom)

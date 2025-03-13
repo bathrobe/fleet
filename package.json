@@ -20,6 +20,7 @@
     "@payloadcms/next": "latest",
     "@payloadcms/payload-cloud": "latest",
     "@payloadcms/richtext-lexical": "^3.27.0",
+    "@pinecone-database/pinecone": "^5.1.1",
     "cross-env": "^7.0.3",
     "graphql": "^16.8.1",
     "gray-matter": "^4.0.3",
@@ -27,7 +28,9 @@
     "payload": "latest",
     "react": "19.0.0",
     "react-dom": "19.0.0",
-    "sharp": "0.32.6"
+    "sharp": "0.32.6",
+    "uuid": "^11.1.0",
+    "uuidv4": "^6.2.13"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.2.0",

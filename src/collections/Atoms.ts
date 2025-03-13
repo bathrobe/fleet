@@ -8,6 +8,13 @@ export const Atoms: CollectionConfig = {
   },
   fields: [
     {
+      name: 'pineconeId',
+      type: 'text',
+      admin: {
+        description: 'The ID of the atom in Pinecone',
+      },
+    },
+    {
       name: 'mainContent',
       type: 'textarea',
       required: true,
