@@ -2,58 +2,39 @@
 
 import React, { useEffect, useState } from 'react'
 
+type ProcessingStage = 'source' | 'atoms' | null
+
 interface LoadingIndicatorProps {
-  status: string
+  isProcessing: boolean
+  stage: ProcessingStage
 }
 
-export const LoadingIndicator = ({ status }: LoadingIndicatorProps) => {
-  // Add client-side timer to show dynamic progress
-  const [dots, setDots] = useState(0)
-  const [elapsed, setElapsed] = useState(0)
+export const LoadingIndicator: React.FC<LoadingIndicatorProps> = ({ isProcessing, stage }) => {
+  const [dots, setDots] = useState('')
 
+  // Animation for the blinking dots
   useEffect(() => {
-    // Set up interval for animated dots
-    const dotsInterval = setInterval(() => {
-      setDots((prev) => (prev + 1) % 4)
+    if (!isProcessing) return
+
+    // Update dots every 500ms
+    const interval = setInterval(() => {
+      setDots((prev) => {
+        if (prev.length >= 3) return ''
+        return prev + '.'
+      })
     }, 500)
 
-    // Set up interval for elapsed time
-    const elapsedInterval = setInterval(() => {
-      setElapsed((prev) => prev + 1)
-    }, 1000)
+    return () => clearInterval(interval)
+  }, [isProcessing])
 
-    // Clean up intervals
-    return () => {
-      clearInterval(dotsInterval)
-      clearInterval(elapsedInterval)
-    }
-  }, [])
+  if (!isProcessing) return null
 
-  // Generate animated dots
-  const animatedDots = '.'.repeat(dots)
+  let message = 'Processing'
 
-  // Format elapsed time
-  const formatElapsed = () => {
-    if (elapsed < 60) return `${elapsed}s`
-    const minutes = Math.floor(elapsed / 60)
-    const seconds = elapsed % 60
-    return `${minutes}m ${seconds}s`
-  }
-
-  // Map status to user-friendly message
-  const getMessage = () => {
-    switch (status) {
-      case 'processing_llm':
-        return 'Processing content with AI'
-      case 'creating_source':
-        return 'Creating source document'
-      case 'creating_atoms':
-        return 'Generating atomic concepts'
-      case 'processing':
-        return 'Processing your request'
-      default:
-        return 'Processing'
-    }
+  if (stage === 'source') {
+    message = 'Analyzing source with Claude'
+  } else if (stage === 'atoms') {
+    message = 'Generating atoms from source'
   }
 
   return (
@@ -62,64 +43,106 @@ export const LoadingIndicator = ({ status }: LoadingIndicatorProps) => {
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        padding: '1.5rem',
-        marginTop: '1rem',
-        marginBottom: '1rem',
-        backgroundColor: '#1a2233',
+        justifyContent: 'center',
+        padding: '1rem',
+        margin: '1rem 0',
+        backgroundColor: '#1E293B',
         borderRadius: '8px',
-        border: '1px solid #3d4e6e',
-        color: '#e1e8f5',
+        border: '1px solid #2D3748',
+        color: '#E2E8F0',
+        fontFamily: 'monospace',
       }}
     >
       <div
         style={{
-          marginBottom: '1rem',
-          fontSize: '1.1rem',
-          fontWeight: 'bold',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.5rem',
         }}
       >
-        {getMessage()}
-        {animatedDots}
+        <svg
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          style={{ animation: 'spin 2s linear infinite' }}
+        >
+          <style>
+            {`
+              @keyframes spin {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
+              }
+            `}
+          </style>
+          <circle cx="12" cy="12" r="10" stroke="#4A5568" strokeWidth="2" />
+          <path
+            d="M12 2C6.48 2 2 6.48 2 12"
+            stroke="#90CDF4"
+            strokeWidth="3"
+            strokeLinecap="round"
+          />
+        </svg>
+        <span style={{ fontSize: '1rem', fontWeight: 500 }}>
+          {message}
+          <span style={{ width: '1.5rem', display: 'inline-block' }}>{dots}</span>
+        </span>
       </div>
 
-      <div style={{ fontSize: '0.9rem', color: '#a9c5f5', marginBottom: '1rem' }}>
-        Time elapsed: {formatElapsed()}
-      </div>
-
+      {/* Progress stages */}
       <div
         style={{
+          display: 'flex',
+          alignItems: 'center',
+          marginTop: '1rem',
           width: '100%',
-          height: '6px',
-          backgroundColor: '#2a3a5a',
-          borderRadius: '3px',
-          overflow: 'hidden',
-          position: 'relative',
+          maxWidth: '300px',
         }}
       >
         <div
           style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            height: '100%',
-            width: '30%',
-            backgroundColor: '#4CAF50',
-            borderRadius: '3px',
-            animation: 'loading-animation 2s infinite ease-in-out',
+            flex: 1,
+            height: '4px',
+            backgroundColor: stage === 'source' ? '#90CDF4' : '#4A5568',
+            borderRadius: '2px',
+          }}
+        />
+        <div
+          style={{
+            width: '16px',
+            height: '16px',
+            borderRadius: '50%',
+            backgroundColor: stage === 'atoms' ? '#90CDF4' : '#4A5568',
+            margin: '0 0.5rem',
+            transition: 'background-color 0.3s ease',
+          }}
+        />
+        <div
+          style={{
+            flex: 1,
+            height: '4px',
+            backgroundColor: stage === 'atoms' ? '#90CDF4' : '#4A5568',
+            borderRadius: '2px',
           }}
         />
       </div>
 
-      <style jsx>{`
-        @keyframes loading-animation {
-          0% {
-            left: -30%;
-          }
-          100% {
-            left: 100%;
-          }
-        }
-      `}</style>
+      {/* Stage labels */}
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          width: '100%',
+          maxWidth: '300px',
+          fontSize: '0.75rem',
+          marginTop: '0.25rem',
+          color: '#A0AEC0',
+        }}
+      >
+        <span style={{ color: stage === 'source' ? '#90CDF4' : '#A0AEC0' }}>Source Analysis</span>
+        <span style={{ color: stage === 'atoms' ? '#90CDF4' : '#A0AEC0' }}>Atoms Generation</span>
+      </div>
     </div>
   )
 }

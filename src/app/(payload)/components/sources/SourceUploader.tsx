@@ -8,6 +8,7 @@ import { SourcePageLayout } from './SourcePageLayout'
 import { SourceConfirmation } from './SourceConfirmation'
 import { useSourceForm } from './hooks/useSourceForm'
 import { AtomsDisplay } from './atoms/AtomsDisplay'
+import { LoadingIndicator } from './LoadingIndicator'
 
 // Sidebar wrapper component for consistent styling
 const Sidebar = ({ children }: { children: React.ReactNode }) => (
@@ -46,6 +47,10 @@ export default function SourceUploader() {
     sourceData,
   } = useSourceForm()
 
+  // Determine loading state and stage
+  const isProcessing = state.isProcessing
+  const processingStage = state.processingStage
+
   // For debugging
   console.log('State:', {
     processed: state.processed,
@@ -53,6 +58,8 @@ export default function SourceUploader() {
     hasResult: !!state.result,
     hasError: !!state.error,
     isSourceCreated,
+    isProcessing,
+    processingStage,
   })
 
   // Sidebar content with frontmatter validator and atoms (if available)
@@ -77,7 +84,11 @@ export default function SourceUploader() {
         onContentChange={handleContentChange}
         frontmatterData={frontmatterData}
         formAction={handleFormAction}
+        isProcessing={isProcessing}
       />
+
+      {/* Show loading indicator when processing */}
+      {isProcessing && <LoadingIndicator isProcessing={isProcessing} stage={processingStage} />}
 
       {/* Display any form submission errors */}
       {state.error && <ErrorDisplay error={state.error} />}

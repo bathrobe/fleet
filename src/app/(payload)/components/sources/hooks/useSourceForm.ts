@@ -4,6 +4,9 @@ import { useState, useActionState } from 'react'
 import { parseFrontmatter } from '../frontmatterParser'
 import { processSourceAction } from '../actions'
 
+// Processing stages for the loading indicator
+type ProcessingStage = 'source' | 'atoms' | null
+
 // Initial state for form submission
 const initialState = {
   result: null,
@@ -11,6 +14,8 @@ const initialState = {
   error: null,
   processed: false,
   sourceCreated: false,
+  isProcessing: false,
+  processingStage: null as ProcessingStage,
 }
 
 export function useSourceForm() {
@@ -36,8 +41,29 @@ export function useSourceForm() {
   const handleFormAction = (formData: FormData) => {
     if (!frontmatterData) return
 
+    // Set processing state before starting
+    Object.assign(state, {
+      ...initialState,
+      isProcessing: true,
+      processingStage: 'source',
+    })
+
     // The action will internally set processed and result fields
     formAction(formData)
+  }
+
+  // Update processing stage based on state changes
+  if (state.isProcessing && state.result && !state.sourceCreated) {
+    // If we have source results but no atoms yet, update to atoms stage
+    if (state.processingStage === 'source') {
+      state.processingStage = 'atoms'
+    }
+  }
+
+  // Turn off processing when complete
+  if (state.isProcessing && state.processed) {
+    state.isProcessing = false
+    state.processingStage = null
   }
 
   // Determine if a source was created successfully based on the sourceCreated flag directly

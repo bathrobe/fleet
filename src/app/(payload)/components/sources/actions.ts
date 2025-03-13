@@ -16,7 +16,17 @@ export async function processSourceAction(prevState: any, formData: FormData) {
         error: 'No content provided',
         processed: true,
         sourceCreated: false,
+        isProcessing: false,
+        processingStage: null,
       }
+    }
+
+    // Update state to show we're processing source
+    const processingState = {
+      ...prevState,
+      isProcessing: true,
+      processingStage: 'source',
+      error: null,
     }
 
     // Parse frontmatter from content
@@ -41,6 +51,13 @@ export async function processSourceAction(prevState: any, formData: FormData) {
       contentWithoutFrontmatter || content.toString(),
       process.env.ANTHROPIC_API_KEY || '',
     )
+
+    // Update state to show we've completed source processing
+    const sourceProcessedState = {
+      ...processingState,
+      result,
+      processingStage: 'atoms',
+    }
 
     // Parse the result as JSON if it's a string
     let parsedResult: any
@@ -75,10 +92,13 @@ export async function processSourceAction(prevState: any, formData: FormData) {
     } catch (parseError) {
       console.error('Failed to parse LLM response as JSON:', parseError)
       return {
+        ...sourceProcessedState,
         result: { content: result },
         error: 'The LLM response was not valid JSON',
         processed: true,
         sourceCreated: false,
+        isProcessing: false,
+        processingStage: null,
       }
     }
 
@@ -87,10 +107,13 @@ export async function processSourceAction(prevState: any, formData: FormData) {
 
     if (missingRequiredFields.length > 0) {
       return {
+        ...sourceProcessedState,
         result: parsedResult,
         error: `Missing required fields: ${missingRequiredFields.join(', ')}`,
         processed: true,
         sourceCreated: false,
+        isProcessing: false,
+        processingStage: null,
         frontmatterMissingFields:
           frontmatterMissingFields.length > 0 ? frontmatterMissingFields : null,
       }
@@ -99,6 +122,12 @@ export async function processSourceAction(prevState: any, formData: FormData) {
     // @ts-ignore
     const payload = await getPayload({ config })
     try {
+      // Update state to show we're in atoms generation stage
+      const atomsProcessingState = {
+        ...sourceProcessedState,
+        processingStage: 'atoms',
+      }
+
       const newSource = await payload.create({
         collection: 'sources',
         data: parsedResult,
@@ -114,27 +143,36 @@ export async function processSourceAction(prevState: any, formData: FormData) {
       }
 
       return {
+        ...atomsProcessingState,
         result: newSource,
         atomsResult,
         error: null,
         processed: true,
         sourceCreated: true,
+        isProcessing: false,
+        processingStage: null,
       }
     } catch (createError: any) {
       console.error('Failed to create source document:', createError, createError.data)
       return {
+        ...sourceProcessedState,
         result: parsedResult,
         error: `Failed to save to database: ${createError.message}`,
         processed: true,
         sourceCreated: false,
+        isProcessing: false,
+        processingStage: null,
       }
     }
   } catch (error: any) {
     return {
+      ...prevState,
       result: null,
       error: error.message || 'An error occurred while processing the content',
       processed: true,
       sourceCreated: false,
+      isProcessing: false,
+      processingStage: null,
     }
   }
 }
