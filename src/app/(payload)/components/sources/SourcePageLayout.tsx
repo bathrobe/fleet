@@ -1,4 +1,4 @@
-'use client'
+export const maxDuration = 300 // 5 minutes
 
 import React from 'react'
 import Link from 'next/link'

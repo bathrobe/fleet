@@ -10,7 +10,6 @@ import { useSourceForm } from './hooks/useSourceForm'
 import { AtomsDisplay } from './atoms/AtomsDisplay'
 import { LoadingIndicator } from './LoadingIndicator'
 
-export const maxDuration = 300 // 5 minutes
 // Sidebar wrapper component for consistent styling
 const Sidebar = ({ children }: { children: React.ReactNode }) => (
   <div
