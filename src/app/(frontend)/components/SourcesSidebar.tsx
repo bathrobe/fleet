@@ -9,17 +9,23 @@ interface SourcesSidebarProps {
 
 export const SourcesSidebar = ({ sources }: SourcesSidebarProps) => {
   return (
-    <aside className="sources-sidebar">
-      <h2>Sources</h2>
-      <div className="sources-list">
+    <aside className="w-[300px] h-screen bg-slate-900 p-6 border-r border-slate-700 overflow-y-auto">
+      <h2 className="text-xl text-slate-100 mb-6 pb-2 border-b border-slate-700">Sources</h2>
+      <div className="flex flex-col gap-4">
         {sources.map((source) => (
-          <Link key={source.id} href={`/sources/${source.id}`} className="source-item">
-            <h3>{source.title}</h3>
-            <p>{source.oneSentenceSummary}</p>
+          <Link
+            key={source.id}
+            href={`/sources/${source.id}`}
+            className="p-4 bg-slate-800 rounded-lg border border-slate-700 transition-all duration-200 hover:bg-slate-700 hover:-translate-y-0.5 text-slate-100 no-underline"
+          >
+            <h3 className="text-blue-200 text-base mb-2">{source.title}</h3>
+            <p className="text-slate-300 text-sm mb-3 leading-relaxed">
+              {source.oneSentenceSummary}
+            </p>
             {source.tags && source.tags.length > 0 && (
-              <div className="tags">
+              <div className="flex flex-wrap gap-2">
                 {source.tags.map((tag, i) => (
-                  <span key={i} className="tag">
+                  <span key={i} className="bg-slate-900 text-blue-300 px-2 py-1 rounded text-xs">
                     {tag.tag}
                   </span>
                 ))}
@@ -28,72 +34,6 @@ export const SourcesSidebar = ({ sources }: SourcesSidebarProps) => {
           </Link>
         ))}
       </div>
-      <style jsx>{`
-        .sources-sidebar {
-          width: 300px;
-          height: 100vh;
-          background: #1a2233;
-          padding: 1.5rem;
-          border-right: 1px solid #2a3a5a;
-          overflow-y: auto;
-        }
-
-        h2 {
-          color: #e1e8f5;
-          font-size: 1.5rem;
-          margin-bottom: 1.5rem;
-          padding-bottom: 0.5rem;
-          border-bottom: 1px solid #2a3a5a;
-        }
-
-        .sources-list {
-          display: flex;
-          flex-direction: column;
-          gap: 1rem;
-        }
-
-        .source-item {
-          padding: 1rem;
-          background: #2a3a5a;
-          border-radius: 8px;
-          border: 1px solid #3d4e6e;
-          transition: all 0.2s ease;
-          text-decoration: none;
-          color: inherit;
-        }
-
-        .source-item:hover {
-          background: #3a4a6a;
-          transform: translateY(-2px);
-        }
-
-        .source-item h3 {
-          color: #c5e1ff;
-          font-size: 1rem;
-          margin: 0 0 0.5rem 0;
-        }
-
-        .source-item p {
-          color: #a9c5f5;
-          font-size: 0.9rem;
-          margin: 0 0 0.75rem 0;
-          line-height: 1.4;
-        }
-
-        .tags {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 0.5rem;
-        }
-
-        .tag {
-          background: #1a2233;
-          color: #8bb8ff;
-          padding: 0.25rem 0.5rem;
-          border-radius: 4px;
-          font-size: 0.8rem;
-        }
-      `}</style>
     </aside>
   )
 }

@@ -12,13 +12,11 @@ export default async function HomePage() {
   })
 
   return (
-    <div style={{ display: 'flex', height: '100vh' }}>
-      <div style={{ width: '300px', height: '100%' }}>
-        <SourcesSidebar sources={sources} />
-      </div>
-      <main style={{ flex: 1, padding: '1.5rem' }}>
-        <h1>Welcome to the Sources Library</h1>
-        <p>Select a source from the sidebar to view its details.</p>
+    <div className="flex h-screen">
+      <SourcesSidebar sources={sources} />
+      <main className="flex-1 p-6">
+        <h1 className="text-3xl font-bold mb-4">Welcome to the Sources Library</h1>
+        <p className="text-gray-600">Select a source from the sidebar to view its details.</p>
       </main>
     </div>
   )

@@ -28,44 +28,16 @@ export const LoadingIndicator: React.FC<LoadingIndicatorProps> = ({ isProcessing
   if (!isProcessing) return null
 
   return (
-    <div
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '1rem',
-        margin: '1rem 0',
-        backgroundColor: '#1E293B',
-        borderRadius: '8px',
-        border: '1px solid #2D3748',
-        color: '#E2E8F0',
-        fontFamily: 'monospace',
-      }}
-    >
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '0.5rem',
-        }}
-      >
+    <div className="flex flex-col items-center justify-center p-4 my-4 bg-slate-800 rounded-lg border border-slate-700 text-slate-100 font-mono">
+      <div className="flex items-center gap-2">
         <svg
           width="24"
           height="24"
           viewBox="0 0 24 24"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
-          style={{ animation: 'spin 2s linear infinite' }}
+          className="animate-spin"
         >
-          <style>
-            {`
-              @keyframes spin {
-                0% { transform: rotate(0deg); }
-                100% { transform: rotate(360deg); }
-              }
-            `}
-          </style>
           <circle cx="12" cy="12" r="10" stroke="#4A5568" strokeWidth="2" />
           <path
             d="M12 2C6.48 2 2 6.48 2 12"
@@ -74,9 +46,9 @@ export const LoadingIndicator: React.FC<LoadingIndicatorProps> = ({ isProcessing
             strokeLinecap="round"
           />
         </svg>
-        <span style={{ fontSize: '1rem', fontWeight: 500 }}>
+        <span className="text-base font-medium">
           Processing
-          <span style={{ width: '1.5rem', display: 'inline-block' }}>{dots}</span>
+          <span className="inline-block w-6">{dots}</span>
         </span>
       </div>
     </div>

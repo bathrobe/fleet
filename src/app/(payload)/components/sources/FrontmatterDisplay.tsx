@@ -6,59 +6,29 @@ export const FrontmatterDisplay = ({ data }: { data: any }) => {
   if (!data) return null
 
   return (
-    <div
-      style={{
-        padding: '16px',
-        background: '#1a2b1a',
-        border: '1px solid #3a5a3a',
-        borderRadius: '6px',
-        marginBottom: '1rem',
-        color: '#c5e1c5',
-        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-      }}
-    >
-      <h3 style={{ color: '#8bbb8b', marginTop: 0, fontSize: '1.1rem' }}>Frontmatter Validator</h3>
-      <div
-        style={{
-          fontSize: '0.9rem',
-          marginBottom: '0.5rem',
-          padding: '4px 0',
-          borderBottom: '1px solid #3a5a3a',
-        }}
-      >
+    <div className="p-4 bg-emerald-950 border border-emerald-800 rounded-md mb-4 text-emerald-100 shadow-sm">
+      <h3 className="text-emerald-300 mt-0 text-lg">Frontmatter Validator</h3>
+      <div className="text-sm mb-2 py-1 border-b border-emerald-800">
         <span
-          style={{
-            backgroundColor: Object.keys(data).includes('title') ? '#2d4d2d' : '#4d2d2d',
-            padding: '2px 6px',
-            borderRadius: '3px',
-            marginRight: '6px',
-            color: Object.keys(data).includes('title') ? '#8bffa1' : '#ff8b8b',
-          }}
+          className={`inline-block px-2 py-0.5 rounded mr-1.5 ${
+            Object.keys(data).includes('title')
+              ? 'bg-emerald-900 text-emerald-300'
+              : 'bg-red-900 text-red-300'
+          }`}
         >
           title
         </span>
         <span
-          style={{
-            backgroundColor: Object.keys(data).includes('url') ? '#2d4d2d' : '#4d2d2d',
-            padding: '2px 6px',
-            borderRadius: '3px',
-            color: Object.keys(data).includes('url') ? '#8bffa1' : '#ff8b8b',
-          }}
+          className={`inline-block px-2 py-0.5 rounded ${
+            Object.keys(data).includes('url')
+              ? 'bg-emerald-900 text-emerald-300'
+              : 'bg-red-900 text-red-300'
+          }`}
         >
           url
         </span>
       </div>
-      <pre
-        style={{
-          color: '#d9f0d9',
-          fontSize: '0.85rem',
-          maxHeight: '400px',
-          overflowY: 'auto',
-          padding: '8px',
-          backgroundColor: 'rgba(0, 0, 0, 0.2)',
-          borderRadius: '4px',
-        }}
-      >
+      <pre className="text-emerald-50 text-sm max-h-[400px] overflow-y-auto p-2 bg-black/20 rounded">
         {JSON.stringify(data, null, 2)}
       </pre>
     </div>

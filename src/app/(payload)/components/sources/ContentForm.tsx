@@ -23,29 +23,22 @@ export const ContentForm = ({
         onChange={(e) => onContentChange(e.target.value)}
         placeholder="---\ntitle: My Document\ndate: 2023-05-01\ntags: [markdown, frontmatter]\n---\n\n# Content goes here"
         rows={10}
-        style={{ width: '100%', marginBottom: '1rem', fontFamily: 'monospace' }}
+        className="w-full mb-4 font-mono"
         disabled={isProcessing}
       />
 
       <button
         type="submit"
         disabled={!frontmatterData || isProcessing}
-        style={{
-          backgroundColor: frontmatterData && !isProcessing ? '#4A5568' : '#A0AEC0',
-          color: 'white',
-          padding: '0.5rem 1rem',
-          border: 'none',
-          borderRadius: '0.25rem',
-          cursor: frontmatterData && !isProcessing ? 'pointer' : 'not-allowed',
-          fontWeight: 'bold',
-          transition: 'background-color 0.2s ease',
-        }}
-        onMouseOver={(e) =>
-          frontmatterData && !isProcessing && (e.currentTarget.style.backgroundColor = '#2D3748')
-        }
-        onMouseOut={(e) =>
-          frontmatterData && !isProcessing && (e.currentTarget.style.backgroundColor = '#4A5568')
-        }
+        className={`
+          px-4 py-2 text-white font-bold rounded
+          transition-colors duration-200
+          ${
+            frontmatterData && !isProcessing
+              ? 'bg-slate-700 hover:bg-slate-800 cursor-pointer'
+              : 'bg-slate-400 cursor-not-allowed'
+          }
+        `}
       >
         {isProcessing ? 'Processing...' : 'Submit'}
       </button>

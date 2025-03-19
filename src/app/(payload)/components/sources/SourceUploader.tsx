@@ -12,23 +12,8 @@ import { LoadingIndicator } from './LoadingIndicator'
 
 // Sidebar wrapper component for consistent styling
 const Sidebar = ({ children }: { children: React.ReactNode }) => (
-  <div
-    style={{
-      backgroundColor: '#1a2233',
-      padding: '1.5rem',
-      borderRadius: '8px',
-      border: '1px solid #2a3a5a',
-    }}
-  >
-    <h3
-      style={{
-        margin: '0 0 1.25rem 0',
-        fontSize: '1.2rem',
-        color: '#e1e8f5',
-        borderBottom: '1px solid #2a3a5a',
-        paddingBottom: '0.75rem',
-      }}
-    >
+  <div className="bg-slate-900 p-6 rounded-lg border border-slate-700">
+    <h3 className="m-0 mb-5 text-lg text-slate-100 border-b border-slate-700 pb-3">
       Document Info
     </h3>
     {children}

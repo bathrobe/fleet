@@ -6,18 +6,8 @@ export const LLMResponseDisplay = ({ result }: { result: any }) => {
   const resultString = typeof result === 'string' ? result : JSON.stringify(result, null, 2)
 
   return (
-    <div
-      style={{
-        padding: '15px',
-        background: '#1a2233',
-        border: '1px solid #2a3a5a',
-        borderRadius: '4px',
-        marginBottom: '1rem',
-        marginTop: '1rem',
-        color: '#e1e8f5',
-      }}
-    >
-      <div style={{ whiteSpace: 'pre-wrap' }}>{resultString}</div>
+    <div className="p-4 bg-slate-900 border border-slate-700 rounded my-4 text-slate-100">
+      <div className="whitespace-pre-wrap">{resultString}</div>
     </div>
   )
 }

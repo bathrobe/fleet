@@ -11,62 +11,23 @@ interface SourcePageLayoutProps {
 
 export function SourcePageLayout({ children, sidebar, title }: SourcePageLayoutProps) {
   return (
-    <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '2rem' }}>
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          marginBottom: '1.5rem',
-        }}
-      >
-        <h1 style={{ margin: 0, color: '#e1e8f5' }}>{title}</h1>
+    <div className="max-w-[1200px] mx-auto p-8">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="m-0 text-slate-100">{title}</h1>
         <Link
           href="/admin"
-          style={{
-            textDecoration: 'none',
-            color: '#a9c5f5',
-            fontWeight: 'bold',
-            padding: '0.5rem 1rem',
-            backgroundColor: '#2a3a5a',
-            borderRadius: '0.25rem',
-            transition: 'background-color 0.2s ease',
-          }}
-          onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#3a4a6a')}
-          onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#2a3a5a')}
+          className="no-underline text-blue-200 font-bold px-4 py-2 bg-slate-800 rounded hover:bg-slate-700 transition-colors duration-200"
         >
           Back to Admin
         </Link>
       </div>
 
-      <div
-        style={{
-          display: 'flex',
-          gap: '2rem',
-          flexDirection: sidebar ? 'row' : 'column',
-        }}
-      >
+      <div className={`flex gap-8 ${sidebar ? 'flex-row' : 'flex-col'}`}>
         {/* Main content area */}
-        <div
-          style={{
-            flex: '1 1 auto',
-            minWidth: 0, // Prevent flex item from overflowing
-          }}
-        >
-          {children}
-        </div>
+        <div className="flex-1 min-w-0">{children}</div>
 
         {/* Right sidebar, only rendered if provided */}
-        {sidebar && (
-          <div
-            style={{
-              width: '350px',
-              flex: '0 0 350px',
-            }}
-          >
-            {sidebar}
-          </div>
-        )}
+        {sidebar && <div className="w-[350px] flex-none">{sidebar}</div>}
       </div>
     </div>
   )
