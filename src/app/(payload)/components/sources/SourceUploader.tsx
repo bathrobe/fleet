@@ -77,7 +77,7 @@ export default function SourceUploader() {
 
   return (
     <SourcePageLayout title="Source Uploader" sidebar={sidebar}>
-      <p>Paste markdown content with frontmatter below:</p>
+      <p className="my-8">Paste markdown content with frontmatter below:</p>
 
       <ContentForm
         content={content}

@@ -3,7 +3,6 @@ import React from 'react'
 
 import config from '@/payload.config'
 import { SourcesSidebar } from './components/SourcesSidebar'
-import './styles.css'
 
 export default async function HomePage() {
   const payload = await getPayload({ config, importMap: {} })
