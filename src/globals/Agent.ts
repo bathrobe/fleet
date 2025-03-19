@@ -33,7 +33,6 @@ export const Agent: GlobalConfig = {
               name: 'agenda',
               type: 'array',
               label: 'Agenda',
-              description: 'These are positions the agent wants to uphold and promote.',
               fields: [
                 {
                   name: 'content',
@@ -63,7 +62,6 @@ export const Agent: GlobalConfig = {
         },
         {
           label: 'Scheduling',
-          description: 'Configure agent scheduling behavior',
           fields: [
             {
               name: 'scheduling',
