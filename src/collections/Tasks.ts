@@ -18,10 +18,5 @@ export const Tasks: CollectionConfig = {
       name: 'task',
       type: 'textarea',
     },
-    {
-      name: 'agent',
-      type: 'relationship',
-      relationTo: 'agents',
-    },
   ],
 }

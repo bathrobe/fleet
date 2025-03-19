@@ -23,11 +23,5 @@ export const Journals: CollectionConfig = {
       name: 'content',
       type: 'textarea',
     },
-    {
-      name: 'agent',
-      type: 'relationship',
-      relationTo: 'agents',
-      required: true,
-    },
   ],
 }

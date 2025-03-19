@@ -1,8 +1,17 @@
 export const hasValidApiKey = (req: any): boolean => {
-  const apiKey = req.headers['x-api-key']
+  // Headers can be accessed in different ways depending on how they're normalized
+  // Try multiple ways to access the API key
+  const apiKey =
+    req.headers['x-api-key'] ||
+    (req.headers.get && req.headers.get('x-api-key')) ||
+    req.headers['X-API-KEY'] ||
+    (req.headers.get && req.headers.get('X-API-KEY'))
+
   const validApiKey = process.env.PAYLOAD_REST_API_KEY
 
-  return apiKey === validApiKey
+  const normalizedApiKey = Array.isArray(apiKey) ? apiKey[0] : apiKey
+
+  return normalizedApiKey === validApiKey
 }
 
 /**

@@ -9,12 +9,12 @@ import sharp from 'sharp'
 
 import { Users } from './collections/Users'
 import { Media } from './collections/Media'
-import { Agents } from './collections/Agents'
 import { Journals } from './collections/Journals'
 import { Tasks } from './collections/Tasks'
 import { Posts } from './collections/Posts'
 import { Sources } from './collections/Sources'
 import { Atoms } from './collections/Atoms'
+import { Agent } from './globals/Agent'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -31,7 +31,8 @@ export default buildConfig({
       },
     },
   },
-  collections: [Users, Sources, Media, Agents, Journals, Tasks, Posts, Atoms],
+  collections: [Users, Sources, Media, Journals, Tasks, Posts, Atoms],
+  globals: [Agent],
   editor: lexicalEditor({}),
   secret: process.env.PAYLOAD_SECRET || '',
   typescript: {

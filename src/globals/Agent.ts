@@ -1,13 +1,9 @@
-// src/collections/Agents.ts
-import { CollectionConfig } from 'payload'
+import { GlobalConfig } from 'payload'
 
-export const Agents: CollectionConfig = {
-  slug: 'agents',
-  admin: {
-    useAsTitle: 'name',
-  },
+export const Agent: GlobalConfig = {
+  slug: 'agent',
   access: {
-    read: () => true, // Allow anyone to read this collection
+    read: () => true, // Allow anyone to read this global
   },
   fields: [
     {
@@ -34,23 +30,34 @@ export const Agents: CollectionConfig = {
               ],
             },
             {
+              name: 'agenda',
+              type: 'array',
+              label: 'Agenda',
+              description: 'These are positions the agent wants to uphold and promote.',
+              fields: [
+                {
+                  name: 'content',
+                  type: 'textarea',
+                  label: 'Content',
+                },
+              ],
+            },
+            {
+              name: 'lenses',
+              type: 'array',
+              label: 'Lenses',
+              fields: [
+                {
+                  name: 'content',
+                  type: 'textarea',
+                  label: 'Content',
+                },
+              ],
+            },
+            {
               name: 'styles',
               type: 'textarea',
               label: 'Styles',
-            },
-            {
-              name: 'relatedJournals',
-              type: 'join',
-              label: 'Related Journals',
-              collection: 'journals',
-              on: 'agent',
-            },
-            {
-              name: 'relatedTasks',
-              type: 'join',
-              label: 'Related Tasks',
-              collection: 'tasks',
-              on: 'agent',
             },
           ],
         },

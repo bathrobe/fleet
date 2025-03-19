@@ -28,12 +28,6 @@ export const Posts: CollectionConfig = {
       defaultValue: () => new Date(),
     },
     {
-      name: 'agent',
-      type: 'relationship',
-      relationTo: 'agents',
-      required: true,
-    },
-    {
       name: 'task',
       type: 'relationship',
       relationTo: 'tasks',

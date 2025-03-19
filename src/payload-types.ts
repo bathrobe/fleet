@@ -69,7 +69,6 @@ export interface Config {
     users: User;
     sources: Source;
     media: Media;
-    agents: Agent;
     journals: Journal;
     tasks: Task;
     posts: Post;
@@ -78,17 +77,11 @@ export interface Config {
     'payload-preferences': PayloadPreference;
     'payload-migrations': PayloadMigration;
   };
-  collectionsJoins: {
-    agents: {
-      relatedJournals: 'journals';
-      relatedTasks: 'tasks';
-    };
-  };
+  collectionsJoins: {};
   collectionsSelect: {
     users: UsersSelect<false> | UsersSelect<true>;
     sources: SourcesSelect<false> | SourcesSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
-    agents: AgentsSelect<false> | AgentsSelect<true>;
     journals: JournalsSelect<false> | JournalsSelect<true>;
     tasks: TasksSelect<false> | TasksSelect<true>;
     posts: PostsSelect<false> | PostsSelect<true>;
@@ -100,8 +93,12 @@ export interface Config {
   db: {
     defaultIDType: number;
   };
-  globals: {};
-  globalsSelect: {};
+  globals: {
+    agent: Agent;
+  };
+  globalsSelect: {
+    agent: AgentSelect<false> | AgentSelect<true>;
+  };
   locale: null;
   user: User & {
     collection: 'users';
@@ -192,47 +189,12 @@ export interface Media {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "agents".
- */
-export interface Agent {
-  id: number;
-  name: string;
-  bio?:
-    | {
-        content?: string | null;
-        id?: string | null;
-      }[]
-    | null;
-  styles?: string | null;
-  relatedJournals?: {
-    docs?: (number | Journal)[];
-    hasNextPage?: boolean;
-    totalDocs?: number;
-  };
-  relatedTasks?: {
-    docs?: (number | Task)[];
-    hasNextPage?: boolean;
-    totalDocs?: number;
-  };
-  scheduling?: {
-    postingInterval?: number | null;
-    sleepStartHour?: number | null;
-    sleepEndHour?: number | null;
-    jitter?: number | null;
-    enabled?: boolean | null;
-  };
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "journals".
  */
 export interface Journal {
   id: number;
   timeCreated?: string | null;
   content?: string | null;
-  agent: number | Agent;
   updatedAt: string;
   createdAt: string;
 }
@@ -244,7 +206,6 @@ export interface Task {
   id: number;
   title?: string | null;
   task?: string | null;
-  agent?: (number | null) | Agent;
   updatedAt: string;
   createdAt: string;
 }
@@ -256,7 +217,6 @@ export interface Post {
   id: number;
   content: string;
   timeCreated?: string | null;
-  agent: number | Agent;
   task?: (number | null) | Task;
   blueskyPost?: {
     posted?: boolean | null;
@@ -316,10 +276,6 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'media';
         value: number | Media;
-      } | null)
-    | ({
-        relationTo: 'agents';
-        value: number | Agent;
       } | null)
     | ({
         relationTo: 'journals';
@@ -438,39 +394,11 @@ export interface MediaSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "agents_select".
- */
-export interface AgentsSelect<T extends boolean = true> {
-  name?: T;
-  bio?:
-    | T
-    | {
-        content?: T;
-        id?: T;
-      };
-  styles?: T;
-  relatedJournals?: T;
-  relatedTasks?: T;
-  scheduling?:
-    | T
-    | {
-        postingInterval?: T;
-        sleepStartHour?: T;
-        sleepEndHour?: T;
-        jitter?: T;
-        enabled?: T;
-      };
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "journals_select".
  */
 export interface JournalsSelect<T extends boolean = true> {
   timeCreated?: T;
   content?: T;
-  agent?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -481,7 +409,6 @@ export interface JournalsSelect<T extends boolean = true> {
 export interface TasksSelect<T extends boolean = true> {
   title?: T;
   task?: T;
-  agent?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -492,7 +419,6 @@ export interface TasksSelect<T extends boolean = true> {
 export interface PostsSelect<T extends boolean = true> {
   content?: T;
   timeCreated?: T;
-  agent?: T;
   task?: T;
   blueskyPost?:
     | T
@@ -553,6 +479,80 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
   batch?: T;
   updatedAt?: T;
   createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "agent".
+ */
+export interface Agent {
+  id: number;
+  name: string;
+  bio?:
+    | {
+        content?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  agenda?:
+    | {
+        content?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  lenses?:
+    | {
+        content?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  styles?: string | null;
+  scheduling?: {
+    postingInterval?: number | null;
+    sleepStartHour?: number | null;
+    sleepEndHour?: number | null;
+    jitter?: number | null;
+    enabled?: boolean | null;
+  };
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "agent_select".
+ */
+export interface AgentSelect<T extends boolean = true> {
+  name?: T;
+  bio?:
+    | T
+    | {
+        content?: T;
+        id?: T;
+      };
+  agenda?:
+    | T
+    | {
+        content?: T;
+        id?: T;
+      };
+  lenses?:
+    | T
+    | {
+        content?: T;
+        id?: T;
+      };
+  styles?: T;
+  scheduling?:
+    | T
+    | {
+        postingInterval?: T;
+        sleepStartHour?: T;
+        sleepEndHour?: T;
+        jitter?: T;
+        enabled?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
