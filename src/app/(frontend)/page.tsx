@@ -4,6 +4,7 @@ import React from 'react'
 
 import config from '@/payload.config'
 import { SourcesSidebar } from './components/SourcesSidebar'
+import { ConceptGraphContainer } from './components/ConceptGraph/ConceptGraphContainer'
 
 export default async function HomePage() {
   const payload = await getPayload({ config, importMap: {} })
@@ -15,10 +16,18 @@ export default async function HomePage() {
   return (
     <div className="flex h-screen">
       <SourcesSidebar sources={sources} />
-      <main className="flex-1 p-6">
-        <Button>Click me</Button>
-        <h1 className="text-3xl font-bold mb-4">Welcome to the Sources Library</h1>
-        <p className="text-gray-600">Select a source from the sidebar to view its details.</p>
+      <main className="flex-1 p-6 overflow-auto">
+        <h1 className="text-3xl font-bold mb-4">Concept Vector Explorer</h1>
+        <div className="border rounded-lg overflow-hidden bg-white dark:bg-slate-900 mb-6">
+          <ConceptGraphContainer />
+        </div>
+        <div className="mt-6">
+          <h2 className="text-xl font-bold mb-2">About the Sources Library</h2>
+          <p className="text-gray-600 dark:text-gray-400">
+            This visualization shows the relationships between concept vectors in your knowledge
+            base.
+          </p>
+        </div>
       </main>
     </div>
   )
