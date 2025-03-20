@@ -22,6 +22,7 @@ export function useSourceForm() {
   const [content, setContent] = useState('')
   const [frontmatterData, setFrontmatterData] = useState<any>(null)
   const [parseError, setParseError] = useState<string | null>(null)
+  const [selectedCategory, setSelectedCategory] = useState('')
 
   const [state, formAction] = useActionState(processSourceAction, initialState)
 
@@ -38,8 +39,39 @@ export function useSourceForm() {
     }
   }
 
+  const handleCategoryChange = (categoryId: string) => {
+    console.log('Category changed to:', categoryId)
+
+    // Convert the category ID to a number if possible
+    const numericId = parseInt(categoryId, 10)
+    setSelectedCategory(categoryId) // Keep as string in state for form control handling
+
+    // Reset processed state when category changes
+    if (state.processed) {
+      Object.assign(state, initialState)
+    }
+  }
+
   const handleFormAction = (formData: FormData) => {
-    if (!frontmatterData) return
+    if (!frontmatterData) {
+      console.error('Cannot submit without frontmatter data')
+      return
+    }
+
+    if (!selectedCategory) {
+      console.error('Cannot submit without a category')
+      return
+    }
+
+    // Create a new FormData to ensure proper format
+    const newFormData = new FormData()
+
+    // Add the content
+    newFormData.append('content', content)
+
+    // Add the sourceCategory - convert to number for Payload
+    // Some database systems expect numeric IDs for relationships
+    newFormData.append('sourceCategory', selectedCategory)
 
     // Set processing state before starting
     Object.assign(state, {
@@ -48,8 +80,12 @@ export function useSourceForm() {
       processingStage: 'source',
     })
 
-    // The action will internally set processed and result fields
-    formAction(formData)
+    // Log what we're submitting
+    console.log('Submitting form with categoryId (raw):', selectedCategory)
+    console.log('Submitting form with categoryId (as number):', parseInt(selectedCategory, 10))
+
+    // Submit the form data
+    formAction(newFormData)
   }
 
   // Update processing stage based on state changes
@@ -77,7 +113,9 @@ export function useSourceForm() {
     frontmatterData,
     parseError,
     state,
+    selectedCategory,
     handleContentChange,
+    handleCategoryChange,
     handleFormAction,
     isSourceCreated: isSourceCreated(),
     sourceData: state.result,

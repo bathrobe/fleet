@@ -9,6 +9,7 @@ import { SourceConfirmation } from './SourceConfirmation'
 import { useSourceForm } from './hooks/useSourceForm'
 import { AtomsDisplay } from './atoms/AtomsDisplay'
 import { LoadingIndicator } from './LoadingIndicator'
+import { CategoryDropdown } from './CategoryDropdown'
 
 // Sidebar wrapper component for consistent styling
 const Sidebar = ({ children }: { children: React.ReactNode }) => (
@@ -26,7 +27,9 @@ export default function SourceUploader() {
     frontmatterData,
     parseError,
     state,
+    selectedCategory,
     handleContentChange,
+    handleCategoryChange,
     handleFormAction,
     isSourceCreated,
     sourceData,
@@ -45,11 +48,18 @@ export default function SourceUploader() {
     isSourceCreated,
     isProcessing,
     processingStage,
+    selectedCategory,
   })
 
   // Sidebar content with frontmatter validator and atoms (if available)
   const sidebar = (
     <Sidebar>
+      <CategoryDropdown
+        selectedCategory={selectedCategory}
+        onCategoryChange={handleCategoryChange}
+        required={true}
+      />
+
       {frontmatterData && <FrontmatterDisplay data={frontmatterData} />}
       {parseError && <ErrorDisplay error={parseError} />}
 
@@ -70,6 +80,7 @@ export default function SourceUploader() {
         frontmatterData={frontmatterData}
         formAction={handleFormAction}
         isProcessing={isProcessing}
+        selectedCategory={selectedCategory}
       />
 
       {/* Show loading indicator when processing */}

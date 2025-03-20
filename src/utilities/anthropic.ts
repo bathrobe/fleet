@@ -3,7 +3,7 @@ import Anthropic from '@anthropic-ai/sdk'
 const defaultConfig = {
   model: 'claude-3-5-sonnet-20241022',
   temperature: 0.9,
-  maxTokens: 1000,
+  maxTokens: 8000,
 }
 
 export const getCompletion = async (

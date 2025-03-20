@@ -1,10 +1,23 @@
 import { CollectionConfig } from 'payload'
+import { deleteVectors } from '../app/(payload)/components/sources/vectors/actions'
 
 export const Atoms: CollectionConfig = {
   slug: 'atoms',
   admin: {
     useAsTitle: 'mainContent',
     defaultColumns: ['mainContent', 'source', 'tags'],
+  },
+  hooks: {
+    afterDelete: [
+      async ({ req, id, doc }: { req: any; id: string; doc: any }) => {
+        // If we have a vectorId stored on the atom, delete it from the vector DB
+        console.log('this is the pineconeid', doc.pineconeId)
+        if (doc && doc.pineconeId) {
+          console.log(`Atom ${id} deleted, attempting to delete vector ${doc.pineconeId}`)
+          await deleteVectors(doc.pineconeId)
+        }
+      },
+    ],
   },
   fields: [
     {

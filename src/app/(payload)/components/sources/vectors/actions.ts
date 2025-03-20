@@ -19,11 +19,28 @@ export async function upsertVectors(atom: any) {
     text: formatAtomForEmbedding(atom),
     payloadAtomId: atom.id,
     payloadSourceId: atom.source.id,
+    payloadSourceCategoryId: atom.source.sourceCategory.id,
   }
   await namespace.upsertRecords([record])
   return {
     pineconeAtomId,
     payloadAtomId: atom.id,
     payloadSourceId: atom.source.id,
+    payloadSourceCategoryId: atom.source.sourceCategory.id,
   }
+}
+
+export async function deleteVectors(atomOrAtoms: any) {
+  if (!process.env.PINECONE_API_KEY) {
+    throw new Error('Missing PINECONE_API_KEY')
+  }
+
+  const pc = new Pinecone({
+    apiKey: process.env.PINECONE_API_KEY,
+  })
+
+  const namespace = pc.index('fleet', process.env.PINECONE_URL).namespace('atoms')
+
+  // Single atom - Pass the ID directly as a string
+  await namespace.deleteOne(atomOrAtoms)
 }

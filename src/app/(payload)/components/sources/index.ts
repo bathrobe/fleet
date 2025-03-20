@@ -7,6 +7,8 @@ export { ContentForm } from './ContentForm'
 export { FrontmatterDisplay } from './FrontmatterDisplay'
 export { ErrorDisplay } from './ErrorDisplay'
 export { SourceConfirmation } from './SourceConfirmation'
+export { CategoryDropdown } from './CategoryDropdown'
+export { LoadingIndicator } from './LoadingIndicator'
 
 // LLM Components
 export { LLMResponseDisplay } from './llm/LLMResponseDisplay'

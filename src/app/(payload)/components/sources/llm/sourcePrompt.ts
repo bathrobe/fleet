@@ -5,6 +5,7 @@ export const processSourceWithLLM = async (content: string, apiKey: string): Pro
   const prompt = `
 <Instructions>
 Output a markdown artifact with the following fields:
+
 #### Summary 
 One sentence summary here. The summary should only be one complete sentence and should be concise and readable. 
 
@@ -26,7 +27,7 @@ Name of proper noun - 1-2 sentences explanation of the entity
 Next one - etc.
 
 #### Interesting Details 
-- Include a maximum of 4 interesting bits of trivia, asides, anecdotes, apocrypha, etc. that have not been picked up in previous sections 
+- Include a maximum of 6 interesting bits of trivia, asides, anecdotes, apocrypha, etc. that have not been picked up in previous sections 
 
 #### Quotations
 If any of the figures in the transcipt (besides the lecturer) have a unique or memorable quotation, deposit it here with attribution in markdown blockquote format (> quote \n - Attribution)

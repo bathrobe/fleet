@@ -8,15 +8,28 @@ export const ContentForm = ({
   frontmatterData,
   formAction,
   isProcessing = false,
+  selectedCategory = '',
 }: {
   content: string
   onContentChange: (value: string) => void
   frontmatterData: any
   formAction: (formData: FormData) => void
   isProcessing?: boolean
+  selectedCategory?: string
 }) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+
+    if (!frontmatterData || !selectedCategory || isProcessing) {
+      return
+    }
+
+    const formData = new FormData(e.currentTarget)
+    formAction(formData)
+  }
+
   return (
-    <form action={formAction as any}>
+    <form action={formAction as any} onSubmit={handleSubmit}>
       <textarea
         name="content"
         value={content}
@@ -29,12 +42,12 @@ export const ContentForm = ({
 
       <button
         type="submit"
-        disabled={!frontmatterData || isProcessing}
+        disabled={!frontmatterData || isProcessing || !selectedCategory}
         className={`
           px-4 py-2 text-white font-bold rounded
           transition-colors duration-200
           ${
-            frontmatterData && !isProcessing
+            frontmatterData && !isProcessing && selectedCategory
               ? 'bg-slate-700 hover:bg-slate-800 cursor-pointer'
               : 'bg-slate-400 cursor-not-allowed'
           }

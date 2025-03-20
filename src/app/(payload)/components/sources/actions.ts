@@ -10,10 +10,28 @@ import { createAtomsFromSource } from './atoms/atomsProcessor'
 export async function processSourceAction(prevState: any, formData: FormData) {
   try {
     const content = formData.get('content')
+    const sourceCategory = formData.get('sourceCategory')
+
+    console.log('Received form data:', {
+      content: content ? 'yes (too large to show)' : 'no',
+      sourceCategory,
+    })
+
     if (!content) {
       return {
         ...prevState,
         error: 'No content provided',
+        processed: true,
+        sourceCreated: false,
+        isProcessing: false,
+        processingStage: null,
+      }
+    }
+
+    if (!sourceCategory) {
+      return {
+        ...prevState,
+        error: 'Source category is required',
         processed: true,
         sourceCreated: false,
         isProcessing: false,
@@ -128,9 +146,34 @@ export async function processSourceAction(prevState: any, formData: FormData) {
         processingStage: 'atoms',
       }
 
+      // For relationships, Payload may need the ID as a number instead of string
+      const createData = {
+        ...parsedResult,
+        sourceCategory: Number(sourceCategory),
+      }
+
+      console.log('Category ID being submitted (as number):', Number(sourceCategory))
+
+      console.log(
+        'Creating source with data:',
+        JSON.stringify(
+          {
+            ...createData,
+            // Don't log the long text fields
+            details: '...',
+            mainPoints: '...',
+            quotations: '...',
+          },
+          null,
+          2,
+        ),
+      )
+
+      // Directly use the payload.create method with minimal options
       const newSource = await payload.create({
         collection: 'sources',
-        data: parsedResult,
+        data: createData,
+        depth: 0, // No need to populate relationships for creation
       })
 
       // After successfully creating the source, create atoms
