@@ -19,6 +19,11 @@ export const Sources: CollectionConfig = {
       required: true,
     },
     {
+      name: 'sourceCategory',
+      type: 'relationship',
+      relationTo: 'source-categories',
+    },
+    {
       name: 'url',
       type: 'text',
       required: true,

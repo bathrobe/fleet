@@ -73,6 +73,7 @@ export interface Config {
     tasks: Task;
     posts: Post;
     atoms: Atom;
+    'source-categories': SourceCategory;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
     'payload-migrations': PayloadMigration;
@@ -86,6 +87,7 @@ export interface Config {
     tasks: TasksSelect<false> | TasksSelect<true>;
     posts: PostsSelect<false> | PostsSelect<true>;
     atoms: AtomsSelect<false> | AtomsSelect<true>;
+    'source-categories': SourceCategoriesSelect<false> | SourceCategoriesSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
     'payload-migrations': PayloadMigrationsSelect<false> | PayloadMigrationsSelect<true>;
@@ -150,6 +152,7 @@ export interface User {
 export interface Source {
   id: number;
   title: string;
+  sourceCategory?: (number | null) | SourceCategory;
   url: string;
   author?: string | null;
   publishedDate?: string | null;
@@ -165,6 +168,17 @@ export interface Source {
   peopleplacesthingsevents: string;
   quotations: string;
   details: string;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "source-categories".
+ */
+export interface SourceCategory {
+  id: number;
+  title: string;
+  description?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -236,6 +250,10 @@ export interface Post {
 export interface Atom {
   id: number;
   /**
+   * The title of the atom
+   */
+  title?: string | null;
+  /**
    * The ID of the atom in Pinecone
    */
   pineconeId?: string | null;
@@ -292,6 +310,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'atoms';
         value: number | Atom;
+      } | null)
+    | ({
+        relationTo: 'source-categories';
+        value: number | SourceCategory;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -356,6 +378,7 @@ export interface UsersSelect<T extends boolean = true> {
  */
 export interface SourcesSelect<T extends boolean = true> {
   title?: T;
+  sourceCategory?: T;
   url?: T;
   author?: T;
   publishedDate?: T;
@@ -440,11 +463,22 @@ export interface PostsSelect<T extends boolean = true> {
  * via the `definition` "atoms_select".
  */
 export interface AtomsSelect<T extends boolean = true> {
+  title?: T;
   pineconeId?: T;
   mainContent?: T;
   supportingQuote?: T;
   supportingInfo?: T;
   source?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "source-categories_select".
+ */
+export interface SourceCategoriesSelect<T extends boolean = true> {
+  title?: T;
+  description?: T;
   updatedAt?: T;
   createdAt?: T;
 }

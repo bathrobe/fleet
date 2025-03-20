@@ -8,10 +8,18 @@ export const Atoms: CollectionConfig = {
   },
   fields: [
     {
+      name: 'title',
+      type: 'text',
+      admin: {
+        description: 'The title of the atom',
+      },
+    },
+    {
       name: 'pineconeId',
       type: 'text',
       admin: {
         description: 'The ID of the atom in Pinecone',
+        readOnly: true,
       },
     },
     {

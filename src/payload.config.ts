@@ -15,6 +15,7 @@ import { Posts } from './collections/Posts'
 import { Sources } from './collections/Sources'
 import { Atoms } from './collections/Atoms'
 import { Agent } from './globals/Agent'
+import { SourceCategory } from './collections/SourceCategory'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -31,7 +32,7 @@ export default buildConfig({
       },
     },
   },
-  collections: [Users, Sources, Media, Journals, Tasks, Posts, Atoms],
+  collections: [Users, Sources, Media, Journals, Tasks, Posts, Atoms, SourceCategory],
   globals: [Agent],
   editor: lexicalEditor({}),
   secret: process.env.PAYLOAD_SECRET || '',
