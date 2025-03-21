@@ -13,15 +13,18 @@ export default async function HomePage() {
 
   return (
     <div className="flex h-screen">
-      <main className="flex-1 p-6 overflow-auto">
-        <h1 className="text-3xl font-bold mb-4">Concept Vector Explorer</h1>
-        <div className="border rounded-lg overflow-hidden bg-white dark:bg-slate-900 mb-6">
+      <main className="flex-1 p-4 overflow-auto">
+        <h1 className="text-3xl font-bold mb-2">Concept Vector Explorer</h1>
+
+        {/* Clean container with no styling that would create visual gaps */}
+        <div className="overflow-hidden bg-white dark:bg-slate-900 mb-2">
           <ConceptGraphContainer />
         </div>
-        <div className="mt-6">
+
+        <div className="text-sm">
           <p className="text-gray-600 dark:text-gray-400">
             This visualization shows the relationships between concept vectors in your knowledge
-            base.
+            base. Points that are closer together have greater semantic similarity.
           </p>
         </div>
       </main>

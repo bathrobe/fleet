@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useRef, useEffect } from 'react'
 import { Zoom } from '@visx/zoom'
 import { localPoint } from '@visx/event'
 import { scaleLinear } from '@visx/scale'
@@ -25,6 +25,32 @@ export const ConceptVectorSpace = ({
   margin?: { top: number; right: number; bottom: number; left: number }
 }) => {
   const [selectedId, setSelectedId] = useState<string | null>(null)
+  const leftPanelRef = useRef<HTMLDivElement>(null)
+  const [leftPanelWidth, setLeftPanelWidth] = useState(0)
+
+  // Update measurements when the component mounts or resizes
+  useEffect(() => {
+    if (leftPanelRef.current) {
+      setLeftPanelWidth(leftPanelRef.current.offsetWidth)
+    }
+
+    // Setup resize observer to update when container size changes
+    const resizeObserver = new ResizeObserver((entries) => {
+      if (entries[0]) {
+        setLeftPanelWidth(entries[0].target.clientWidth)
+      }
+    })
+
+    if (leftPanelRef.current) {
+      resizeObserver.observe(leftPanelRef.current)
+    }
+
+    return () => {
+      if (leftPanelRef.current) {
+        resizeObserver.unobserve(leftPanelRef.current)
+      }
+    }
+  }, [])
 
   // Set up tooltip
   const { tooltipData, tooltipLeft, tooltipTop, tooltipOpen, showTooltip, hideTooltip } =
@@ -60,13 +86,16 @@ export const ConceptVectorSpace = ({
     }
   }, [reducedData])
 
+  // Use actual measured width for visualization rather than calculation
+  const vizWidth = useMemo(() => leftPanelWidth || Math.floor(width * 0.5), [leftPanelWidth, width])
+
   // Create scales with 1:1 aspect ratio
   const xScale = useMemo(() => {
     return scaleLinear<number>({
       domain: [bounds.xMin, bounds.xMax],
-      range: [margin.left, width - margin.right],
+      range: [margin.left, vizWidth - margin.right],
     })
-  }, [bounds.xMin, bounds.xMax, margin.left, margin.right, width])
+  }, [bounds.xMin, bounds.xMax, margin.left, margin.right, vizWidth])
 
   const yScale = useMemo(() => {
     return scaleLinear<number>({
@@ -80,9 +109,9 @@ export const ConceptVectorSpace = ({
     const xRange = bounds.xMax - bounds.xMin
     const yRange = bounds.yMax - bounds.yMin
     const ratio = xRange / yRange
-    const constrainedHeight = width / ratio
+    const constrainedHeight = vizWidth / ratio
     return Math.min(height, constrainedHeight)
-  }, [bounds, width, height])
+  }, [bounds, vizWidth, height])
 
   // Points to render
   const points = useMemo(() => {
@@ -125,34 +154,22 @@ export const ConceptVectorSpace = ({
     })
   }
 
+  // Get selected point data
+  const selectedPoint = useMemo(() => {
+    if (!selectedId) return null
+    return reducedData.find((d) => d.id === selectedId)
+  }, [selectedId, reducedData])
+
   // Render function that works with Zoom
   const render = (zoom: any) => {
     const { translateX, translateY, scaleX, scaleY } = zoom.transformMatrix
 
     return (
       <>
-        <svg width={width} height={constrainedHeight}>
-          <rect width={width} height={constrainedHeight} rx={14} fill="#f3f4f6" fillOpacity={0.5} />
+        <svg width="100%" height={constrainedHeight}>
+          <rect width="100%" height={constrainedHeight} rx={0} fill="#f3f4f6" fillOpacity={0.5} />
           <Group transform={zoom.toString()}>
-            {/* Minimal Grid */}
-            <line
-              x1={xScale(0)}
-              y1={yScale(bounds.yMin)}
-              x2={xScale(0)}
-              y2={yScale(bounds.yMax)}
-              stroke="#e5e7eb"
-              strokeWidth={1}
-              strokeDasharray="4,4"
-            />
-            <line
-              x1={xScale(bounds.xMin)}
-              y1={yScale(0)}
-              x2={xScale(bounds.xMax)}
-              y2={yScale(0)}
-              stroke="#e5e7eb"
-              strokeWidth={1}
-              strokeDasharray="4,4"
-            />
+            {/* Remove grid lines */}
 
             {/* Render points */}
             {points.map((point) => (
@@ -201,47 +218,66 @@ export const ConceptVectorSpace = ({
     )
   }
 
-  return (
-    <div>
-      <Zoom
-        width={width}
-        height={constrainedHeight}
-        scaleXMin={0.1}
-        scaleXMax={10}
-        scaleYMin={0.1}
-        scaleYMax={10}
-        initialTransformMatrix={initialTransform}
-      >
-        {render}
-      </Zoom>
-
-      {selectedId && (
-        <div className="mt-4 p-3 bg-gray-100 dark:bg-gray-800 rounded">
-          <h3 className="font-medium">Selected Point</h3>
-          {(() => {
-            const point = reducedData.find((d) => d.id === selectedId)
-            if (!point) return null
-
-            return (
-              <>
-                <div className="mt-2">
-                  {point.metadata.text && <div className="text-sm">{point.metadata.text}</div>}
-                  <div className="text-xs text-gray-500 mt-1">
-                    Position: [{point.position.map((n) => n.toFixed(3)).join(', ')}]
-                  </div>
-                  <div className="text-xs text-gray-500">ID: {point.id}</div>
-                </div>
-                <button
-                  onClick={() => setSelectedId(null)}
-                  className="mt-2 px-2 py-1 text-xs bg-gray-200 dark:bg-gray-700 rounded hover:bg-gray-300 dark:hover:bg-gray-600"
-                >
-                  Clear Selection
-                </button>
-              </>
-            )
-          })()}
+  // Render the info panel for selected node
+  const renderInfoPanel = () => {
+    if (!selectedPoint) {
+      return (
+        <div className="w-full h-full flex items-center justify-center text-gray-400 italic">
+          No node selected. Click a point to view details.
         </div>
-      )}
+      )
+    }
+
+    return (
+      <div className="h-full p-4 overflow-auto">
+        <h3 className="font-medium text-lg border-b pb-2 mb-3 text-red-500">
+          Info for the Selected Node
+        </h3>
+
+        {selectedPoint.metadata.text && (
+          <div className="mb-4">
+            <div className="text-sm">{selectedPoint.metadata.text}</div>
+          </div>
+        )}
+
+        <div className="text-xs text-gray-500 mt-4">
+          <div className="mb-1">
+            Position: [{selectedPoint.position.map((n) => n.toFixed(3)).join(', ')}]
+          </div>
+          <div>ID: {selectedPoint.id}</div>
+        </div>
+
+        <button
+          onClick={() => setSelectedId(null)}
+          className="mt-4 px-3 py-1 text-sm bg-gray-200 dark:bg-gray-700 rounded hover:bg-gray-300 dark:hover:bg-gray-600"
+        >
+          Clear Selection
+        </button>
+      </div>
+    )
+  }
+
+  return (
+    <div className="flex flex-col md:flex-row w-full h-full">
+      <div
+        className="md:w-1/2 h-full bg-white dark:bg-gray-900 overflow-auto"
+        style={{ borderLeft: 'none' }}
+      >
+        {renderInfoPanel()}
+      </div>
+      <div className="md:w-1/2 relative h-full" style={{ borderRight: 'none' }} ref={leftPanelRef}>
+        <Zoom
+          width={vizWidth}
+          height={constrainedHeight}
+          scaleXMin={0.1}
+          scaleXMax={10}
+          scaleYMin={0.1}
+          scaleYMax={10}
+          initialTransformMatrix={initialTransform}
+        >
+          {render}
+        </Zoom>
+      </div>
     </div>
   )
 }
