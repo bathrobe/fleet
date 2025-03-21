@@ -5,7 +5,7 @@ import { Zoom } from '@visx/zoom'
 import { localPoint } from '@visx/event'
 import { scaleLinear } from '@visx/scale'
 import { Group } from '@visx/group'
-import { TooltipWithBounds, useTooltip } from '@visx/tooltip'
+import { useTooltip } from '@visx/tooltip'
 import type { ReducedVectorData } from './dimensionReducer'
 
 type ConceptVectorSpaceProps = {
@@ -175,22 +175,27 @@ export const ConceptVectorSpace = ({
         </svg>
 
         {tooltipOpen && tooltipData && (
-          <TooltipWithBounds
-            key={Math.random()}
-            top={tooltipTop}
-            left={tooltipLeft}
-            className="bg-white dark:bg-gray-800 p-2 rounded shadow-lg border border-gray-200 dark:border-gray-700 text-sm"
+          <div
+            style={{
+              position: 'absolute',
+              top: tooltipTop,
+              left: tooltipLeft,
+              transform: 'translate(-50%, -100%)',
+              pointerEvents: 'none',
+            }}
           >
-            <div className="max-w-xs">
-              <div className="font-medium">
-                {tooltipData.metadata.text
-                  ? tooltipData.metadata.text.substring(0, 50) +
-                    (tooltipData.metadata.text.length > 50 ? '...' : '')
-                  : tooltipData.id}
+            <div className="bg-white dark:bg-gray-800 p-2 rounded shadow-lg border border-gray-200 dark:border-gray-700 text-sm">
+              <div className="max-w-xs">
+                <div className="font-medium">
+                  {tooltipData.metadata.text
+                    ? tooltipData.metadata.text.substring(0, 50) +
+                      (tooltipData.metadata.text.length > 50 ? '...' : '')
+                    : tooltipData.id}
+                </div>
+                <div className="text-xs text-gray-500 mt-1">ID: {tooltipData.id}</div>
               </div>
-              <div className="text-xs text-gray-500 mt-1">ID: {tooltipData.id}</div>
             </div>
-          </TooltipWithBounds>
+          </div>
         )}
       </>
     )

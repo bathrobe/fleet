@@ -19,7 +19,6 @@ export default async function HomePage() {
           <ConceptGraphContainer />
         </div>
         <div className="mt-6">
-          <h2 className="text-xl font-bold mb-2">About the Sources Library</h2>
           <p className="text-gray-600 dark:text-gray-400">
             This visualization shows the relationships between concept vectors in your knowledge
             base.
