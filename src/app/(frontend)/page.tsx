@@ -1,9 +1,7 @@
-import { Button } from '@/components/ui/button'
 import { getPayload } from 'payload'
 import React from 'react'
 
 import config from '@/payload.config'
-import { SourcesSidebar } from './components/SourcesSidebar'
 import { ConceptGraphContainer } from './components/ConceptGraph/ConceptGraphContainer'
 
 export default async function HomePage() {
@@ -15,7 +13,6 @@ export default async function HomePage() {
 
   return (
     <div className="flex h-screen">
-      <SourcesSidebar sources={sources} />
       <main className="flex-1 p-6 overflow-auto">
         <h1 className="text-3xl font-bold mb-4">Concept Vector Explorer</h1>
         <div className="border rounded-lg overflow-hidden bg-white dark:bg-slate-900 mb-6">
