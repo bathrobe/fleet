@@ -18,8 +18,9 @@ export const formatAtomForEmbedding = (atom: any): string => {
   }
 
   // Add supporting info as a list if it exists
-  if (atom.supportingInfo) {
-    parts.push(atom.supportingInfo)
+  if (atom.supportingInfo && Array.isArray(atom.supportingInfo)) {
+    const supportingInfoTexts = atom.supportingInfo.map((item: any) => item.text).filter(Boolean)
+    parts.push(supportingInfoTexts.join('\n'))
   }
 
   if (atom.supportingQuote) {

@@ -24,11 +24,6 @@ export const Sources: CollectionConfig = {
       relationTo: 'source-categories',
     },
     {
-      name: 'sourceMedium',
-      type: 'relationship',
-      relationTo: 'source-media',
-    },
-    {
       name: 'url',
       type: 'text',
       required: true,

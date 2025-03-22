@@ -4,7 +4,10 @@ import { getCompletion } from '../../../../../utilities/anthropic'
 export const processSourceWithLLM = async (content: string, apiKey: string): Promise<any> => {
   const prompt = `
 <Instructions>
-Output a markdown artifact with the following fields:
+Output the following fields in valid JSON format:
+
+#### Title
+Create a concise, descriptive title (5-8 words) that captures the main topic and key insight of the content. The title should be specific, informative, and use active language.
 
 #### Summary 
 One sentence summary here. The summary should only be one complete sentence and should be concise and readable. 
@@ -36,12 +39,14 @@ If there are none, write "None."
 ***
 Stylistically, be sure to write all this prose at an eighth grade reading level and avoid run on sentences.
 
-Note: Any frontmatter metadata (like title, url, author, date) may have already been extracted from the content, so focus on analyzing the main text content only.
+Note: Any frontmatter metadata (like title, url, author, date) may have already been extracted from the content.
+However, if the title is not descriptive enough or messy with formatting, you should create a new one.
 </Instructions>
 
 <Format>
 Structure your output in valid JSON in the following format:
 {
+  "title": "string - A concise, descriptive title (5-8 words) that captures the main topic and insight. If the title is not descriptive enough or messy with formatting, you should create a new one.",
   "oneSentenceSummary": "string - One sentence summary here. The summary should only be one complete sentence and should be concise and readable.",
   "mainPoints": "string - 2-5 main points outlining the key ideas in the transcript",
   "bulletSummary": "string - More indepth summary of the transcript that covers everything in it using a bullet list of 8-12 bullets.",
@@ -68,7 +73,7 @@ ${content}
   try {
     const response = await getCompletion(prompt, apiKey, {
       system:
-        'You are an expert researcher who distills complex information into clear, concise summaries. You must only return valid, parseable JSON with no explanatory text before or after. Ensure all quotes and special characters are properly escaped.',
+        'You are an expert researcher and entertaining, popularizing writer who distills complex information into clear, concise, fun and fascinating summaries. You excel at creating informative, specific titles that capture the essence and key insight of content. You must only return valid, parseable JSON with no explanatory text before or after. Ensure all quotes and special characters are properly escaped.',
     })
 
     try {

@@ -10,7 +10,6 @@ import { useSourceForm } from './hooks/useSourceForm'
 import { AtomsDisplay } from './atoms/AtomsDisplay'
 import { LoadingIndicator } from './LoadingIndicator'
 import { CategoryDropdown } from './CategoryDropdown'
-import { MediumDropdown } from './MediumDropdown'
 
 // Sidebar wrapper component for consistent styling
 const Sidebar = ({ children }: { children: React.ReactNode }) => (
@@ -29,10 +28,8 @@ export default function SourceUploader() {
     parseError,
     state,
     selectedCategory,
-    selectedMedium,
     handleContentChange,
     handleCategoryChange,
-    handleMediumChange,
     handleFormAction,
     isSourceCreated,
     sourceData,
@@ -52,7 +49,6 @@ export default function SourceUploader() {
     isProcessing,
     processingStage,
     selectedCategory,
-    selectedMedium,
   })
 
   // Sidebar content with frontmatter validator and atoms (if available)
@@ -62,12 +58,6 @@ export default function SourceUploader() {
         selectedCategory={selectedCategory}
         onCategoryChange={handleCategoryChange}
         required={true}
-      />
-
-      <MediumDropdown
-        selectedMedium={selectedMedium}
-        onMediumChange={handleMediumChange}
-        required={false}
       />
 
       {frontmatterData && <FrontmatterDisplay data={frontmatterData} />}

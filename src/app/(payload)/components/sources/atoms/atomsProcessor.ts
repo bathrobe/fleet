@@ -8,7 +8,7 @@ import { upsertVectors } from '../vectors/actions'
 interface AtomData {
   title: string
   mainContent: string
-  supportingInfo: string[]
+  supportingInfo: { text: string }[]
   supportingQuote: string
   source?: any // Payload ID of the source document
 }
