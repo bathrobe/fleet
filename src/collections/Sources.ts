@@ -24,6 +24,11 @@ export const Sources: CollectionConfig = {
       relationTo: 'source-categories',
     },
     {
+      name: 'sourceMedium',
+      type: 'relationship',
+      relationTo: 'source-media',
+    },
+    {
       name: 'url',
       type: 'text',
       required: true,
@@ -75,6 +80,10 @@ export const Sources: CollectionConfig = {
       name: 'details',
       type: 'textarea',
       required: true,
+    },
+    {
+      name: 'fullText',
+      type: 'textarea',
     },
   ],
 }

@@ -11,10 +11,12 @@ export async function processSourceAction(prevState: any, formData: FormData) {
   try {
     const content = formData.get('content')
     const sourceCategory = formData.get('sourceCategory')
+    const sourceMedium = formData.get('sourceMedium')
 
     console.log('Received form data:', {
       content: content ? 'yes (too large to show)' : 'no',
       sourceCategory,
+      sourceMedium: sourceMedium || 'not provided',
     })
 
     if (!content) {
@@ -150,9 +152,18 @@ export async function processSourceAction(prevState: any, formData: FormData) {
       const createData = {
         ...parsedResult,
         sourceCategory: Number(sourceCategory),
+        fullText: content.toString(),
+      }
+
+      // Add sourceMedium if provided
+      if (sourceMedium) {
+        createData.sourceMedium = Number(sourceMedium)
       }
 
       console.log('Category ID being submitted (as number):', Number(sourceCategory))
+      if (sourceMedium) {
+        console.log('Medium ID being submitted (as number):', Number(sourceMedium))
+      }
 
       console.log(
         'Creating source with data:',

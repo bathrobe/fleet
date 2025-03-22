@@ -23,6 +23,7 @@ export function useSourceForm() {
   const [frontmatterData, setFrontmatterData] = useState<any>(null)
   const [parseError, setParseError] = useState<string | null>(null)
   const [selectedCategory, setSelectedCategory] = useState('')
+  const [selectedMedium, setSelectedMedium] = useState('')
 
   const [state, formAction] = useActionState(processSourceAction, initialState)
 
@@ -41,12 +42,19 @@ export function useSourceForm() {
 
   const handleCategoryChange = (categoryId: string) => {
     console.log('Category changed to:', categoryId)
-
-    // Convert the category ID to a number if possible
-    const numericId = parseInt(categoryId, 10)
     setSelectedCategory(categoryId) // Keep as string in state for form control handling
 
     // Reset processed state when category changes
+    if (state.processed) {
+      Object.assign(state, initialState)
+    }
+  }
+
+  const handleMediumChange = (mediumId: string) => {
+    console.log('Medium changed to:', mediumId)
+    setSelectedMedium(mediumId) // Keep as string in state for form control handling
+
+    // Reset processed state when medium changes
     if (state.processed) {
       Object.assign(state, initialState)
     }
@@ -69,9 +77,13 @@ export function useSourceForm() {
     // Add the content
     newFormData.append('content', content)
 
-    // Add the sourceCategory - convert to number for Payload
-    // Some database systems expect numeric IDs for relationships
+    // Add the sourceCategory
     newFormData.append('sourceCategory', selectedCategory)
+
+    // Add the sourceMedium if selected
+    if (selectedMedium) {
+      newFormData.append('sourceMedium', selectedMedium)
+    }
 
     // Set processing state before starting
     Object.assign(state, {
@@ -81,8 +93,8 @@ export function useSourceForm() {
     })
 
     // Log what we're submitting
-    console.log('Submitting form with categoryId (raw):', selectedCategory)
-    console.log('Submitting form with categoryId (as number):', parseInt(selectedCategory, 10))
+    console.log('Submitting form with categoryId:', selectedCategory)
+    console.log('Submitting form with mediumId:', selectedMedium)
 
     // Submit the form data
     formAction(newFormData)
@@ -103,7 +115,6 @@ export function useSourceForm() {
   }
 
   // Determine if a source was created successfully based on the sourceCreated flag directly
-  // rather than trying to infer from other properties
   const isSourceCreated = () => {
     return !!state.sourceCreated
   }
@@ -114,8 +125,10 @@ export function useSourceForm() {
     parseError,
     state,
     selectedCategory,
+    selectedMedium,
     handleContentChange,
     handleCategoryChange,
+    handleMediumChange,
     handleFormAction,
     isSourceCreated: isSourceCreated(),
     sourceData: state.result,

@@ -19,10 +19,9 @@ export async function generateAtomsWithLLM(
       model: 'claude-3-5-sonnet-20241022',
       max_tokens: 8192,
       temperature: 0.7,
-      system: `You are a manager of a zettelkasten for a group researching the future of governance and network states.
-You are an expert at research and distilling complex information into readable, simple-but-insightful atomic concepts. 
+      system: `You're a note-taker that always writes in readable, eighth-grade level prose in an active voice and with sparkling, evocative language.
 You combine technical rigor with a sense of deep wonder and divergent thinking, and excel at expressing complex thoughts in very simple, approachable prose. 
-Your ideas should help spark new ideas and research questions related to the topic of governance futurism, network states, transhumanism, biocosmism, and the future of a liberated, tolerant, and prosperous world.
+Your ideas should help spark new ideas and research questions, and you should be able to write them in a way that is accessible to a wide audience.
 You must only return valid, parseable JSON with no explanatory text before or after. Never include comments in the JSON. Ensure all quotes and special characters are properly escaped.`,
       messages: [
         {
@@ -123,11 +122,10 @@ ${sourceData.mainPoints ? `Main Points: ${sourceData.mainPoints}` : ''}
 ORIGINAL CONTENT:
 ${originalContent}
 TASK:
-Pick out 1-4 important/interesting atomic concepts that would be relevant for people researching governance futurism, network states and building a new form of government.
+Pick out 2-5 important/interesting atomic concepts that would be relevant for people researching governance futurism, network states and building a new form of government.
 These should be singular, atomic notes that contain an interesting idea that could be built upon in creating our own unique content in our zettelkasten.
 Each atom should capture a single, stand-alone insight that could be built upon for creating unique content. The ideas should be original, non-obvious, and thought-provoking.
 The goal is to extract the kinds of ideas that could spark curiosity, wonder, and the generation of new ideas and research questions.
-Word them in a neutral way intended to faithfully represent the source material.
 Each should be able to stand on its own without being int he context of the other points or the source (i.e., it makes sense on its own.)
 
 FORMAT REQUIREMENTS:
@@ -138,8 +136,8 @@ FORMAT REQUIREMENTS:
 5. The JSON must be valid and parseable
 6. Each atom should have an evocative, original title in title case and expressing the main idea (max 5 words)
 7. Include a direct supporting quote from the source, 2-3 sentences verbatim
-8. Express the main point in a single clear sentence at eighth-grade reading level
-9. Include 2-3 supporting points as complete sentences
+8. Express the main point in a single clear sentence at eighth-grade reading level. Make SURE it can be understood without any surrounding context, and does not need the source's topic or any other atoms to be understood.
+9. Include 2-3 supporting points as complete sentences in an array of objects with a text property
 
 The JSON should have this structure:
 {
@@ -147,14 +145,13 @@ The JSON should have this structure:
     {
       "title": "An evocative, original title (Max 5 words)",
       "mainContent": "Single complete sentence expressing the point--readable, eighth grade level, clear.",
-      "supportingInfo": "- Complete sentences supporting the point with extra information.
-- Two or three of these, fleshing out the concept.",
+      "supportingInfo": [{text: "Complete sentences supporting the point with extra information."}, {text: "Two or three of these, fleshing out the concept."}, {text: "Vary the number of text elements in each atom across the source."}],
       "supportingQuote": "A direct quote from the source that supports the main idea (1-3 sentences, verbatim)."
     },
     {
       "title": "Second atom title",
       "mainContent": "Second atom main content.",
-      "supportingInfo": "- Supporting point one.\\n- Supporting point two.\\n- Supporting point three.",
+      "supportingInfo": [{text: "Supporting point one."}, {text: "Supporting point two."}, {text: "Supporting point three."}],
       "supportingQuote": "Supporting quote for second atom."
     }
   ]

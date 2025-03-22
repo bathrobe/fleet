@@ -1,11 +1,12 @@
 import { UMAP } from 'umap-js'
-import type { VectorData } from './fetchVectors'
+import type { VectorData, AtomData } from './fetchVectors'
 
 export type ReducedVectorData = {
   id: string
   position: number[]
   metadata: VectorData['metadata']
   originalVector: number[]
+  atomData?: AtomData | null
 }
 
 /**
@@ -28,7 +29,7 @@ export function reduceVectorDimensions(
   // Configure UMAP
   const umap = new UMAP({
     nComponents: dimensions,
-    nNeighbors: 15, // Balance between local and global structure
+    nNeighbors: 2, // Balance between local and global structure
     minDist: 0.1, // How tightly points cluster together
     spread: 1.0, // How spread out the points are
   })
@@ -42,5 +43,6 @@ export function reduceVectorDimensions(
     position: reducedVectors[index],
     metadata: item.metadata,
     originalVector: item.vector,
+    atomData: item.atomData,
   }))
 }

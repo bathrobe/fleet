@@ -14,41 +14,33 @@ type ConceptVectorSpaceProps = {
   reducedData: ReducedVectorData[]
 }
 
-const defaultMargin = { top: 0, right: 0, bottom: 0, left: 0 }
+// Fixed dimensions instead of dynamic ones
+const PANEL_HEIGHT = 600
 
-export const ConceptVectorSpace = ({
-  width,
-  height,
-  reducedData,
-  margin = defaultMargin,
-}: ConceptVectorSpaceProps & {
-  margin?: { top: number; right: number; bottom: number; left: number }
-}) => {
+export const ConceptVectorSpace = ({ width, height, reducedData }: ConceptVectorSpaceProps) => {
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const leftPanelRef = useRef<HTMLDivElement>(null)
-  const [leftPanelWidth, setLeftPanelWidth] = useState(0)
+  const rightPanelRef = useRef<HTMLDivElement>(null)
+  const [panelWidth, setPanelWidth] = useState(0)
 
   // Update measurements when the component mounts or resizes
   useEffect(() => {
-    if (leftPanelRef.current) {
-      setLeftPanelWidth(leftPanelRef.current.offsetWidth)
-    }
-
-    // Setup resize observer to update when container size changes
-    const resizeObserver = new ResizeObserver((entries) => {
-      if (entries[0]) {
-        setLeftPanelWidth(entries[0].target.clientWidth)
+    const updatePanelWidths = () => {
+      if (leftPanelRef.current && rightPanelRef.current) {
+        // Make sure both panels have the same width
+        const width = Math.floor(window.innerWidth / 2) - 24 // Account for some padding
+        setPanelWidth(width)
       }
-    })
-
-    if (leftPanelRef.current) {
-      resizeObserver.observe(leftPanelRef.current)
     }
+
+    // Initial measurement
+    updatePanelWidths()
+
+    // Listen for window resize
+    window.addEventListener('resize', updatePanelWidths)
 
     return () => {
-      if (leftPanelRef.current) {
-        resizeObserver.unobserve(leftPanelRef.current)
-      }
+      window.removeEventListener('resize', updatePanelWidths)
     }
   }, [])
 
@@ -74,9 +66,9 @@ export const ConceptVectorSpace = ({
       if (y > yMax) yMax = y
     })
 
-    // Add some padding
-    const xPadding = (xMax - xMin) * 0.1
-    const yPadding = (yMax - yMin) * 0.1
+    // Add more generous padding (20%) to ensure points aren't at the edges
+    const xPadding = Math.max(0.2, (xMax - xMin) * 0.2)
+    const yPadding = Math.max(0.2, (yMax - yMin) * 0.2)
 
     return {
       xMin: xMin - xPadding,
@@ -86,32 +78,30 @@ export const ConceptVectorSpace = ({
     }
   }, [reducedData])
 
-  // Use actual measured width for visualization rather than calculation
-  const vizWidth = useMemo(() => leftPanelWidth || Math.floor(width * 0.5), [leftPanelWidth, width])
+  // Fixed ratio visualization
+  const vizWidth = panelWidth || 500
+  const vizHeight = PANEL_HEIGHT
 
-  // Create scales with 1:1 aspect ratio
+  // Create scales - ensure equal scaling on both axes for dimensional accuracy
   const xScale = useMemo(() => {
+    const size = Math.max(Math.abs(bounds.xMax - bounds.xMin), Math.abs(bounds.yMax - bounds.yMin))
+    const midX = (bounds.xMax + bounds.xMin) / 2
+
     return scaleLinear<number>({
-      domain: [bounds.xMin, bounds.xMax],
-      range: [margin.left, vizWidth - margin.right],
+      domain: [midX - size / 2, midX + size / 2],
+      range: [0, vizWidth],
     })
-  }, [bounds.xMin, bounds.xMax, margin.left, margin.right, vizWidth])
+  }, [bounds, vizWidth])
 
   const yScale = useMemo(() => {
-    return scaleLinear<number>({
-      domain: [bounds.yMin, bounds.yMax],
-      range: [height - margin.bottom, margin.top],
-    })
-  }, [bounds.yMin, bounds.yMax, margin.bottom, margin.top, height])
+    const size = Math.max(Math.abs(bounds.xMax - bounds.xMin), Math.abs(bounds.yMax - bounds.yMin))
+    const midY = (bounds.yMax + bounds.yMin) / 2
 
-  // Adjust aspect ratio
-  const constrainedHeight = useMemo(() => {
-    const xRange = bounds.xMax - bounds.xMin
-    const yRange = bounds.yMax - bounds.yMin
-    const ratio = xRange / yRange
-    const constrainedHeight = vizWidth / ratio
-    return Math.min(height, constrainedHeight)
-  }, [bounds, vizWidth, height])
+    return scaleLinear<number>({
+      domain: [midY - size / 2, midY + size / 2],
+      range: [vizHeight, 0], // Inverted for SVG
+    })
+  }, [bounds, vizHeight])
 
   // Points to render
   const points = useMemo(() => {
@@ -119,22 +109,25 @@ export const ConceptVectorSpace = ({
       id: d.id,
       x: xScale(d.position[0]),
       y: yScale(d.position[1]),
-      size: d.metadata.text ? 5 : 3,
+      size: d.metadata.text || d.atomData ? 5 : 3,
       color: d.id === selectedId ? '#ff6b6b' : '#8884d8',
       opacity: selectedId && d.id !== selectedId ? 0.4 : 0.8,
       data: d,
     }))
   }, [reducedData, xScale, yScale, selectedId])
 
-  // Initial zoom transform values
-  const initialTransform = {
-    scaleX: 1,
-    scaleY: 1,
-    translateX: 0,
-    translateY: 0,
-    skewX: 0,
-    skewY: 0,
-  }
+  // Initial zoom transform values - auto fit content
+  const initialTransform = useMemo(
+    () => ({
+      scaleX: 0.9, // Slight zoom out to ensure all points are visible
+      scaleY: 0.9,
+      translateX: 0,
+      translateY: 0,
+      skewX: 0,
+      skewY: 0,
+    }),
+    [],
+  )
 
   // Handle point click
   const handlePointClick = (point: (typeof points)[0]) => {
@@ -162,15 +155,11 @@ export const ConceptVectorSpace = ({
 
   // Render function that works with Zoom
   const render = (zoom: any) => {
-    const { translateX, translateY, scaleX, scaleY } = zoom.transformMatrix
-
     return (
       <>
-        <svg width="100%" height={constrainedHeight}>
-          <rect width="100%" height={constrainedHeight} rx={0} fill="#f3f4f6" fillOpacity={0.5} />
+        <svg width={vizWidth} height={vizHeight}>
+          <rect width={vizWidth} height={vizHeight} rx={0} fill="#f3f4f6" fillOpacity={0.5} />
           <Group transform={zoom.toString()}>
-            {/* Remove grid lines */}
-
             {/* Render points */}
             {points.map((point) => (
               <circle
@@ -204,9 +193,11 @@ export const ConceptVectorSpace = ({
             <div className="bg-white dark:bg-gray-800 p-2 rounded shadow-lg border border-gray-200 dark:border-gray-700 text-sm">
               <div className="max-w-xs">
                 <div className="font-medium">
-                  {tooltipData.metadata.text
-                    ? tooltipData.metadata.text.substring(0, 50) +
-                      (tooltipData.metadata.text.length > 50 ? '...' : '')
+                  {tooltipData.atomData?.title || tooltipData.metadata.text
+                    ? tooltipData.metadata.text?.substring(0, 50) +
+                      (tooltipData.metadata.text && tooltipData.metadata.text.length > 50
+                        ? '...'
+                        : '')
                     : tooltipData.id}
                 </div>
                 <div className="text-xs text-gray-500 mt-1">ID: {tooltipData.id}</div>
@@ -220,7 +211,7 @@ export const ConceptVectorSpace = ({
 
   // Render the info panel for selected node
   const renderInfoPanel = () => {
-    if (!selectedPoint) {
+    if (!selectedId) {
       return (
         <div className="w-full h-full flex items-center justify-center text-gray-400 italic">
           No node selected. Click a point to view details.
@@ -228,28 +219,119 @@ export const ConceptVectorSpace = ({
       )
     }
 
-    return (
-      <div className="h-full p-4 overflow-auto">
-        <h3 className="font-medium text-lg border-b pb-2 mb-3 text-red-500">
-          Info for the Selected Node
-        </h3>
+    if (!selectedPoint) {
+      return (
+        <div className="w-full h-full flex items-center justify-center text-gray-600">
+          Selected point data not found.
+        </div>
+      )
+    }
 
-        {selectedPoint.metadata.text && (
-          <div className="mb-4">
-            <div className="text-sm">{selectedPoint.metadata.text}</div>
+    const atomData = selectedPoint.atomData
+
+    return (
+      <div className="h-full p-6 overflow-auto">
+        {atomData ? (
+          <>
+            <h3 className="font-medium text-xl border-b pb-2 mb-4 text-red-500">
+              {atomData.title || 'Atom Details'}
+            </h3>
+
+            <div className="space-y-4">
+              {/* Main Content */}
+              {atomData.mainContent && (
+                <div>
+                  <h4 className="font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Main Content
+                  </h4>
+                  <div className="text-sm bg-gray-50 dark:bg-gray-800 p-3 rounded">
+                    {atomData.mainContent}
+                  </div>
+                </div>
+              )}
+
+              {/* Supporting Quote */}
+              {atomData.supportingQuote && (
+                <div>
+                  <h4 className="font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Supporting Quote
+                  </h4>
+                  <div className="text-sm bg-gray-50 dark:bg-gray-800 p-3 rounded border-l-4 border-gray-300 dark:border-gray-600 italic">
+                    {atomData.supportingQuote}
+                  </div>
+                </div>
+              )}
+
+              {/* Supporting Info */}
+              {atomData.supportingInfo && (
+                <div>
+                  <h4 className="font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Supporting Information
+                  </h4>
+                  <div className="text-sm bg-gray-50 dark:bg-gray-800 p-3 rounded">
+                    {typeof atomData.supportingInfo === 'string'
+                      ? atomData.supportingInfo
+                      : Array.isArray(atomData.supportingInfo)
+                        ? atomData.supportingInfo.map((info: any, i) => (
+                            <div key={i}>{typeof info === 'string' ? info : info.text}</div>
+                          ))
+                        : JSON.stringify(atomData.supportingInfo)}
+                  </div>
+                </div>
+              )}
+
+              {/* Source */}
+              {atomData.source && (
+                <div>
+                  <h4 className="font-medium text-gray-700 dark:text-gray-300 mb-1">Source</h4>
+                  <div className="text-sm">{atomData.source.title || atomData.source.id}</div>
+                </div>
+              )}
+
+              {/* Vector Details */}
+              <div className="mt-6 border-t pt-4">
+                <h4 className="font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Vector Details
+                </h4>
+                <div className="text-xs text-gray-500 grid grid-cols-2 gap-2">
+                  <div>Vector ID:</div>
+                  <div>{selectedId}</div>
+                  <div>Position:</div>
+                  <div>[{selectedPoint.position.map((n) => n.toFixed(3)).join(', ')}]</div>
+                </div>
+              </div>
+            </div>
+          </>
+        ) : (
+          <div className="space-y-4">
+            <h3 className="font-medium text-lg mb-3 text-red-500">Vector Information</h3>
+            <div className="text-sm">
+              <p className="mb-2 text-amber-600 dark:text-amber-400">
+                No atom record found for this vector ID.
+              </p>
+
+              {selectedPoint.metadata.text && (
+                <div className="mb-4">
+                  <h4 className="font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Metadata Text
+                  </h4>
+                  <div className="bg-gray-50 dark:bg-gray-800 p-3 rounded">
+                    {selectedPoint.metadata.text}
+                  </div>
+                </div>
+              )}
+
+              <div className="text-xs text-gray-500 mt-4">
+                <div className="mb-1">Vector ID: {selectedId}</div>
+                <div>Position: [{selectedPoint.position.map((n) => n.toFixed(3)).join(', ')}]</div>
+              </div>
+            </div>
           </div>
         )}
 
-        <div className="text-xs text-gray-500 mt-4">
-          <div className="mb-1">
-            Position: [{selectedPoint.position.map((n) => n.toFixed(3)).join(', ')}]
-          </div>
-          <div>ID: {selectedPoint.id}</div>
-        </div>
-
         <button
           onClick={() => setSelectedId(null)}
-          className="mt-4 px-3 py-1 text-sm bg-gray-200 dark:bg-gray-700 rounded hover:bg-gray-300 dark:hover:bg-gray-600"
+          className="mt-6 px-4 py-2 text-sm bg-gray-200 dark:bg-gray-700 rounded hover:bg-gray-300 dark:hover:bg-gray-600"
         >
           Clear Selection
         </button>
@@ -260,15 +342,20 @@ export const ConceptVectorSpace = ({
   return (
     <div className="flex flex-col md:flex-row w-full h-full">
       <div
-        className="md:w-1/2 h-full bg-white dark:bg-gray-900 overflow-auto"
-        style={{ borderLeft: 'none' }}
+        className="md:w-1/2 h-[600px] bg-white dark:bg-gray-900 overflow-auto border-r border-gray-200 dark:border-gray-700"
+        ref={rightPanelRef}
+        style={{ width: panelWidth ? `${panelWidth}px` : '50%', minWidth: '300px' }}
       >
         {renderInfoPanel()}
       </div>
-      <div className="md:w-1/2 relative h-full" style={{ borderRight: 'none' }} ref={leftPanelRef}>
+      <div
+        className="md:w-1/2 h-[600px] relative bg-gray-50 dark:bg-gray-800"
+        ref={leftPanelRef}
+        style={{ width: panelWidth ? `${panelWidth}px` : '50%', minWidth: '300px' }}
+      >
         <Zoom
           width={vizWidth}
-          height={constrainedHeight}
+          height={vizHeight}
           scaleXMin={0.1}
           scaleXMax={10}
           scaleYMin={0.1}

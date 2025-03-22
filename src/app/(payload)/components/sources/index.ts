@@ -8,6 +8,7 @@ export { FrontmatterDisplay } from './FrontmatterDisplay'
 export { ErrorDisplay } from './ErrorDisplay'
 export { SourceConfirmation } from './SourceConfirmation'
 export { CategoryDropdown } from './CategoryDropdown'
+export { MediumDropdown } from './MediumDropdown'
 export { LoadingIndicator } from './LoadingIndicator'
 
 // LLM Components

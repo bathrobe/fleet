@@ -1,6 +1,7 @@
 'use client'
 
 import React from 'react'
+import { useTransition } from 'react'
 
 export const ContentForm = ({
   content,
@@ -17,6 +18,8 @@ export const ContentForm = ({
   isProcessing?: boolean
   selectedCategory?: string
 }) => {
+  const [isPending, startTransition] = useTransition()
+
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
 
@@ -25,11 +28,16 @@ export const ContentForm = ({
     }
 
     const formData = new FormData(e.currentTarget)
-    formAction(formData)
+
+    // Wrap the formAction call in startTransition
+    startTransition(() => {
+      formAction(formData)
+    })
   }
 
+  // Only use the onSubmit handler, remove the action prop
   return (
-    <form action={formAction as any} onSubmit={handleSubmit}>
+    <form onSubmit={handleSubmit}>
       <textarea
         name="content"
         value={content}
@@ -37,23 +45,23 @@ export const ContentForm = ({
         placeholder="---\ntitle: My Document\ndate: 2023-05-01\ntags: [markdown, frontmatter]\n---\n\n# Content goes here"
         rows={10}
         className="w-full mb-4 font-mono"
-        disabled={isProcessing}
+        disabled={isProcessing || isPending}
       />
 
       <button
         type="submit"
-        disabled={!frontmatterData || isProcessing || !selectedCategory}
+        disabled={!frontmatterData || isProcessing || !selectedCategory || isPending}
         className={`
           px-4 py-2 text-white font-bold rounded
           transition-colors duration-200
           ${
-            frontmatterData && !isProcessing && selectedCategory
+            frontmatterData && !isProcessing && selectedCategory && !isPending
               ? 'bg-slate-700 hover:bg-slate-800 cursor-pointer'
               : 'bg-slate-400 cursor-not-allowed'
           }
         `}
       >
-        {isProcessing ? 'Processing...' : 'Submit'}
+        {isProcessing || isPending ? 'Processing...' : 'Submit'}
       </button>
     </form>
   )

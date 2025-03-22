@@ -52,10 +52,19 @@ export const Atoms: CollectionConfig = {
     },
     {
       name: 'supportingInfo',
-      type: 'textarea',
+      type: 'array',
       admin: {
         description: 'Additional information that supports this atom',
       },
+      fields: [
+        {
+          name: 'text',
+          type: 'textarea',
+          admin: {
+            description: 'Supporting information item',
+          },
+        },
+      ],
     },
     {
       name: 'source',
