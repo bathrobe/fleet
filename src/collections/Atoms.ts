@@ -70,6 +70,7 @@ export const Atoms: CollectionConfig = {
       name: 'source',
       type: 'relationship',
       relationTo: 'sources',
+      required: true,
       admin: {
         description: 'The source this atom is derived from',
       },

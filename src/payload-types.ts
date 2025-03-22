@@ -295,7 +295,7 @@ export interface Atom {
   /**
    * The source this atom is derived from
    */
-  source?: (number | null) | Source;
+  source: number | Source;
   updatedAt: string;
   createdAt: string;
 }

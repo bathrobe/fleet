@@ -29,7 +29,7 @@ export function reduceVectorDimensions(
   // Configure UMAP
   const umap = new UMAP({
     nComponents: dimensions,
-    nNeighbors: 2, // Balance between local and global structure
+    nNeighbors: 5, // Balance between local and global structure
     minDist: 0.1, // How tightly points cluster together
     spread: 1.0, // How spread out the points are
   })
