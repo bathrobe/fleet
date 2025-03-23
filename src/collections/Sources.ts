@@ -79,7 +79,9 @@ export const Sources: CollectionConfig = {
     },
     {
       name: 'fullText',
-      type: 'textarea',
+      type: 'relationship',
+      relationTo: 'media',
+      hasMany: false,
     },
   ],
 }

@@ -168,7 +168,7 @@ export interface Source {
   peopleplacesthingsevents: string;
   quotations: string;
   details: string;
-  fullText?: string | null;
+  fullText?: (number | null) | Media;
   updatedAt: string;
   createdAt: string;
 }
@@ -190,6 +190,7 @@ export interface SourceCategory {
 export interface Media {
   id: number;
   alt: string;
+  _key?: string | null;
   updatedAt: string;
   createdAt: string;
   url?: string | null;
@@ -413,6 +414,7 @@ export interface SourcesSelect<T extends boolean = true> {
  */
 export interface MediaSelect<T extends boolean = true> {
   alt?: T;
+  _key?: T;
   updatedAt?: T;
   createdAt?: T;
   url?: T;

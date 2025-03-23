@@ -5,6 +5,9 @@ import { getPayload } from 'payload'
 import config from '@payload-config'
 import { parseFrontmatter, extractSourceFields } from './frontmatterParser'
 import { createAtomsFromSource } from './atoms/atomsProcessor'
+import fs from 'fs/promises'
+import path from 'path'
+import os from 'os'
 
 // Main server action exported for form handling
 export async function processSourceAction(prevState: any, formData: FormData) {
@@ -146,14 +149,61 @@ export async function processSourceAction(prevState: any, formData: FormData) {
         processingStage: 'atoms',
       }
 
+      // 1. Write content to temporary file with .txt extension
+      const contentStr = content.toString()
+      const tmpDir = os.tmpdir()
+      const fileName = `source-${Date.now()}.txt`
+      const filePath = path.join(tmpDir, fileName)
+
+      await fs.writeFile(filePath, contentStr)
+      console.log(`Content written to temporary file: ${filePath}`)
+
+      // 2. Upload the file to Media collection
+      let mediaDoc
+      try {
+        // Create a buffer from the content string
+        const buffer = Buffer.from(contentStr)
+
+        // Create a Payload-compatible file object
+        const payloadFile = {
+          data: buffer,
+          mimetype: 'text/plain',
+          name: fileName,
+          size: buffer.length,
+        }
+
+        mediaDoc = await payload.create({
+          collection: 'media',
+          data: {
+            alt: parsedResult.title || 'Source content',
+          },
+          file: payloadFile,
+        })
+
+        console.log(`File uploaded to Media collection with ID: ${mediaDoc.id}`)
+      } catch (uploadError) {
+        console.error('Failed to upload file to Media collection:', uploadError)
+        throw uploadError
+      } finally {
+        // Clean up: remove the temporary file
+        try {
+          await fs.unlink(filePath)
+          console.log(`Temporary file removed: ${filePath}`)
+        } catch (unlinkError) {
+          console.error('Failed to remove temporary file:', unlinkError)
+        }
+      }
+
       // For relationships, Payload may need the ID as a number instead of string
       const createData = {
         ...parsedResult,
         sourceCategory: Number(sourceCategory),
-        fullText: content.toString(),
+        // 3. Add the media document ID to the source document
+        fullText: mediaDoc.id,
       }
 
       console.log('Category ID being submitted (as number):', Number(sourceCategory))
+      console.log(`Media ID being linked to source: ${mediaDoc.id}`)
 
       console.log(
         'Creating source with data:',

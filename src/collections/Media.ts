@@ -12,5 +12,17 @@ export const Media: CollectionConfig = {
       required: true,
     },
   ],
-  upload: true,
+  upload: {
+    mimeTypes: [
+      'image/png',
+      'image/jpeg',
+      'image/gif',
+      'image/svg+xml',
+      'image/webp',
+      'text/plain',
+      'text/markdown',
+      'application/octet-stream',
+      'text/x-markdown',
+    ],
+  },
 }
