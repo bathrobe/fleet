@@ -105,31 +105,67 @@ interface SidebarProps extends React.HTMLAttributes<HTMLDivElement> {
 export function Sidebar({ children, className, collapsible = true, ...props }: SidebarProps) {
   const { state, isMobile, setOpen } = useSidebar()
 
-  // If on mobile, don't render the sidebar at all
-  if (isMobile) {
-    return null
+  // Generate styles based on mobile and state
+  const getMobileStyles = () => {
+    return {
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      bottom: 0,
+      width: SIDEBAR_WIDTH,
+      transform: state === 'expanded' ? 'translateX(0)' : 'translateX(-100%)',
+      transition: 'transform 0.3s ease-in-out',
+      zIndex: 50,
+      boxShadow:
+        state === 'expanded'
+          ? '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)'
+          : 'none',
+      height: '100%',
+    } as React.CSSProperties
   }
 
   // Desktop styles
-  const desktopStyles = {
-    position: 'relative',
-    display: 'flex',
-    flexDirection: 'column',
-    width: state === 'expanded' ? SIDEBAR_WIDTH : SIDEBAR_WIDTH_ICON,
-    transition: 'width 0.3s ease-in-out',
-    height: '100%',
-  } as React.CSSProperties
+  const getDesktopStyles = () => {
+    return {
+      position: 'relative',
+      display: 'flex',
+      flexDirection: 'column',
+      width: state === 'expanded' ? SIDEBAR_WIDTH : SIDEBAR_WIDTH_ICON,
+      transition: 'width 0.3s ease-in-out',
+      height: '100%',
+    } as React.CSSProperties
+  }
+
+  // Use different styles based on viewport
+  const sidebarStyles = isMobile ? getMobileStyles() : getDesktopStyles()
+
+  // Handle backdrop click
+  const handleBackdropClick = React.useCallback(() => {
+    setOpen(false)
+  }, [setOpen])
 
   return (
-    <aside
-      data-collapsible={collapsible ? state : 'none'}
-      data-state={state}
-      className={cn(baseSidebarClass, className)}
-      style={desktopStyles}
-      {...props}
-    >
-      {children}
-    </aside>
+    <>
+      <aside
+        data-collapsible={collapsible ? state : 'none'}
+        data-state={state}
+        data-mobile={isMobile}
+        className={cn(baseSidebarClass, className)}
+        style={sidebarStyles}
+        {...props}
+      >
+        {children}
+      </aside>
+
+      {/* Add backdrop for mobile */}
+      {isMobile && state === 'expanded' && (
+        <div
+          className="fixed inset-0 bg-black/30 z-40"
+          aria-hidden="true"
+          onClick={handleBackdropClick}
+        />
+      )}
+    </>
   )
 }
 
@@ -169,12 +205,7 @@ export function SidebarTrigger({
   className,
   ...props
 }: React.ButtonHTMLAttributes<HTMLButtonElement>) {
-  const { open, setOpen, isMobile } = useSidebar()
-
-  // Don't render on mobile
-  if (isMobile) {
-    return null
-  }
+  const { open, setOpen } = useSidebar()
 
   return (
     <button

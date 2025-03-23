@@ -10,17 +10,10 @@ import { useTooltip } from '@visx/tooltip'
 // import { fetchAtomById, AtomData } from './fetchVectors'
 // import { AtomCard } from '../AtomDisplay/AtomCard'
 
-// Define minimal types to make it work
-type AtomData = any
-const fetchAtomById = async (id: string): Promise<any> => {
-  console.warn('fetchAtomById is not implemented')
-  return {}
-}
-
 type ConceptVectorSpaceProps = {
   width: number
   height: number
-  reducedData: any[]
+  reducedData: ReducedVectorData[]
   selectedNodeId?: string | null
   onNodeClick?: (vectorId: string) => void
 }
@@ -36,23 +29,6 @@ export const ConceptVectorSpace = ({
   const [selectedAtomData, setSelectedAtomData] = useState<AtomData | null>(null)
   const [isLoadingAtom, setIsLoadingAtom] = useState<boolean>(false)
   const containerRef = useRef<HTMLDivElement>(null)
-  const atomCardRef = useRef<HTMLDivElement>(null)
-
-  // Check if device is mobile (simple detection based on screen width)
-  const [isMobile, setIsMobile] = useState<boolean>(false)
-
-  useEffect(() => {
-    const checkIsMobile = () => {
-      setIsMobile(window.innerWidth <= 768)
-    }
-
-    checkIsMobile()
-    window.addEventListener('resize', checkIsMobile)
-
-    return () => {
-      window.removeEventListener('resize', checkIsMobile)
-    }
-  }, [])
 
   // Log data for debugging
   useEffect(() => {
@@ -73,7 +49,7 @@ export const ConceptVectorSpace = ({
 
   // Set up tooltip
   const { tooltipData, tooltipLeft, tooltipTop, tooltipOpen, showTooltip, hideTooltip } =
-    useTooltip<any>()
+    useTooltip<ReducedVectorData>()
 
   // Determine the bounds to properly display all data points
   const bounds = useMemo(() => {
@@ -294,29 +270,6 @@ export const ConceptVectorSpace = ({
       >
         {(zoom) => render(zoom)}
       </Zoom>
-
-      {/* Atom card container - bottom half on mobile */}
-      {isMobile && selectedId && (
-        <div
-          ref={atomCardRef}
-          className="fixed bottom-0 left-0 right-0 h-1/2 overflow-hidden transition-all duration-300 ease-in-out"
-          style={{ zIndex: 40 }}
-        >
-          {/* AtomCard component placeholder */}
-          <div className="h-full rounded-t-xl shadow-lg bg-white p-4">
-            <h3 className="text-lg font-semibold">Atom Details</h3>
-            <p className="text-gray-500 text-sm">ID: {selectedId}</p>
-            {selectedAtomData && (
-              <div className="mt-4">
-                <pre className="text-xs overflow-auto">
-                  {JSON.stringify(selectedAtomData, null, 2)}
-                </pre>
-              </div>
-            )}
-            {isLoadingAtom && <div className="mt-4">Loading...</div>}
-          </div>
-        </div>
-      )}
     </div>
   )
 }

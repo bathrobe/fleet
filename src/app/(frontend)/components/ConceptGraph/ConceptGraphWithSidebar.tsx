@@ -31,8 +31,12 @@ export function ConceptGraphWithSidebar({ vectorData, reducedData }: ConceptGrap
       const mobile = window.innerWidth <= 768
       setIsMobile(mobile)
 
-      // Always set sidebar to closed on mobile, and open on desktop
-      setSidebarOpen(!mobile)
+      // Always close sidebar on mobile by default
+      if (mobile) {
+        setSidebarOpen(false)
+      } else {
+        setSidebarOpen(true)
+      }
     }
 
     checkIsMobile()
@@ -128,6 +132,11 @@ export function ConceptGraphWithSidebar({ vectorData, reducedData }: ConceptGrap
     setAtomData(null)
   }, [])
 
+  // Sidebar open change handler
+  const handleSidebarOpenChange = useCallback((open: boolean) => {
+    setSidebarOpen(open)
+  }, [])
+
   // Determine if we should show the right panel
   const showRightPanel = atomData !== null || isLoadingAtom
 
@@ -140,6 +149,8 @@ export function ConceptGraphWithSidebar({ vectorData, reducedData }: ConceptGrap
         reducedData={reducedData}
         selectedNodeId={selectedVectorId}
         onNodeClick={handleNodeClick}
+        externalAtomData={atomData}
+        isLoadingExternalAtom={isLoadingAtom}
       />
     </div>
   )
@@ -157,13 +168,13 @@ export function ConceptGraphWithSidebar({ vectorData, reducedData }: ConceptGrap
       />
     ) : undefined
 
-  // Prepare sidebar content - only used in desktop mode
-  const sidebarContent = !isMobile ? (
+  // Prepare sidebar content
+  const sidebarContent = (
     <AtomSidebar onAtomClick={handleAtomClick} selectedAtomId={selectedAtomId} />
-  ) : null
+  )
 
   return (
-    <SidebarProvider open={sidebarOpen} onOpenChange={setSidebarOpen}>
+    <SidebarProvider open={sidebarOpen} onOpenChange={handleSidebarOpenChange}>
       <FullWidthLayout
         leftSidebar={sidebarContent}
         mainContent={graphContent}
