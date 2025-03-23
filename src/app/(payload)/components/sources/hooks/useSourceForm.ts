@@ -23,7 +23,6 @@ export function useSourceForm() {
   const [frontmatterData, setFrontmatterData] = useState<any>(null)
   const [parseError, setParseError] = useState<string | null>(null)
   const [selectedCategory, setSelectedCategory] = useState('')
-  const [selectedMedium, setSelectedMedium] = useState('')
 
   const [state, formAction] = useActionState(processSourceAction, initialState)
 
@@ -50,16 +49,6 @@ export function useSourceForm() {
     }
   }
 
-  const handleMediumChange = (mediumId: string) => {
-    console.log('Medium changed to:', mediumId)
-    setSelectedMedium(mediumId) // Keep as string in state for form control handling
-
-    // Reset processed state when medium changes
-    if (state.processed) {
-      Object.assign(state, initialState)
-    }
-  }
-
   const handleFormAction = (formData: FormData) => {
     if (!frontmatterData) {
       console.error('Cannot submit without frontmatter data')
@@ -80,11 +69,6 @@ export function useSourceForm() {
     // Add the sourceCategory
     newFormData.append('sourceCategory', selectedCategory)
 
-    // Add the sourceMedium if selected
-    if (selectedMedium) {
-      newFormData.append('sourceMedium', selectedMedium)
-    }
-
     // Set processing state before starting
     Object.assign(state, {
       ...initialState,
@@ -94,7 +78,6 @@ export function useSourceForm() {
 
     // Log what we're submitting
     console.log('Submitting form with categoryId:', selectedCategory)
-    console.log('Submitting form with mediumId:', selectedMedium)
 
     // Submit the form data
     formAction(newFormData)
@@ -125,10 +108,8 @@ export function useSourceForm() {
     parseError,
     state,
     selectedCategory,
-    selectedMedium,
     handleContentChange,
     handleCategoryChange,
-    handleMediumChange,
     handleFormAction,
     isSourceCreated: isSourceCreated(),
     sourceData: state.result,
