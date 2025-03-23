@@ -6,9 +6,8 @@ import { localPoint } from '@visx/event'
 import { scaleLinear } from '@visx/scale'
 import { Group } from '@visx/group'
 import { useTooltip } from '@visx/tooltip'
-// import type { ReducedVectorData } from './dimensionReducer'
-// import { fetchAtomById, AtomData } from './fetchVectors'
-// import { AtomCard } from '../AtomDisplay/AtomCard'
+import type { ReducedVectorData } from './ConceptGraph/dimensionReducer'
+import { fetchAtomById, AtomData } from './ConceptGraph/fetchVectors'
 
 type ConceptVectorSpaceProps = {
   width: number
