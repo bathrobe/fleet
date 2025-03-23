@@ -14,13 +14,21 @@ type ConceptVectorSpaceProps = {
   width: number
   height: number
   reducedData: ReducedVectorData[]
+  selectedNodeId?: string | null
+  onNodeClick?: (vectorId: string) => void
 }
 
 // Fixed dimensions instead of dynamic ones
 const PANEL_HEIGHT = 600
 
-export const ConceptVectorSpace = ({ width, height, reducedData }: ConceptVectorSpaceProps) => {
-  const [selectedId, setSelectedId] = useState<string | null>(null)
+export const ConceptVectorSpace = ({
+  width,
+  height,
+  reducedData,
+  selectedNodeId,
+  onNodeClick,
+}: ConceptVectorSpaceProps) => {
+  const [selectedId, setSelectedId] = useState<string | null>(selectedNodeId || null)
   const [selectedAtomData, setSelectedAtomData] = useState<AtomData | null>(null)
   const [isLoadingAtom, setIsLoadingAtom] = useState<boolean>(false)
   const leftPanelRef = useRef<HTMLDivElement>(null)
@@ -47,6 +55,13 @@ export const ConceptVectorSpace = ({ width, height, reducedData }: ConceptVector
       window.removeEventListener('resize', updatePanelWidths)
     }
   }, [])
+
+  // Update local state when prop changes
+  useEffect(() => {
+    if (selectedNodeId !== undefined) {
+      setSelectedId(selectedNodeId)
+    }
+  }, [selectedNodeId])
 
   // Set up tooltip
   const { tooltipData, tooltipLeft, tooltipTop, tooltipOpen, showTooltip, hideTooltip } =
@@ -152,7 +167,7 @@ export const ConceptVectorSpace = ({ width, height, reducedData }: ConceptVector
   // Handle point click
   const handlePointClick = async (point: (typeof points)[0]) => {
     // If clicking the same point, deselect it
-    if (point.id === selectedId) {
+    if (point.id === selectedId && !onNodeClick) {
       setSelectedId(null)
       setSelectedAtomData(null)
       return
@@ -161,8 +176,13 @@ export const ConceptVectorSpace = ({ width, height, reducedData }: ConceptVector
     // Select the new point
     setSelectedId(point.id)
 
-    // Load the atom data for this point
-    await loadAtomData(point.id)
+    // If external handler is provided, use it
+    if (onNodeClick) {
+      onNodeClick(point.id)
+    } else {
+      // Otherwise, use internal loading
+      await loadAtomData(point.id)
+    }
   }
 
   // Handle point hover
@@ -269,26 +289,18 @@ export const ConceptVectorSpace = ({ width, height, reducedData }: ConceptVector
   }
 
   return (
-    <div className="flex flex-row h-full">
-      {/* Left panel - vector space */}
-      <div className="flex-1 relative" ref={leftPanelRef}>
-        <Zoom<SVGSVGElement>
-          width={vizWidth}
-          height={vizHeight}
-          scaleXMin={0.1}
-          scaleXMax={5}
-          scaleYMin={0.1}
-          scaleYMax={5}
-          initialTransformMatrix={initialTransform}
-        >
-          {(zoom) => render(zoom)}
-        </Zoom>
-      </div>
-
-      {/* Right panel - info */}
-      <div className="flex-1 border-l h-full overflow-auto" ref={rightPanelRef}>
-        {renderInfoPanel()}
-      </div>
+    <div className="w-full h-full relative">
+      <Zoom<SVGSVGElement>
+        width={vizWidth}
+        height={vizHeight}
+        scaleXMin={0.1}
+        scaleXMax={5}
+        scaleYMin={0.1}
+        scaleYMax={5}
+        initialTransformMatrix={initialTransform}
+      >
+        {(zoom) => render(zoom)}
+      </Zoom>
     </div>
   )
 }
