@@ -155,11 +155,6 @@ export async function processSourceAction(prevState: any, formData: FormData) {
         fullText: content.toString(),
       }
 
-      // Add sourceMedium if provided
-      if (sourceMedium) {
-        createData.sourceMedium = Number(sourceMedium)
-      }
-
       console.log('Category ID being submitted (as number):', Number(sourceCategory))
       if (sourceMedium) {
         console.log('Medium ID being submitted (as number):', Number(sourceMedium))

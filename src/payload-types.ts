@@ -74,7 +74,6 @@ export interface Config {
     posts: Post;
     atoms: Atom;
     'source-categories': SourceCategory;
-    'source-media': SourceMedia;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
     'payload-migrations': PayloadMigration;
@@ -89,7 +88,6 @@ export interface Config {
     posts: PostsSelect<false> | PostsSelect<true>;
     atoms: AtomsSelect<false> | AtomsSelect<true>;
     'source-categories': SourceCategoriesSelect<false> | SourceCategoriesSelect<true>;
-    'source-media': SourceMediaSelect<false> | SourceMediaSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
     'payload-migrations': PayloadMigrationsSelect<false> | PayloadMigrationsSelect<true>;
@@ -155,7 +153,6 @@ export interface Source {
   id: number;
   title: string;
   sourceCategory?: (number | null) | SourceCategory;
-  sourceMedium?: (number | null) | SourceMedia;
   url: string;
   author?: string | null;
   publishedDate?: string | null;
@@ -180,17 +177,6 @@ export interface Source {
  * via the `definition` "source-categories".
  */
 export interface SourceCategory {
-  id: number;
-  title: string;
-  description?: string | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "source-media".
- */
-export interface SourceMedia {
   id: number;
   title: string;
   description?: string | null;
@@ -337,10 +323,6 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'source-categories';
         value: number | SourceCategory;
-      } | null)
-    | ({
-        relationTo: 'source-media';
-        value: number | SourceMedia;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -406,7 +388,6 @@ export interface UsersSelect<T extends boolean = true> {
 export interface SourcesSelect<T extends boolean = true> {
   title?: T;
   sourceCategory?: T;
-  sourceMedium?: T;
   url?: T;
   author?: T;
   publishedDate?: T;
@@ -511,16 +492,6 @@ export interface AtomsSelect<T extends boolean = true> {
  * via the `definition` "source-categories_select".
  */
 export interface SourceCategoriesSelect<T extends boolean = true> {
-  title?: T;
-  description?: T;
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "source-media_select".
- */
-export interface SourceMediaSelect<T extends boolean = true> {
   title?: T;
   description?: T;
   updatedAt?: T;

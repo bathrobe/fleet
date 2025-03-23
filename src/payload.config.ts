@@ -1,6 +1,7 @@
 // storage-adapter-import-placeholder
 import { postgresAdapter } from '@payloadcms/db-postgres'
 import { payloadCloudPlugin } from '@payloadcms/payload-cloud'
+// @ts-ignore
 import { lexicalEditor } from '@payloadcms/richtext-lexical'
 import path from 'path'
 import { buildConfig } from 'payload'
@@ -16,7 +17,6 @@ import { Sources } from './collections/Sources'
 import { Atoms } from './collections/Atoms'
 import { Agent } from './globals/Agent'
 import { SourceCategory } from './collections/SourceCategory'
-import { SourceMedium } from './collections/SourceMedium'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -33,7 +33,7 @@ export default buildConfig({
       },
     },
   },
-  collections: [Users, Sources, Media, Journals, Tasks, Posts, Atoms, SourceCategory, SourceMedium],
+  collections: [Users, Sources, Media, Journals, Tasks, Posts, Atoms, SourceCategory],
   globals: [Agent],
   editor: lexicalEditor({}),
   secret: process.env.PAYLOAD_SECRET || '',

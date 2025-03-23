@@ -23,11 +23,7 @@ export const Sources: CollectionConfig = {
       type: 'relationship',
       relationTo: 'source-categories',
     },
-    {
-      name: 'sourceMedium',
-      type: 'relationship',
-      relationTo: 'source-media',
-    },
+
     {
       name: 'url',
       type: 'text',
