@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo, useRef, useEffect, useCallback } from 'react'
+import { useState, useMemo, useRef, useEffect } from 'react'
 import { Zoom } from '@visx/zoom'
 import { localPoint } from '@visx/event'
 import { scaleLinear } from '@visx/scale'
@@ -9,7 +9,6 @@ import { useTooltip } from '@visx/tooltip'
 import type { ReducedVectorData } from './dimensionReducer'
 import { fetchAtomById, AtomData } from './fetchVectors'
 import { AtomCard } from '../AtomDisplay/AtomCard'
-import { useSidebar } from '../ui/sidebar'
 
 type ConceptVectorSpaceProps = {
   width: number
@@ -17,8 +16,6 @@ type ConceptVectorSpaceProps = {
   reducedData: ReducedVectorData[]
   selectedNodeId?: string | null
   onNodeClick?: (vectorId: string) => void
-  externalAtomData?: AtomData | null
-  isLoadingExternalAtom?: boolean
 }
 
 export const ConceptVectorSpace = ({
@@ -27,17 +24,21 @@ export const ConceptVectorSpace = ({
   reducedData,
   selectedNodeId,
   onNodeClick,
-  externalAtomData,
-  isLoadingExternalAtom = false,
 }: ConceptVectorSpaceProps) => {
   const [selectedId, setSelectedId] = useState<string | null>(selectedNodeId || null)
   const [selectedAtomData, setSelectedAtomData] = useState<AtomData | null>(null)
   const [isLoadingAtom, setIsLoadingAtom] = useState<boolean>(false)
-  const sidebar = useSidebar()
-  const { isMobile } = sidebar
+  const containerRef = useRef<HTMLDivElement>(null)
 
-  const plotContainerRef = useRef<HTMLDivElement>(null)
-  const atomCardRef = useRef<HTMLDivElement>(null)
+  // Log data for debugging
+  useEffect(() => {
+    console.log('ConceptVectorSpace render:', {
+      width,
+      height,
+      dataPoints: reducedData.length,
+      container: containerRef.current?.getBoundingClientRect(),
+    })
+  }, [width, height, reducedData])
 
   // Update local state when prop changes
   useEffect(() => {
@@ -45,13 +46,6 @@ export const ConceptVectorSpace = ({
       setSelectedId(selectedNodeId)
     }
   }, [selectedNodeId])
-
-  // Use external atom data when provided
-  useEffect(() => {
-    if (externalAtomData) {
-      setSelectedAtomData(externalAtomData)
-    }
-  }, [externalAtomData])
 
   // Set up tooltip
   const { tooltipData, tooltipLeft, tooltipTop, tooltipOpen, showTooltip, hideTooltip } =
@@ -75,9 +69,9 @@ export const ConceptVectorSpace = ({
       if (y > yMax) yMax = y
     })
 
-    // Add more generous padding (20%) to ensure points aren't at the edges
-    const xPadding = Math.max(0.2, (xMax - xMin) * 0.2)
-    const yPadding = Math.max(0.2, (yMax - yMin) * 0.2)
+    // Add more generous padding (30%) to ensure points aren't at the edges
+    const xPadding = Math.max(0.3, (xMax - xMin) * 0.3)
+    const yPadding = Math.max(0.3, (yMax - yMin) * 0.3)
 
     return {
       xMin: xMin - xPadding,
@@ -87,21 +81,10 @@ export const ConceptVectorSpace = ({
     }
   }, [reducedData])
 
-  // Calculate dimensions based on selection state and device
-  const vizDimensions = useMemo(() => {
-    if (isMobile && selectedId) {
-      // When atom is selected on mobile, use top half of screen
-      return {
-        width,
-        height: height / 2,
-      }
-    }
-    // Default: use full container dimensions
-    return {
-      width,
-      height,
-    }
-  }, [width, height, selectedId, isMobile])
+  // Use the full container dimensions for visualization
+  // Set a minimum size to prevent empty visualization
+  const vizWidth = Math.max(width, 100)
+  const vizHeight = Math.max(height, 100)
 
   // Create scales - ensure equal scaling on both axes for dimensional accuracy
   const xScale = useMemo(() => {
@@ -110,9 +93,9 @@ export const ConceptVectorSpace = ({
 
     return scaleLinear<number>({
       domain: [midX - size / 2, midX + size / 2],
-      range: [0, vizDimensions.width],
+      range: [0, vizWidth],
     })
-  }, [bounds, vizDimensions.width])
+  }, [bounds, vizWidth])
 
   const yScale = useMemo(() => {
     const size = Math.max(Math.abs(bounds.xMax - bounds.xMin), Math.abs(bounds.yMax - bounds.yMin))
@@ -120,19 +103,19 @@ export const ConceptVectorSpace = ({
 
     return scaleLinear<number>({
       domain: [midY - size / 2, midY + size / 2],
-      range: [vizDimensions.height, 0], // Inverted for SVG
+      range: [vizHeight, 0], // Inverted for SVG
     })
-  }, [bounds, vizDimensions.height])
+  }, [bounds, vizHeight])
 
-  // Points to render
+  // Points to render - make larger and brighter
   const points = useMemo(() => {
     return reducedData.map((d) => ({
       id: d.id,
       x: xScale(d.position[0]),
       y: yScale(d.position[1]),
-      size: d.metadata.text ? 5 : 3,
-      color: d.id === selectedId ? '#ff6b6b' : '#8884d8',
-      opacity: selectedId && d.id !== selectedId ? 0.4 : 0.8,
+      size: d.metadata.text ? 8 : 6, // Larger size for visibility
+      color: d.id === selectedId ? '#ff4040' : '#6a4dff', // Brighter colors
+      opacity: selectedId && d.id !== selectedId ? 0.6 : 1.0, // Higher opacity
       data: d,
     }))
   }, [reducedData, xScale, yScale, selectedId])
@@ -140,8 +123,8 @@ export const ConceptVectorSpace = ({
   // Initial zoom transform values - auto fit content
   const initialTransform = useMemo(
     () => ({
-      scaleX: 0.9, // Slight zoom out to ensure all points are visible
-      scaleY: 0.9,
+      scaleX: 1.0, // Default scale to ensure visibility
+      scaleY: 1.0,
       translateX: 0,
       translateY: 0,
       skewX: 0,
@@ -181,11 +164,6 @@ export const ConceptVectorSpace = ({
     // If external handler is provided, use it
     if (onNodeClick) {
       onNodeClick(point.id)
-
-      // Also load data locally for mobile view if external callback is provided
-      if (isMobile) {
-        await loadAtomData(point.id)
-      }
     } else {
       // Otherwise, use internal loading
       await loadAtomData(point.id)
@@ -211,21 +189,6 @@ export const ConceptVectorSpace = ({
     return reducedData.find((d) => d.id === selectedId)
   }, [selectedId, reducedData])
 
-  // Close atom selection
-  const handleCloseAtom = () => {
-    setSelectedId(null)
-    setSelectedAtomData(null)
-
-    // Notify parent if callback exists
-    if (onNodeClick) {
-      onNodeClick(null as any)
-    }
-  }
-
-  // Determine which atom data to use
-  const displayAtomData = externalAtomData || selectedAtomData
-  const isLoading = isLoadingExternalAtom || isLoadingAtom
-
   // Render function that works with Zoom
   const render = (zoom: any) => {
     return (
@@ -233,16 +196,17 @@ export const ConceptVectorSpace = ({
         <svg
           width="100%"
           height="100%"
-          viewBox={`0 0 ${vizDimensions.width} ${vizDimensions.height}`}
+          viewBox={`0 0 ${vizWidth} ${vizHeight}`}
           preserveAspectRatio="xMidYMid meet"
+          style={{ background: 'rgba(240, 242, 248, 0.8)' }}
         >
-          <rect
-            width={vizDimensions.width}
-            height={vizDimensions.height}
-            rx={0}
-            fill="#f3f4f6"
-            fillOpacity={0.5}
-          />
+          <rect width={vizWidth} height={vizHeight} rx={0} fill="#f3f4f6" fillOpacity={0.5} />
+
+          {/* Debug info */}
+          <text x="10" y="20" fontSize="12" fill="#333">
+            Points: {points.length} | Container: {width}x{height}
+          </text>
+
           <Group transform={zoom.toString()}>
             {/* Render points */}
             {points.map((point) => (
@@ -253,8 +217,8 @@ export const ConceptVectorSpace = ({
                 r={point.size}
                 fill={point.color}
                 fillOpacity={point.opacity}
-                stroke={point.id === selectedId ? '#ff6b6b' : 'none'}
-                strokeWidth={point.id === selectedId ? 2 : 0}
+                stroke={point.id === selectedId ? '#ff4040' : '#fff'}
+                strokeWidth={point.id === selectedId ? 2 : 1}
                 onClick={() => handlePointClick(point)}
                 onMouseEnter={(e) => handlePointHover(point, e)}
                 onMouseLeave={hideTooltip}
@@ -272,7 +236,6 @@ export const ConceptVectorSpace = ({
               left: tooltipLeft,
               transform: 'translate(-50%, -100%)',
               pointerEvents: 'none',
-              zIndex: 50,
             }}
           >
             <div className="bg-white dark:bg-gray-800 p-2 rounded shadow-lg border border-gray-200 dark:border-gray-700 text-sm">
@@ -295,45 +258,18 @@ export const ConceptVectorSpace = ({
   }
 
   return (
-    <div className="w-full h-full relative">
-      {/* Scatter plot container */}
-      <div
-        ref={plotContainerRef}
-        className={`transition-all duration-300 ease-in-out ${
-          isMobile && selectedId ? 'h-1/2' : 'h-full'
-        }`}
-        style={{ position: 'relative' }}
+    <div className="w-full h-full relative" ref={containerRef}>
+      <Zoom<SVGSVGElement>
+        width={vizWidth}
+        height={vizHeight}
+        scaleXMin={0.1}
+        scaleXMax={5}
+        scaleYMin={0.1}
+        scaleYMax={5}
+        initialTransformMatrix={initialTransform}
       >
-        <Zoom<SVGSVGElement>
-          width={vizDimensions.width}
-          height={vizDimensions.height}
-          scaleXMin={0.1}
-          scaleXMax={5}
-          scaleYMin={0.1}
-          scaleYMax={5}
-          initialTransformMatrix={initialTransform}
-        >
-          {(zoom) => render(zoom)}
-        </Zoom>
-      </div>
-
-      {/* Atom card container - bottom half on mobile */}
-      {isMobile && selectedId && (
-        <div
-          ref={atomCardRef}
-          className="fixed bottom-0 left-0 right-0 h-1/2 overflow-hidden transition-all duration-300 ease-in-out"
-          style={{ zIndex: 40 }}
-        >
-          <AtomCard
-            atom={displayAtomData}
-            loading={isLoading}
-            onClose={handleCloseAtom}
-            vectorId={selectedId}
-            position={selectedPoint?.position}
-            className="h-full rounded-t-xl shadow-lg"
-          />
-        </div>
-      )}
+        {(zoom) => render(zoom)}
+      </Zoom>
     </div>
   )
 }

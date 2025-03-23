@@ -20,8 +20,28 @@ export function ConceptGraphWithSidebar({ vectorData, reducedData }: ConceptGrap
   const [selectedVectorId, setSelectedVectorId] = useState<string | null>(null)
   const [atomData, setAtomData] = useState<AtomData | null>(null)
   const [isLoadingAtom, setIsLoadingAtom] = useState<boolean>(false)
+  const [isMobile, setIsMobile] = useState<boolean>(false)
+  const [sidebarOpen, setSidebarOpen] = useState<boolean>(true)
   const graphContainerRef = useRef<HTMLDivElement>(null)
   const [graphDimensions, setGraphDimensions] = useState({ width: 800, height: 600 })
+
+  // Detect mobile viewport
+  useEffect(() => {
+    const checkIsMobile = () => {
+      const mobile = window.innerWidth <= 768
+      setIsMobile(mobile)
+
+      // Always set sidebar to closed on mobile, and open on desktop
+      setSidebarOpen(!mobile)
+    }
+
+    checkIsMobile()
+    window.addEventListener('resize', checkIsMobile)
+
+    return () => {
+      window.removeEventListener('resize', checkIsMobile)
+    }
+  }, [])
 
   // Update graph dimensions on resize
   useEffect(() => {
@@ -82,6 +102,14 @@ export function ConceptGraphWithSidebar({ vectorData, reducedData }: ConceptGrap
   // Handle clicking a node in the graph
   const handleNodeClick = useCallback(
     async (vectorId: string) => {
+      if (!vectorId) {
+        // Handle deselection
+        setSelectedAtomId(null)
+        setSelectedVectorId(null)
+        setAtomData(null)
+        return
+      }
+
       setSelectedVectorId(vectorId)
       await loadAtomByPineconeId(vectorId)
     },
@@ -112,29 +140,32 @@ export function ConceptGraphWithSidebar({ vectorData, reducedData }: ConceptGrap
         reducedData={reducedData}
         selectedNodeId={selectedVectorId}
         onNodeClick={handleNodeClick}
+        externalAtomData={atomData}
+        isLoadingExternalAtom={isLoadingAtom}
       />
     </div>
   )
 
-  // Prepare the right panel content
-  const rightPanelContent = showRightPanel ? (
-    <AtomCard
-      atom={atomData}
-      loading={isLoadingAtom}
-      onClose={handleClearSelection}
-      vectorId={selectedVectorId || undefined}
-      position={selectedVectorPosition}
-      className="h-full w-full"
-    />
-  ) : undefined
+  // Prepare the right panel content - only used in desktop mode
+  const rightPanelContent =
+    showRightPanel && !isMobile ? (
+      <AtomCard
+        atom={atomData}
+        loading={isLoadingAtom}
+        onClose={handleClearSelection}
+        vectorId={selectedVectorId || undefined}
+        position={selectedVectorPosition}
+        className="h-full w-full"
+      />
+    ) : undefined
 
-  // Prepare sidebar content
-  const sidebarContent = (
+  // Prepare sidebar content - only used in desktop mode
+  const sidebarContent = !isMobile ? (
     <AtomSidebar onAtomClick={handleAtomClick} selectedAtomId={selectedAtomId} />
-  )
+  ) : null
 
   return (
-    <SidebarProvider defaultOpen={true}>
+    <SidebarProvider open={sidebarOpen} onOpenChange={setSidebarOpen}>
       <FullWidthLayout
         leftSidebar={sidebarContent}
         mainContent={graphContent}

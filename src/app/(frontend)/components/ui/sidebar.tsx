@@ -15,6 +15,7 @@ type SidebarContextType = {
   open: boolean
   setOpen: (open: boolean | ((open: boolean) => boolean)) => void
   state: 'expanded' | 'collapsed'
+  isMobile: boolean
 }
 
 const SidebarContext = React.createContext<SidebarContextType | undefined>(undefined)
@@ -44,6 +45,21 @@ export function SidebarProvider({
   ...props
 }: SidebarProviderProps) {
   const [_open, _setOpen] = React.useState(defaultOpen)
+  const [isMobile, setIsMobile] = React.useState(false)
+
+  // Detect mobile viewport
+  React.useEffect(() => {
+    const checkIsMobile = () => {
+      setIsMobile(window.innerWidth <= 768)
+    }
+
+    checkIsMobile()
+    window.addEventListener('resize', checkIsMobile)
+
+    return () => {
+      window.removeEventListener('resize', checkIsMobile)
+    }
+  }, [])
 
   const open = openProp !== undefined ? openProp : _open
   const state: 'expanded' | 'collapsed' = open ? 'expanded' : 'collapsed'
@@ -64,7 +80,10 @@ export function SidebarProvider({
   )
 
   // Value for the context
-  const value = React.useMemo(() => ({ open, setOpen, state }), [open, setOpen, state])
+  const value = React.useMemo(
+    () => ({ open, setOpen, state, isMobile }),
+    [open, setOpen, state, isMobile],
+  )
 
   return (
     <SidebarContext.Provider value={value}>
@@ -75,41 +94,38 @@ export function SidebarProvider({
   )
 }
 
-// Sidebar component
-const sidebarVariants = cva(
-  'group/sidebar relative flex h-full flex-col overflow-hidden border-r border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 transition-all duration-300 ease-in-out',
-  {
-    variants: {
-      state: {
-        expanded: 'w-[--sidebar-width]',
-        collapsed: 'w-[--sidebar-width-icon]',
-      },
-    },
-    defaultVariants: {
-      state: 'expanded',
-    },
-  },
-)
+// Base sidebar styles
+const baseSidebarClass =
+  'overflow-hidden border-r border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900'
 
-interface SidebarProps
-  extends React.HTMLAttributes<HTMLDivElement>,
-    VariantProps<typeof sidebarVariants> {
+interface SidebarProps extends React.HTMLAttributes<HTMLDivElement> {
   collapsible?: boolean
 }
 
 export function Sidebar({ children, className, collapsible = true, ...props }: SidebarProps) {
-  const { state } = useSidebar()
+  const { state, isMobile, setOpen } = useSidebar()
+
+  // If on mobile, don't render the sidebar at all
+  if (isMobile) {
+    return null
+  }
+
+  // Desktop styles
+  const desktopStyles = {
+    position: 'relative',
+    display: 'flex',
+    flexDirection: 'column',
+    width: state === 'expanded' ? SIDEBAR_WIDTH : SIDEBAR_WIDTH_ICON,
+    transition: 'width 0.3s ease-in-out',
+    height: '100%',
+  } as React.CSSProperties
 
   return (
     <aside
       data-collapsible={collapsible ? state : 'none'}
-      className={cn(sidebarVariants({ state: collapsible ? state : 'expanded' }), className)}
-      style={
-        {
-          '--sidebar-width': SIDEBAR_WIDTH,
-          '--sidebar-width-icon': SIDEBAR_WIDTH_ICON,
-        } as React.CSSProperties
-      }
+      data-state={state}
+      className={cn(baseSidebarClass, className)}
+      style={desktopStyles}
       {...props}
     >
       {children}
@@ -153,7 +169,12 @@ export function SidebarTrigger({
   className,
   ...props
 }: React.ButtonHTMLAttributes<HTMLButtonElement>) {
-  const { open, setOpen } = useSidebar()
+  const { open, setOpen, isMobile } = useSidebar()
+
+  // Don't render on mobile
+  if (isMobile) {
+    return null
+  }
 
   return (
     <button

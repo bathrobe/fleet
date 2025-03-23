@@ -1,6 +1,6 @@
 'use client'
 
-import React from 'react'
+import React, { useCallback } from 'react'
 import { Database, Menu } from 'lucide-react'
 import {
   Sidebar,
@@ -8,6 +8,7 @@ import {
   SidebarHeader,
   SidebarFooter,
   SidebarTrigger,
+  useSidebar,
 } from '../ui/sidebar'
 import { AtomList } from './AtomList'
 import { Separator } from '../ui/separator'
@@ -18,6 +19,22 @@ type AtomSidebarProps = {
 }
 
 export function AtomSidebar({ onAtomClick, selectedAtomId }: AtomSidebarProps) {
+  const { isMobile, setOpen } = useSidebar()
+
+  // Wrap the onAtomClick callback to close the sidebar on mobile when an atom is selected
+  const handleAtomClick = useCallback(
+    (atomId: string, pineconeId: string) => {
+      // Call the original onAtomClick
+      onAtomClick(atomId, pineconeId)
+
+      // Close the sidebar on mobile
+      if (isMobile) {
+        setOpen(false)
+      }
+    },
+    [onAtomClick, isMobile, setOpen],
+  )
+
   return (
     <Sidebar>
       <SidebarHeader>
@@ -32,7 +49,7 @@ export function AtomSidebar({ onAtomClick, selectedAtomId }: AtomSidebarProps) {
 
       <SidebarContent>
         <div className="py-2">
-          <AtomList onAtomClick={onAtomClick} selectedAtomId={selectedAtomId} />
+          <AtomList onAtomClick={handleAtomClick} selectedAtomId={selectedAtomId} />
         </div>
       </SidebarContent>
 

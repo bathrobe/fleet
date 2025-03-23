@@ -1,6 +1,6 @@
 'use client'
 
-import { ReactNode } from 'react'
+import { ReactNode, useEffect, useState } from 'react'
 
 type FullWidthLayoutProps = {
   leftSidebar: ReactNode
@@ -9,6 +9,36 @@ type FullWidthLayoutProps = {
 }
 
 export const FullWidthLayout = ({ leftSidebar, mainContent, rightPanel }: FullWidthLayoutProps) => {
+  const [isMobile, setIsMobile] = useState(false)
+
+  // Detect mobile viewport
+  useEffect(() => {
+    const checkIsMobile = () => {
+      setIsMobile(window.innerWidth <= 768)
+    }
+
+    checkIsMobile()
+    window.addEventListener('resize', checkIsMobile)
+
+    return () => {
+      window.removeEventListener('resize', checkIsMobile)
+    }
+  }, [])
+
+  // For mobile layout
+  if (isMobile) {
+    return (
+      <div className="h-screen w-full flex flex-col">
+        {/* Main content takes full screen on mobile */}
+        <div className="flex-1 w-full overflow-hidden">{mainContent}</div>
+
+        {/* We don't show the rightPanel separately on mobile since 
+            it's integrated into the ConceptVectorSpace component */}
+      </div>
+    )
+  }
+
+  // Desktop layout
   return (
     <div
       className="grid h-screen w-full"
