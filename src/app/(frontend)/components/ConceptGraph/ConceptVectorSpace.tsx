@@ -7,6 +7,7 @@ import { scaleLinear } from '@visx/scale'
 import { Group } from '@visx/group'
 import { useTooltip } from '@visx/tooltip'
 import type { ReducedVectorData } from './dimensionReducer'
+import { fetchAtomById, AtomData } from './fetchVectors'
 
 type ConceptVectorSpaceProps = {
   width: number
@@ -19,6 +20,8 @@ const PANEL_HEIGHT = 600
 
 export const ConceptVectorSpace = ({ width, height, reducedData }: ConceptVectorSpaceProps) => {
   const [selectedId, setSelectedId] = useState<string | null>(null)
+  const [selectedAtomData, setSelectedAtomData] = useState<AtomData | null>(null)
+  const [isLoadingAtom, setIsLoadingAtom] = useState<boolean>(false)
   const leftPanelRef = useRef<HTMLDivElement>(null)
   const rightPanelRef = useRef<HTMLDivElement>(null)
   const [panelWidth, setPanelWidth] = useState(0)
@@ -109,7 +112,7 @@ export const ConceptVectorSpace = ({ width, height, reducedData }: ConceptVector
       id: d.id,
       x: xScale(d.position[0]),
       y: yScale(d.position[1]),
-      size: d.metadata.text || d.atomData ? 5 : 3,
+      size: d.metadata.text ? 5 : 3,
       color: d.id === selectedId ? '#ff6b6b' : '#8884d8',
       opacity: selectedId && d.id !== selectedId ? 0.4 : 0.8,
       data: d,
@@ -129,9 +132,36 @@ export const ConceptVectorSpace = ({ width, height, reducedData }: ConceptVector
     [],
   )
 
+  // Load atom data when a point is clicked
+  const loadAtomData = async (pointId: string) => {
+    if (!pointId) return
+
+    try {
+      setIsLoadingAtom(true)
+      const atomData = await fetchAtomById(pointId)
+      setSelectedAtomData(atomData)
+    } catch (error) {
+      console.error('Error loading atom data:', error)
+      setSelectedAtomData(null)
+    } finally {
+      setIsLoadingAtom(false)
+    }
+  }
+
   // Handle point click
-  const handlePointClick = (point: (typeof points)[0]) => {
-    setSelectedId(point.id === selectedId ? null : point.id)
+  const handlePointClick = async (point: (typeof points)[0]) => {
+    // If clicking the same point, deselect it
+    if (point.id === selectedId) {
+      setSelectedId(null)
+      setSelectedAtomData(null)
+      return
+    }
+
+    // Select the new point
+    setSelectedId(point.id)
+
+    // Load the atom data for this point
+    await loadAtomData(point.id)
   }
 
   // Handle point hover
@@ -193,7 +223,7 @@ export const ConceptVectorSpace = ({ width, height, reducedData }: ConceptVector
             <div className="bg-white dark:bg-gray-800 p-2 rounded shadow-lg border border-gray-200 dark:border-gray-700 text-sm">
               <div className="max-w-xs">
                 <div className="font-medium">
-                  {tooltipData.atomData?.title || tooltipData.metadata.text
+                  {tooltipData.metadata.text
                     ? tooltipData.metadata.text?.substring(0, 50) +
                       (tooltipData.metadata.text && tooltipData.metadata.text.length > 50
                         ? '...'
@@ -219,118 +249,94 @@ export const ConceptVectorSpace = ({ width, height, reducedData }: ConceptVector
       )
     }
 
-    if (!selectedPoint) {
+    if (isLoadingAtom) {
       return (
-        <div className="w-full h-full flex items-center justify-center text-gray-600">
-          Selected point data not found.
+        <div className="w-full h-full flex items-center justify-center">
+          <div className="animate-pulse text-gray-600">Loading atom data...</div>
         </div>
       )
     }
 
-    const atomData = selectedPoint.atomData
+    if (!selectedAtomData) {
+      return (
+        <div className="w-full h-full flex items-center justify-center text-gray-600">
+          No atom data available for this point.
+        </div>
+      )
+    }
 
     return (
       <div className="h-full p-6 overflow-auto">
-        {atomData ? (
-          <>
-            <h3 className="font-medium text-xl border-b pb-2 mb-4 text-red-500">
-              {atomData.title || 'Atom Details'}
-            </h3>
+        <h3 className="font-medium text-xl border-b pb-2 mb-4 text-red-500">
+          {selectedAtomData.title || 'Atom Details'}
+        </h3>
 
-            <div className="space-y-4">
-              {/* Main Content */}
-              {atomData.mainContent && (
-                <div>
-                  <h4 className="font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Main Content
-                  </h4>
-                  <div className="text-sm bg-gray-50 dark:bg-gray-800 p-3 rounded">
-                    {atomData.mainContent}
-                  </div>
-                </div>
-              )}
-
-              {/* Supporting Quote */}
-              {atomData.supportingQuote && (
-                <div>
-                  <h4 className="font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Supporting Quote
-                  </h4>
-                  <div className="text-sm bg-gray-50 dark:bg-gray-800 p-3 rounded border-l-4 border-gray-300 dark:border-gray-600 italic">
-                    {atomData.supportingQuote}
-                  </div>
-                </div>
-              )}
-
-              {/* Supporting Info */}
-              {atomData.supportingInfo && (
-                <div>
-                  <h4 className="font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Supporting Information
-                  </h4>
-                  <div className="text-sm bg-gray-50 dark:bg-gray-800 p-3 rounded">
-                    {typeof atomData.supportingInfo === 'string'
-                      ? atomData.supportingInfo
-                      : Array.isArray(atomData.supportingInfo)
-                        ? atomData.supportingInfo.map((info: any, i) => (
-                            <div key={i}>{typeof info === 'string' ? info : info.text}</div>
-                          ))
-                        : JSON.stringify(atomData.supportingInfo)}
-                  </div>
-                </div>
-              )}
-
-              {/* Source */}
-              {atomData.source && (
-                <div>
-                  <h4 className="font-medium text-gray-700 dark:text-gray-300 mb-1">Source</h4>
-                  <div className="text-sm">{atomData.source.title || atomData.source.id}</div>
-                </div>
-              )}
-
-              {/* Vector Details */}
-              <div className="mt-6 border-t pt-4">
-                <h4 className="font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Vector Details
-                </h4>
-                <div className="text-xs text-gray-500 grid grid-cols-2 gap-2">
-                  <div>Vector ID:</div>
-                  <div>{selectedId}</div>
-                  <div>Position:</div>
-                  <div>[{selectedPoint.position.map((n) => n.toFixed(3)).join(', ')}]</div>
-                </div>
+        <div className="space-y-4">
+          {/* Main Content */}
+          {selectedAtomData.mainContent && (
+            <div>
+              <h4 className="font-medium text-gray-700 dark:text-gray-300 mb-1">Main Content</h4>
+              <div className="text-sm bg-gray-50 dark:bg-gray-800 p-3 rounded">
+                {selectedAtomData.mainContent}
               </div>
             </div>
-          </>
-        ) : (
-          <div className="space-y-4">
-            <h3 className="font-medium text-lg mb-3 text-red-500">Vector Information</h3>
-            <div className="text-sm">
-              <p className="mb-2 text-amber-600 dark:text-amber-400">
-                No atom record found for this vector ID.
-              </p>
+          )}
 
-              {selectedPoint.metadata.text && (
-                <div className="mb-4">
-                  <h4 className="font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Metadata Text
-                  </h4>
-                  <div className="bg-gray-50 dark:bg-gray-800 p-3 rounded">
-                    {selectedPoint.metadata.text}
-                  </div>
-                </div>
-              )}
-
-              <div className="text-xs text-gray-500 mt-4">
-                <div className="mb-1">Vector ID: {selectedId}</div>
-                <div>Position: [{selectedPoint.position.map((n) => n.toFixed(3)).join(', ')}]</div>
+          {/* Supporting Quote */}
+          {selectedAtomData.supportingQuote && (
+            <div>
+              <h4 className="font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Supporting Quote
+              </h4>
+              <div className="text-sm bg-gray-50 dark:bg-gray-800 p-3 rounded italic border-l-4 border-gray-300 dark:border-gray-600 pl-3">
+                "{selectedAtomData.supportingQuote}"
               </div>
             </div>
-          </div>
-        )}
+          )}
+
+          {/* Supporting Info */}
+          {selectedAtomData.supportingInfo && selectedAtomData.supportingInfo.length > 0 && (
+            <div>
+              <h4 className="font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Supporting Information
+              </h4>
+              <ul className="list-disc pl-5 space-y-1">
+                {selectedAtomData.supportingInfo.map((info, idx) => (
+                  <li key={idx} className="text-sm">
+                    {info.text}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {/* Source */}
+          {selectedAtomData.source && (
+            <div className="mt-auto pt-4 border-t">
+              <h4 className="font-medium text-gray-700 dark:text-gray-300 mb-1">Source</h4>
+              <div className="text-sm">{selectedAtomData.source.title}</div>
+            </div>
+          )}
+
+          {/* Vector Details */}
+          {selectedPoint && (
+            <div className="mt-6 border-t pt-4">
+              <h4 className="font-medium text-gray-700 dark:text-gray-300 mb-1">Vector Details</h4>
+              <div className="text-xs text-gray-500 grid grid-cols-2 gap-2">
+                <div>Vector ID:</div>
+                <div>{selectedId}</div>
+                <div>Position:</div>
+                <div>[{selectedPoint.position.map((n) => n.toFixed(3)).join(', ')}]</div>
+              </div>
+            </div>
+          )}
+        </div>
 
         <button
-          onClick={() => setSelectedId(null)}
+          onClick={() => {
+            setSelectedId(null)
+            setSelectedAtomData(null)
+          }}
           className="mt-6 px-4 py-2 text-sm bg-gray-200 dark:bg-gray-700 rounded hover:bg-gray-300 dark:hover:bg-gray-600"
         >
           Clear Selection
@@ -340,29 +346,22 @@ export const ConceptVectorSpace = ({ width, height, reducedData }: ConceptVector
   }
 
   return (
-    <div className="flex flex-col md:flex-row w-full h-full">
-      <div
-        className="md:w-1/2 h-[600px] bg-white dark:bg-gray-900 overflow-auto border-r border-gray-200 dark:border-gray-700"
-        ref={rightPanelRef}
-        style={{ width: panelWidth ? `${panelWidth}px` : '50%', minWidth: '300px' }}
-      >
+    <div className="flex flex-row h-full">
+      {/* Right panel - info */}
+      <div className="flex-1 border-l h-full overflow-auto" ref={rightPanelRef}>
         {renderInfoPanel()}
       </div>
-      <div
-        className="md:w-1/2 h-[600px] relative bg-gray-50 dark:bg-gray-800"
-        ref={leftPanelRef}
-        style={{ width: panelWidth ? `${panelWidth}px` : '50%', minWidth: '300px' }}
-      >
-        <Zoom
+      <div className="flex-1 relative" ref={leftPanelRef}>
+        <Zoom<SVGSVGElement>
           width={vizWidth}
           height={vizHeight}
           scaleXMin={0.1}
-          scaleXMax={10}
+          scaleXMax={5}
           scaleYMin={0.1}
-          scaleYMax={10}
+          scaleYMax={5}
           initialTransformMatrix={initialTransform}
         >
-          {render}
+          {(zoom) => render(zoom)}
         </Zoom>
       </div>
     </div>

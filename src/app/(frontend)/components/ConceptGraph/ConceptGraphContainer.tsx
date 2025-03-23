@@ -3,7 +3,7 @@ import { ConceptGraphRenderer } from './ConceptGraphRenderer'
 import { reduceVectorDimensions } from './dimensionReducer'
 
 export async function ConceptGraphContainer() {
-  // Fetch the vector data from Pinecone
+  // Fetch the vector data from Pinecone without atom data
   const vectorData = await fetchAllVectors()
 
   // Log the count of vectors for debugging

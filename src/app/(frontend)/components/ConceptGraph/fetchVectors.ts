@@ -31,7 +31,7 @@ export type VectorData = {
 
 /**
  * Fetches vectors from the Pinecone 'atoms' namespace
- * and enriches them with atom data from Payload CMS
+ * and does NOT fetch atom data - only returns vector data
  */
 export async function fetchAllVectors(): Promise<VectorData[]> {
   if (!process.env.PINECONE_API_KEY) {
@@ -72,46 +72,57 @@ export async function fetchAllVectors(): Promise<VectorData[]> {
       }
     }
 
-    // 2. Fetch all atoms from Payload CMS
+    // Return vectors without atom data
+    return vectorDataArray
+  } catch (error) {
+    console.error('Error fetching vectors:', error)
+    throw new Error('Failed to fetch vectors')
+  }
+}
+
+/**
+ * Fetches a single atom by its Pinecone ID
+ */
+export async function fetchAtomById(pineconeId: string): Promise<AtomData | null> {
+  if (!pineconeId) return null
+
+  try {
     const payload = await getPayload({ config, importMap: {} })
+
+    // Query for atoms with matching pineconeId
     const { docs: atoms } = await payload.find({
       collection: 'atoms',
+      where: {
+        pineconeId: { equals: pineconeId },
+      },
       depth: 1, // Include one level of relationships (for source)
     })
 
-    // 3. Create a lookup map of atoms by pineconeId
-    const atomsByPineconeId = atoms.reduce<Record<string, any>>((map: any, atom: any) => {
-      if (atom.pineconeId) {
-        map[atom.pineconeId] = atom
-      }
-      return map
-    }, {})
+    // If no atom found with this pineconeId
+    if (!atoms || atoms.length === 0) {
+      return null
+    }
 
-    // 4. Enrich vectors with atom data
-    return vectorDataArray.map((vector) => {
-      const atom = atomsByPineconeId[vector.id]
+    const atom = atoms[0]
 
-      return {
-        ...vector,
-        atomData: atom
-          ? {
-              id: atom.id,
-              title: atom.title,
-              mainContent: atom.mainContent,
-              supportingQuote: atom.supportingQuote,
-              supportingInfo: atom.supportingInfo,
-              source: atom.source
-                ? {
-                    id: atom.source.id,
-                    title: atom.source.title,
-                  }
-                : undefined,
-            }
-          : null,
-      }
-    })
+    // Transform the atom data with proper type handling
+    return {
+      id: atom.id.toString(),
+      title: atom.title || undefined,
+      mainContent: atom.mainContent || undefined,
+      supportingQuote: atom.supportingQuote || undefined,
+      supportingInfo: Array.isArray(atom.supportingInfo)
+        ? atom.supportingInfo.map((info) => ({ text: info.text || '' }))
+        : undefined,
+      source: atom.source
+        ? {
+            id: typeof atom.source === 'object' ? atom.source.id.toString() : '',
+            title: typeof atom.source === 'object' ? atom.source.title || undefined : undefined,
+          }
+        : undefined,
+    }
   } catch (error) {
-    console.error('Error fetching data:', error)
-    throw new Error('Failed to fetch vectors and atom data')
+    console.error(`Error fetching atom with ID ${pineconeId}:`, error)
+    return null
   }
 }
