@@ -1,5 +1,6 @@
 'use client'
 
+/* eslint-disable react/no-unescaped-entities */
 import { AtomData } from '../../components/ConceptGraph/fetchVectors'
 import { Separator } from '../ui/separator'
 import { cn } from '../utils/cn'
@@ -24,7 +25,12 @@ export function AtomCard({
 }: AtomCardProps) {
   if (loading) {
     return (
-      <div className={cn('w-full h-full flex items-center justify-center', className)}>
+      <div
+        className={cn(
+          'w-full h-full flex items-center justify-center bg-white dark:bg-gray-900',
+          className,
+        )}
+      >
         <div className="flex flex-col items-center text-gray-500">
           <div className="w-12 h-12 rounded-full border-4 border-t-transparent border-gray-200 animate-spin mb-4"></div>
           <p>Loading atom data...</p>
@@ -35,8 +41,13 @@ export function AtomCard({
 
   if (!atom) {
     return (
-      <div className={cn('w-full h-full flex items-center justify-center', className)}>
-        <div className="text-center text-gray-500 max-w-md">
+      <div
+        className={cn(
+          'w-full h-full flex items-center justify-center bg-white dark:bg-gray-900',
+          className,
+        )}
+      >
+        <div className="text-center text-gray-500 max-w-md p-6">
           <svg
             className="mx-auto h-12 w-12 text-gray-400"
             fill="none"
@@ -59,9 +70,9 @@ export function AtomCard({
   }
 
   return (
-    <div className={cn('flex flex-col h-full overflow-y-auto', className)}>
+    <div className={cn('flex flex-col h-full bg-white dark:bg-gray-900', className)}>
       {/* Header */}
-      <div className="px-6 py-5 border-b border-gray-200 dark:border-gray-800 flex justify-between items-center">
+      <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-800 flex justify-between items-center">
         <div>
           <h2 className="text-xl font-semibold text-gray-900 dark:text-white leading-tight">
             {atom.title || 'Atomic Concept'}
@@ -69,14 +80,14 @@ export function AtomCard({
           {atom.source && (
             <div className="mt-1 flex items-center text-sm text-gray-500 dark:text-gray-400">
               <BookOpen className="mr-1 h-4 w-4" />
-              <span>From: {atom.source.title || 'Unknown source'}</span>
+              <span>From: {atom.source.title || `Unknown source`}</span>
             </div>
           )}
         </div>
         {onClose && (
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            className="text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ml-2 flex-shrink-0"
             aria-label="Close"
           >
             <svg
@@ -97,14 +108,14 @@ export function AtomCard({
         )}
       </div>
 
-      {/* Content */}
-      <div className="flex-1 px-6 py-5 space-y-6 overflow-y-auto">
+      {/* Content - make sure it fills available space */}
+      <div className="flex-1 px-6 py-4 space-y-4 overflow-y-auto">
         {/* Main Content */}
         <div className="space-y-2">
           <h3 className="text-sm font-semibold text-gray-900 dark:text-white uppercase tracking-wider">
             Main Concept
           </h3>
-          <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-100 dark:border-blue-800 text-gray-800 dark:text-gray-200">
+          <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-100 dark:border-blue-800 text-gray-800 dark:text-gray-200">
             {atom.mainContent || 'No main content available'}
           </div>
         </div>
@@ -118,8 +129,8 @@ export function AtomCard({
                 Supporting Quote
               </h3>
             </div>
-            <div className="p-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg border-l-4 border-gray-300 dark:border-gray-700 text-gray-800 dark:text-gray-200 italic">
-              "{atom.supportingQuote}"
+            <div className="p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg border-l-4 border-gray-300 dark:border-gray-700 text-gray-800 dark:text-gray-200 italic">
+              &ldquo;{atom.supportingQuote}&rdquo;
             </div>
           </div>
         )}
@@ -148,8 +159,8 @@ export function AtomCard({
 
         {/* Source Link */}
         {atom.source && (
-          <div className="pt-4">
-            <Separator className="mb-4" />
+          <div className="pt-2">
+            <Separator className="mb-3" />
             <div className="flex items-center">
               <Link className="h-4 w-4 text-gray-500 mr-2" />
               <h3 className="text-sm font-semibold text-gray-900 dark:text-white uppercase tracking-wider">
@@ -183,16 +194,14 @@ export function AtomCard({
       </div>
 
       {/* Footer with metadata */}
-      <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900">
-        <div className="text-xs text-gray-500 dark:text-gray-400">
-          <div className="mb-1">Atom ID: {atom.id}</div>
-          {vectorId && <div className="mb-1">Vector ID: {vectorId}</div>}
-          {position && position.length > 0 && (
-            <div className="font-mono">
-              Position: [{position.map((n) => n.toFixed(3)).join(', ')}]
-            </div>
-          )}
-        </div>
+      <div className="px-6 py-3 border-t border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900 text-xs text-gray-500 dark:text-gray-400">
+        <div className="mb-1">Atom ID: {atom.id}</div>
+        {vectorId && <div className="mb-1">Vector ID: {vectorId}</div>}
+        {position && position.length > 0 && (
+          <div className="font-mono">
+            Position: [{position.map((n) => n.toFixed(3)).join(', ')}]
+          </div>
+        )}
       </div>
     </div>
   )

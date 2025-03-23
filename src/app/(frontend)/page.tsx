@@ -2,7 +2,7 @@ import { getPayload } from 'payload'
 import React from 'react'
 
 import config from '@/payload.config'
-import { ConceptGraphContainer } from './components/ConceptGraph/ConceptGraphContainer'
+import { ConceptGraphContainer } from '@/app/(frontend)/components/ConceptGraph/ConceptGraphContainer'
 
 export default async function HomePage() {
   const payload = await getPayload({ config, importMap: {} })
@@ -16,11 +16,10 @@ export default async function HomePage() {
       <main className="flex-1 p-4 overflow-auto">
         <h1 className="text-3xl font-bold mb-2">Concept Vector Explorer</h1>
 
-        {/* Clean container with no styling that would create visual gaps */}
+        {/* Concept Graph */}
         <div className="overflow-hidden bg-white dark:bg-slate-900 mb-2">
           <ConceptGraphContainer />
         </div>
-
         <div className="text-sm">
           <p className="text-gray-600 dark:text-gray-400">
             This visualization shows the relationships between concept vectors in your knowledge

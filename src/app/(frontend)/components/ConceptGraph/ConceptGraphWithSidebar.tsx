@@ -8,6 +8,7 @@ import { fetchAtomById } from './fetchVectors'
 import type { VectorData, AtomData } from './fetchVectors'
 import type { ReducedVectorData } from './dimensionReducer'
 import { AtomCard } from '../AtomDisplay/AtomCard'
+import { FullWidthLayout } from '../Layout/FullWidthLayout'
 
 type ConceptGraphWithSidebarProps = {
   vectorData: VectorData[]
@@ -20,7 +21,7 @@ export function ConceptGraphWithSidebar({ vectorData, reducedData }: ConceptGrap
   const [atomData, setAtomData] = useState<AtomData | null>(null)
   const [isLoadingAtom, setIsLoadingAtom] = useState<boolean>(false)
   const graphContainerRef = useRef<HTMLDivElement>(null)
-  const [graphDimensions, setGraphDimensions] = useState({ width: 800, height: 400 })
+  const [graphDimensions, setGraphDimensions] = useState({ width: 800, height: 600 })
 
   // Update graph dimensions on resize
   useEffect(() => {
@@ -99,40 +100,46 @@ export function ConceptGraphWithSidebar({ vectorData, reducedData }: ConceptGrap
     setAtomData(null)
   }, [])
 
+  // Determine if we should show the right panel
+  const showRightPanel = atomData !== null || isLoadingAtom
+
+  // Prepare the content for the graph area
+  const graphContent = (
+    <div className="h-full w-full" ref={graphContainerRef}>
+      <ConceptVectorSpace
+        width={graphDimensions.width}
+        height={graphDimensions.height}
+        reducedData={reducedData}
+        selectedNodeId={selectedVectorId}
+        onNodeClick={handleNodeClick}
+      />
+    </div>
+  )
+
+  // Prepare the right panel content
+  const rightPanelContent = showRightPanel ? (
+    <AtomCard
+      atom={atomData}
+      loading={isLoadingAtom}
+      onClose={handleClearSelection}
+      vectorId={selectedVectorId || undefined}
+      position={selectedVectorPosition}
+      className="h-full w-full"
+    />
+  ) : undefined
+
+  // Prepare sidebar content
+  const sidebarContent = (
+    <AtomSidebar onAtomClick={handleAtomClick} selectedAtomId={selectedAtomId} />
+  )
+
   return (
     <SidebarProvider defaultOpen={true}>
-      <div className="flex h-screen w-full overflow-hidden">
-        {/* Atom Sidebar - Left */}
-        <AtomSidebar onAtomClick={handleAtomClick} selectedAtomId={selectedAtomId} />
-
-        {/* Main Content - Right */}
-        <div className="flex-1 flex flex-col h-full">
-          {/* Graph - Top */}
-          <div
-            className="flex-1 overflow-hidden border-b border-gray-200 dark:border-gray-800"
-            ref={graphContainerRef}
-          >
-            <ConceptVectorSpace
-              width={graphDimensions.width}
-              height={graphDimensions.height}
-              reducedData={reducedData}
-              selectedNodeId={selectedVectorId}
-              onNodeClick={handleNodeClick}
-            />
-          </div>
-
-          {/* Atom Details - Bottom */}
-          <div className="flex-1 overflow-auto">
-            <AtomCard
-              atom={atomData}
-              loading={isLoadingAtom}
-              onClose={handleClearSelection}
-              vectorId={selectedVectorId || undefined}
-              position={selectedVectorPosition}
-            />
-          </div>
-        </div>
-      </div>
+      <FullWidthLayout
+        leftSidebar={sidebarContent}
+        mainContent={graphContent}
+        rightPanel={rightPanelContent}
+      />
     </SidebarProvider>
   )
 }

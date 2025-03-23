@@ -18,9 +18,6 @@ type ConceptVectorSpaceProps = {
   onNodeClick?: (vectorId: string) => void
 }
 
-// Fixed dimensions instead of dynamic ones
-const PANEL_HEIGHT = 600
-
 export const ConceptVectorSpace = ({
   width,
   height,
@@ -33,28 +30,6 @@ export const ConceptVectorSpace = ({
   const [isLoadingAtom, setIsLoadingAtom] = useState<boolean>(false)
   const leftPanelRef = useRef<HTMLDivElement>(null)
   const rightPanelRef = useRef<HTMLDivElement>(null)
-  const [panelWidth, setPanelWidth] = useState(0)
-
-  // Update measurements when the component mounts or resizes
-  useEffect(() => {
-    const updatePanelWidths = () => {
-      if (leftPanelRef.current && rightPanelRef.current) {
-        // Make sure both panels have the same width
-        const width = Math.floor(window.innerWidth / 2) - 24 // Account for some padding
-        setPanelWidth(width)
-      }
-    }
-
-    // Initial measurement
-    updatePanelWidths()
-
-    // Listen for window resize
-    window.addEventListener('resize', updatePanelWidths)
-
-    return () => {
-      window.removeEventListener('resize', updatePanelWidths)
-    }
-  }, [])
 
   // Update local state when prop changes
   useEffect(() => {
@@ -97,9 +72,9 @@ export const ConceptVectorSpace = ({
     }
   }, [reducedData])
 
-  // Fixed ratio visualization
-  const vizWidth = panelWidth || 500
-  const vizHeight = PANEL_HEIGHT
+  // Use the full container dimensions for visualization
+  const vizWidth = width
+  const vizHeight = height
 
   // Create scales - ensure equal scaling on both axes for dimensional accuracy
   const xScale = useMemo(() => {
@@ -208,7 +183,12 @@ export const ConceptVectorSpace = ({
   const render = (zoom: any) => {
     return (
       <>
-        <svg width={vizWidth} height={vizHeight}>
+        <svg
+          width="100%"
+          height="100%"
+          viewBox={`0 0 ${vizWidth} ${vizHeight}`}
+          preserveAspectRatio="xMidYMid meet"
+        >
           <rect width={vizWidth} height={vizHeight} rx={0} fill="#f3f4f6" fillOpacity={0.5} />
           <Group transform={zoom.toString()}>
             {/* Render points */}

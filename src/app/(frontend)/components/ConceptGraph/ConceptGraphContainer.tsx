@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react'
 import { fetchAllVectors } from './fetchVectors'
 import { ConceptGraphWithSidebar } from './ConceptGraphWithSidebar'
 import { reduceVectorDimensions } from './dimensionReducer'
-import { Suspense } from 'react'
 import type { VectorData } from './fetchVectors'
 import type { ReducedVectorData } from './dimensionReducer'
 
