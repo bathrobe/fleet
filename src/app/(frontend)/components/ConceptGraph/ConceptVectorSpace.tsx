@@ -6,14 +6,14 @@ import { localPoint } from '@visx/event'
 import { scaleLinear } from '@visx/scale'
 import { Group } from '@visx/group'
 import { useTooltip } from '@visx/tooltip'
-import type { ReducedVectorData } from './dimensionReducer'
+// import type { ReducedVectorData } from './dimensionReducer'
 import { fetchAtomById, AtomData } from './fetchVectors'
 import { AtomCard } from '../AtomDisplay/AtomCard'
 
 type ConceptVectorSpaceProps = {
   width: number
   height: number
-  reducedData: ReducedVectorData[]
+  reducedData: any[]
   selectedNodeId?: string | null
   onNodeClick?: (vectorId: string) => void
 }
@@ -65,7 +65,7 @@ export const ConceptVectorSpace = ({
 
   // Set up tooltip
   const { tooltipData, tooltipLeft, tooltipTop, tooltipOpen, showTooltip, hideTooltip } =
-    useTooltip<ReducedVectorData>()
+    useTooltip<any>()
 
   // Determine the bounds to properly display all data points
   const bounds = useMemo(() => {
