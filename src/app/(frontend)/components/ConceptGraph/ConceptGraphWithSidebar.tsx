@@ -140,8 +140,6 @@ export function ConceptGraphWithSidebar({ vectorData, reducedData }: ConceptGrap
         reducedData={reducedData}
         selectedNodeId={selectedVectorId}
         onNodeClick={handleNodeClick}
-        externalAtomData={atomData}
-        isLoadingExternalAtom={isLoadingAtom}
       />
     </div>
   )
