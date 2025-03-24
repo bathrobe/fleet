@@ -4,11 +4,11 @@ import { useState, useCallback, useEffect, useRef } from 'react'
 import { AtomSidebar } from '../AtomSidebar/AtomSidebar'
 import { ConceptVectorSpace } from './ConceptVectorSpace'
 import { SidebarProvider } from '../ui/sidebar'
-import { fetchAtomById } from './fetchVectors'
-import type { VectorData, AtomData } from './fetchVectors'
+import type { VectorData } from './fetchVectors'
 import type { ReducedVectorData } from './dimensionReducer'
 import { AtomCard } from '../AtomDisplay/AtomCard'
 import { FullWidthLayout } from '../Layout/FullWidthLayout'
+import { useAtomLoader } from './hooks/useAtomLoader'
 
 type ConceptGraphWithSidebarProps = {
   vectorData: VectorData[]
@@ -16,14 +16,14 @@ type ConceptGraphWithSidebarProps = {
 }
 
 export function ConceptGraphWithSidebar({ vectorData, reducedData }: ConceptGraphWithSidebarProps) {
-  const [selectedAtomId, setSelectedAtomId] = useState<string | null>(null)
   const [selectedVectorId, setSelectedVectorId] = useState<string | null>(null)
-  const [atomData, setAtomData] = useState<AtomData | null>(null)
-  const [isLoadingAtom, setIsLoadingAtom] = useState<boolean>(false)
   const [isMobile, setIsMobile] = useState<boolean>(false)
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(true)
   const graphContainerRef = useRef<HTMLDivElement>(null)
   const [graphDimensions, setGraphDimensions] = useState({ width: 800, height: 600 })
+
+  // Use our atom loader hook
+  const { selectedAtomId, atomData, isLoading, loadAtomById, clearSelection } = useAtomLoader()
 
   // Detect mobile viewport
   useEffect(() => {
@@ -31,10 +31,12 @@ export function ConceptGraphWithSidebar({ vectorData, reducedData }: ConceptGrap
       const mobile = window.innerWidth <= 768
       setIsMobile(mobile)
 
-      // Always close sidebar on mobile by default
+      // Always keep sidebar open regardless of viewport size
+      // Only close on mobile
       if (mobile) {
         setSidebarOpen(false)
       } else {
+        // Always keep sidebar open on laptop/desktop
         setSidebarOpen(true)
       }
     }
@@ -74,50 +76,28 @@ export function ConceptGraphWithSidebar({ vectorData, reducedData }: ConceptGrap
     }
   }, [])
 
-  // Function to load atom data by Pinecone ID
-  const loadAtomByPineconeId = useCallback(async (pineconeId: string) => {
-    if (!pineconeId) return
-
-    try {
-      setIsLoadingAtom(true)
-      const data = await fetchAtomById(pineconeId)
-      setAtomData(data)
-      if (data) {
-        setSelectedAtomId(data.id)
-      }
-    } catch (error) {
-      console.error('Error loading atom data:', error)
-      setAtomData(null)
-    } finally {
-      setIsLoadingAtom(false)
-    }
-  }, [])
-
   // Handle clicking an atom in the sidebar
   const handleAtomClick = useCallback(
     async (atomId: string, pineconeId: string) => {
-      setSelectedAtomId(atomId)
       setSelectedVectorId(pineconeId)
-      await loadAtomByPineconeId(pineconeId)
+      await loadAtomById(pineconeId)
     },
-    [loadAtomByPineconeId],
+    [loadAtomById],
   )
 
   // Handle clicking a node in the graph
   const handleNodeClick = useCallback(
     async (vectorId: string) => {
       if (!vectorId) {
-        // Handle deselection
-        setSelectedAtomId(null)
         setSelectedVectorId(null)
-        setAtomData(null)
+        clearSelection()
         return
       }
 
       setSelectedVectorId(vectorId)
-      await loadAtomByPineconeId(vectorId)
+      await loadAtomById(vectorId)
     },
-    [loadAtomByPineconeId],
+    [loadAtomById, clearSelection],
   )
 
   // Calculate the position of the selected vector
@@ -125,20 +105,20 @@ export function ConceptGraphWithSidebar({ vectorData, reducedData }: ConceptGrap
     ? reducedData.find((d) => d.id === selectedVectorId)?.position
     : undefined
 
-  // Clear selection handler
-  const handleClearSelection = useCallback(() => {
-    setSelectedAtomId(null)
-    setSelectedVectorId(null)
-    setAtomData(null)
-  }, [])
-
-  // Sidebar open change handler
-  const handleSidebarOpenChange = useCallback((open: boolean) => {
-    setSidebarOpen(open)
-  }, [])
+  // Sidebar open change handler - modified to only work on mobile
+  const handleSidebarOpenChange = useCallback(
+    (open: boolean) => {
+      // Only allow toggling sidebar on mobile
+      if (isMobile) {
+        setSidebarOpen(open)
+      }
+      // On desktop/laptop widths, sidebar is always open
+    },
+    [isMobile],
+  )
 
   // Determine if we should show the right panel
-  const showRightPanel = atomData !== null || isLoadingAtom
+  const showRightPanel = atomData !== null || isLoading
 
   // Prepare the content for the graph area
   const graphContent = (
@@ -149,8 +129,6 @@ export function ConceptGraphWithSidebar({ vectorData, reducedData }: ConceptGrap
         reducedData={reducedData}
         selectedNodeId={selectedVectorId}
         onNodeClick={handleNodeClick}
-        externalAtomData={atomData}
-        isLoadingExternalAtom={isLoadingAtom}
       />
     </div>
   )
@@ -160,11 +138,24 @@ export function ConceptGraphWithSidebar({ vectorData, reducedData }: ConceptGrap
     showRightPanel && !isMobile ? (
       <AtomCard
         atom={atomData}
-        loading={isLoadingAtom}
-        onClose={handleClearSelection}
+        loading={isLoading}
+        onClose={clearSelection}
         vectorId={selectedVectorId || undefined}
         position={selectedVectorPosition}
         className="h-full w-full"
+      />
+    ) : undefined
+
+  // Prepare mobile panel content - separate from right panel
+  const mobilePanelContent =
+    showRightPanel && isMobile ? (
+      <AtomCard
+        atom={atomData}
+        loading={isLoading}
+        onClose={clearSelection}
+        vectorId={selectedVectorId || undefined}
+        position={selectedVectorPosition}
+        className="w-full h-full"
       />
     ) : undefined
 
@@ -179,6 +170,7 @@ export function ConceptGraphWithSidebar({ vectorData, reducedData }: ConceptGrap
         leftSidebar={sidebarContent}
         mainContent={graphContent}
         rightPanel={rightPanelContent}
+        mobileBottomPanel={mobilePanelContent}
       />
     </SidebarProvider>
   )

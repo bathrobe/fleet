@@ -130,8 +130,7 @@ export function Sidebar({ children, className, collapsible = true, ...props }: S
       position: 'relative',
       display: 'flex',
       flexDirection: 'column',
-      width: state === 'expanded' ? SIDEBAR_WIDTH : SIDEBAR_WIDTH_ICON,
-      transition: 'width 0.3s ease-in-out',
+      width: SIDEBAR_WIDTH,
       height: '100%',
     } as React.CSSProperties
   }
@@ -147,8 +146,8 @@ export function Sidebar({ children, className, collapsible = true, ...props }: S
   return (
     <>
       <aside
-        data-collapsible={collapsible ? state : 'none'}
-        data-state={state}
+        data-collapsible={isMobile && collapsible ? state : 'none'}
+        data-state={isMobile ? state : 'expanded'}
         data-mobile={isMobile}
         className={cn(baseSidebarClass, className)}
         style={sidebarStyles}
@@ -200,12 +199,17 @@ export function SidebarFooter({ className, ...props }: React.HTMLAttributes<HTML
   )
 }
 
-// Sidebar trigger button
+// Sidebar trigger button - only shows on mobile
 export function SidebarTrigger({
   className,
   ...props
 }: React.ButtonHTMLAttributes<HTMLButtonElement>) {
-  const { open, setOpen } = useSidebar()
+  const { open, setOpen, isMobile } = useSidebar()
+
+  // Don't render the trigger on desktop/laptop
+  if (!isMobile) {
+    return null
+  }
 
   return (
     <button

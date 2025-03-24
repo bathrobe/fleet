@@ -6,9 +6,15 @@ type FullWidthLayoutProps = {
   leftSidebar: ReactNode
   mainContent: ReactNode
   rightPanel?: ReactNode
+  mobileBottomPanel?: ReactNode
 }
 
-export const FullWidthLayout = ({ leftSidebar, mainContent, rightPanel }: FullWidthLayoutProps) => {
+export const FullWidthLayout = ({
+  leftSidebar,
+  mainContent,
+  rightPanel,
+  mobileBottomPanel,
+}: FullWidthLayoutProps) => {
   const [isMobile, setIsMobile] = useState(false)
 
   // Detect mobile viewport
@@ -29,11 +35,26 @@ export const FullWidthLayout = ({ leftSidebar, mainContent, rightPanel }: FullWi
   if (isMobile) {
     return (
       <div className="h-screen w-full flex flex-col">
-        {/* Main content takes full screen on mobile */}
-        <div className="flex-1 w-full overflow-hidden">{mainContent}</div>
+        {/* Split the screen - graph on top half, atom card on bottom half if present */}
+        {mobileBottomPanel ? (
+          <>
+            {/* Graph takes top half of the screen */}
+            <div className="w-full" style={{ height: '50vh' }}>
+              {mainContent}
+            </div>
 
-        {/* We don't show the rightPanel separately on mobile since 
-            it's integrated into the ConceptVectorSpace component */}
+            {/* AtomCard takes bottom half */}
+            <div
+              className="w-full overflow-y-auto border-t border-gray-200 dark:border-gray-800"
+              style={{ height: '50vh' }}
+            >
+              {mobileBottomPanel}
+            </div>
+          </>
+        ) : (
+          // If no atom is selected, graph takes full screen
+          <div className="flex-1 w-full overflow-hidden">{mainContent}</div>
+        )}
       </div>
     )
   }
