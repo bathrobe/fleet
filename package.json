@@ -22,6 +22,7 @@
     "@payloadcms/richtext-lexical": "^3.27.0",
     "@payloadcms/storage-uploadthing": "3.27.0",
     "@pinecone-database/pinecone": "^5.1.1",
+    "@radix-ui/react-select": "^2.1.6",
     "@radix-ui/react-separator": "^1.1.2",
     "@radix-ui/react-slot": "^1.1.2",
     "@visx/event": "^3.12.0",

@@ -1,0 +1,78 @@
+'use client'
+
+import { useState } from 'react'
+import { Button } from '@/components/ui/button'
+import { SynthesizedAtomCard } from '@/components/SynthesizedAtomCard'
+import { Atom } from '@/lib/atoms'
+
+type AtomSynthesizerProps = {
+  firstAtom: Atom
+  secondAtom: Atom
+}
+
+export function AtomSynthesizer({ firstAtom, secondAtom }: AtomSynthesizerProps) {
+  const [synthesizedAtom, setSynthesizedAtom] = useState<Atom | null>(null)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const handleSynthesize = async () => {
+    if (!firstAtom || !secondAtom) return
+
+    setLoading(true)
+    setError(null)
+
+    try {
+      const response = await fetch('/ideate/synthesize-atoms', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ atom1: firstAtom, atom2: secondAtom }),
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to synthesize atoms')
+      }
+
+      const data = await response.json()
+      setSynthesizedAtom(data.combinedAtom)
+    } catch (err) {
+      console.error('Error synthesizing atoms:', err)
+      setError('Failed to generate a synthesized concept. Please try again.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
+      <div className="flex justify-between items-center mb-4">
+        <h3 className="text-lg font-semibold">Synthesize Concepts</h3>
+        <Button
+          onClick={handleSynthesize}
+          disabled={loading || !firstAtom || !secondAtom}
+          variant="outline"
+          className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white border-0 hover:opacity-90"
+        >
+          {loading ? 'Generating...' : 'Create Synthesis'}
+        </Button>
+      </div>
+
+      <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">
+        Click the button to generate a new concept that synthesizes the two atoms above using AI.
+      </p>
+
+      {error && (
+        <div className="p-4 mb-4 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 rounded-md">
+          {error}
+        </div>
+      )}
+
+      {synthesizedAtom && (
+        <div className="mt-6">
+          <SynthesizedAtomCard atom={synthesizedAtom} />
+        </div>
+      )}
+    </div>
+  )
+}

@@ -14,8 +14,6 @@ export default async function HomePage() {
   return (
     <div className="flex h-screen">
       <main className="flex-1 p-4 overflow-auto">
-        <h1 className="text-3xl font-bold mb-2">Concept Vector Explorer</h1>
-
         {/* Concept Graph */}
         <div className="overflow-hidden bg-white dark:bg-slate-900 mb-2">
           <ConceptGraphContainer />

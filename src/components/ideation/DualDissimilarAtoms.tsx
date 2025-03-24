@@ -1,0 +1,69 @@
+'use client'
+
+import { useState } from 'react'
+import { Button } from '@/components/ui/button'
+import { AtomCard } from '@/components/AtomCard'
+import { Atom } from '@/lib/atoms'
+import { AtomSynthesizer } from './synthesis/AtomSynthesizer'
+
+type ApiResponse = {
+  firstAtom: Atom
+  secondAtom: Atom
+  method: 'random' | 'vector' | 'random-fallback'
+}
+
+export function DualDissimilarAtoms() {
+  const [atoms, setAtoms] = useState<ApiResponse | null>(null)
+  const [loading, setLoading] = useState(false)
+
+  const fetchAtoms = async () => {
+    setLoading(true)
+    try {
+      const response = await fetch('/ideate/random-atom')
+      if (!response.ok) {
+        throw new Error('Failed to fetch atoms')
+      }
+      const data = await response.json()
+      setAtoms(data)
+    } catch (error) {
+      console.error('Error fetching atoms:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <div>
+      <div className="flex justify-between items-center mb-4">
+        <Button onClick={fetchAtoms} disabled={loading}>
+          {loading ? 'Loading...' : 'Get Random Concepts'}
+        </Button>
+
+        {atoms?.method === 'vector' && (
+          <span className="text-sm text-gray-500 dark:text-gray-400 italic">
+            Using vector similarity
+          </span>
+        )}
+      </div>
+
+      {atoms && (
+        <div>
+          {atoms.method === 'vector' && (
+            <p className="mb-4 text-sm text-gray-600 dark:text-gray-400">
+              The second concept is among the most dissimilar to the first one.
+            </p>
+          )}
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <AtomCard atom={atoms.firstAtom} />
+            {atoms.secondAtom && <AtomCard atom={atoms.secondAtom} />}
+          </div>
+
+          {atoms.firstAtom && atoms.secondAtom && (
+            <AtomSynthesizer firstAtom={atoms.firstAtom} secondAtom={atoms.secondAtom} />
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
