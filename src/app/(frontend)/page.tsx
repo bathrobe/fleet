@@ -4,6 +4,8 @@ import React from 'react'
 import config from '@/payload.config'
 import { ConceptGraphContainer } from '@/app/(frontend)/components/ConceptGraph/ConceptGraphContainer'
 
+// Component structure has been refactored to follow frontend/backend separation
+
 export default async function HomePage() {
   const payload = await getPayload({ config, importMap: {} })
   const { docs: sources } = await payload.find({

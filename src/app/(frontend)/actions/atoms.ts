@@ -1,20 +1,38 @@
+'use server'
+
 import { getPayload } from 'payload'
-import { NextResponse } from 'next/server'
+import config from '@payload-config'
 import { Pinecone } from '@pinecone-database/pinecone'
-import config from '@/payload.config'
 import { cosineSimilarity, findMostDissimilarVectors } from '@/lib/atoms'
 
-// Default number of dissimilar atoms to consider
-const DEFAULT_DISSIMILAR_POOL_SIZE = 5
-
-export async function GET(request: Request) {
+/**
+ * Server action to fetch atoms with pagination
+ */
+export async function getAtoms(limit = 50, page = 1) {
   try {
-    const url = new URL(request.url)
-    const poolSize = parseInt(
-      url.searchParams.get('poolSize') || String(DEFAULT_DISSIMILAR_POOL_SIZE),
-      10,
-    )
+    const payload = await getPayload({ config })
 
+    const result = await payload.find({
+      collection: 'atoms',
+      limit,
+      page,
+      sort: '-updatedAt',
+      depth: 1,
+    })
+
+    return result
+  } catch (error) {
+    console.error('Error fetching atoms:', error)
+    throw new Error('Failed to fetch atoms')
+  }
+}
+
+/**
+ * Server action to fetch a pair of random atoms for ideation
+ * With optional dissimilarity via vector search
+ */
+export async function getRandomAtomPair(poolSize = 5) {
+  try {
     const payload = await getPayload({ config, importMap: {} })
 
     // First get the count of atoms
@@ -24,7 +42,7 @@ export async function GET(request: Request) {
     })
 
     if (totalDocs === 0) {
-      return NextResponse.json({ error: 'No atoms found in the database' }, { status: 404 })
+      throw new Error('No atoms found in the database')
     }
 
     // Generate a random index
@@ -39,7 +57,7 @@ export async function GET(request: Request) {
     })
 
     if (!randomAtoms || randomAtoms.length === 0) {
-      return NextResponse.json({ error: 'Failed to retrieve random atom' }, { status: 404 })
+      throw new Error('Failed to retrieve random atom')
     }
 
     const firstAtom = randomAtoms[0]
@@ -60,11 +78,11 @@ export async function GET(request: Request) {
         depth: 2,
       })
 
-      return NextResponse.json({
+      return {
         firstAtom,
         secondAtom: secondRandomAtoms[0] || null,
         method: 'random', // Indicate we selected randomly
-      })
+      }
     }
 
     // Now we'll try to find the most dissimilar atom using vector similarity
@@ -130,11 +148,11 @@ export async function GET(request: Request) {
         throw new Error('Failed to fetch dissimilar atom data')
       }
 
-      return NextResponse.json({
+      return {
         firstAtom,
         secondAtom: dissimilarAtoms[0],
         method: 'vector', // Indicate we used vector similarity
-      })
+      }
     } catch (vectorError) {
       console.error('Error finding dissimilar atom via vectors:', vectorError)
 
@@ -151,14 +169,14 @@ export async function GET(request: Request) {
         depth: 2,
       })
 
-      return NextResponse.json({
+      return {
         firstAtom,
         secondAtom: secondRandomAtoms[0] || null,
         method: 'random-fallback', // Indicate we used random as fallback
-      })
+      }
     }
   } catch (error) {
-    console.error('Error fetching atoms:', error)
-    return NextResponse.json({ error: 'An error occurred while fetching atoms' }, { status: 500 })
+    console.error('Error fetching random atom pair:', error)
+    throw new Error('An error occurred while fetching atoms')
   }
 }

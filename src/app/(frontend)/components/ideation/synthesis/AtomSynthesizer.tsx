@@ -1,9 +1,10 @@
 'use client'
 
 import { useState } from 'react'
-import { Button } from '@/components/ui/button'
-import { SynthesizedAtomCard } from '@/components/SynthesizedAtomCard'
+import { Button } from '@/app/(frontend)/components/ui/button'
+import { SynthesizedAtomCard } from '@/app/(frontend)/components/SynthesizedAtomCard'
 import { Atom } from '@/lib/atoms'
+import { synthesizeAtoms } from '@/app/(frontend)/actions'
 
 type AtomSynthesizerProps = {
   firstAtom: Atom
@@ -22,23 +23,11 @@ export function AtomSynthesizer({ firstAtom, secondAtom }: AtomSynthesizerProps)
     setError(null)
 
     try {
-      const response = await fetch('/ideate/synthesize-atoms', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ atom1: firstAtom, atom2: secondAtom }),
-      })
-
-      if (!response.ok) {
-        throw new Error('Failed to synthesize atoms')
-      }
-
-      const data = await response.json()
-      setSynthesizedAtom(data.combinedAtom)
-    } catch (err) {
+      const result = await synthesizeAtoms(firstAtom, secondAtom)
+      setSynthesizedAtom(result.combinedAtom)
+    } catch (err: any) {
       console.error('Error synthesizing atoms:', err)
-      setError('Failed to generate a synthesized concept. Please try again.')
+      setError(err.message || 'Failed to generate a synthesized concept. Please try again.')
     } finally {
       setLoading(false)
     }

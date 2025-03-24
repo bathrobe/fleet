@@ -3,8 +3,7 @@
 import React, { useState, useEffect } from 'react'
 import { AtomIcon, Loader2 } from 'lucide-react'
 import { SidebarSection, SidebarItem } from '../ui/sidebar'
-import { getPayload } from 'payload'
-import { AtomData } from '../ConceptGraph/fetchVectors'
+import { getAtoms } from '@/app/(frontend)/actions'
 
 type AtomListProps = {
   onAtomClick: (atomId: string, pineconeId: string) => void
@@ -22,9 +21,8 @@ export function AtomList({ onAtomClick, selectedAtomId }: AtomListProps) {
         setIsLoading(true)
         setError(null)
 
-        // Fetch atoms from the API
-        const response = await fetch('/api/atoms?limit=100')
-        const data = await response.json()
+        // Use the server action instead of fetch
+        const data = await getAtoms(100, 1)
 
         if (data.docs && Array.isArray(data.docs)) {
           // Extract just the id, title and pineconeId

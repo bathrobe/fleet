@@ -1,8 +1,11 @@
+'use server'
+
 import { Atom } from '@/lib/atoms'
-import { NextResponse } from 'next/server'
 import { getCompletion } from '@/utilities/anthropic'
 
-// Actual implementation using Claude API
+/**
+ * Generate a combined atom from two source atoms using Claude
+ */
 async function generateCombinedAtom(atom1: Atom, atom2: Atom): Promise<Atom> {
   try {
     // Craft a detailed prompt for the LLM
@@ -112,19 +115,19 @@ async function generateCombinedAtom(atom1: Atom, atom2: Atom): Promise<Atom> {
   }
 }
 
-export async function POST(request: Request) {
+/**
+ * Server action to synthesize two atoms into a new concept
+ */
+export async function synthesizeAtoms(atom1: Atom, atom2: Atom) {
+  if (!atom1 || !atom2) {
+    throw new Error('Both atoms are required')
+  }
+
   try {
-    const { atom1, atom2 } = await request.json()
-
-    if (!atom1 || !atom2) {
-      return NextResponse.json({ error: 'Both atoms are required' }, { status: 400 })
-    }
-
     const combinedAtom = await generateCombinedAtom(atom1, atom2)
-
-    return NextResponse.json({ combinedAtom })
+    return { combinedAtom }
   } catch (error) {
-    console.error('Error in synthesize-atoms API:', error)
-    return NextResponse.json({ error: 'Failed to synthesize atoms' }, { status: 500 })
+    console.error('Error synthesizing atoms:', error)
+    throw new Error('Failed to synthesize atoms')
   }
 }

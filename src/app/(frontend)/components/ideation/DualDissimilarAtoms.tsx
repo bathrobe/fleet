@@ -1,30 +1,27 @@
 'use client'
 
 import { useState } from 'react'
-import { Button } from '@/components/ui/button'
-import { AtomCard } from '@/components/AtomCard'
+import { Button } from '@/app/(frontend)/components/ui/button'
+import { AtomCard } from '@/app/(frontend)/components/AtomCard'
 import { Atom } from '@/lib/atoms'
 import { AtomSynthesizer } from './synthesis/AtomSynthesizer'
+import { getRandomAtomPair } from '@/app/(frontend)/actions'
 
-type ApiResponse = {
+type AtomPairResponse = {
   firstAtom: Atom
-  secondAtom: Atom
+  secondAtom: Atom | null
   method: 'random' | 'vector' | 'random-fallback'
 }
 
 export function DualDissimilarAtoms() {
-  const [atoms, setAtoms] = useState<ApiResponse | null>(null)
+  const [atoms, setAtoms] = useState<AtomPairResponse | null>(null)
   const [loading, setLoading] = useState(false)
 
   const fetchAtoms = async () => {
     setLoading(true)
     try {
-      const response = await fetch('/ideate/random-atom')
-      if (!response.ok) {
-        throw new Error('Failed to fetch atoms')
-      }
-      const data = await response.json()
-      setAtoms(data)
+      const result = await getRandomAtomPair()
+      setAtoms(result as AtomPairResponse)
     } catch (error) {
       console.error('Error fetching atoms:', error)
     } finally {

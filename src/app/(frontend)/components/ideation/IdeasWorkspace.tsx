@@ -1,8 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { IdeationMethodSelect } from '@/components/IdeationMethodSelect'
-import { DualDissimilarAtoms } from '@/components/ideation/DualDissimilarAtoms'
+import { IdeationMethodSelect } from '@/app/(frontend)/components/IdeationMethodSelect'
+import { DualDissimilarAtoms } from '@/app/(frontend)/components/ideation/DualDissimilarAtoms'
 import { getDefaultMethod, IdeationMethod } from '@/lib/ideation-methods'
 
 export function IdeasWorkspace() {

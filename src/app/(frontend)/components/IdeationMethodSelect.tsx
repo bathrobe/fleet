@@ -6,7 +6,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
+} from '@/app/(frontend)/components/ui/select'
 import { ideationMethods, IdeationMethod } from '@/lib/ideation-methods'
 
 type IdeationMethodSelectProps = {
