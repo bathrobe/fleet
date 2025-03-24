@@ -13,6 +13,17 @@ export type AtomData = {
   source?: {
     id: string
     title?: string
+    url?: string
+    author?: string
+    publishedDate?: string
+    tags?: any[]
+    oneSentenceSummary?: string
+    mainPoints?: { text: string }[]
+    bulletSummary?: { text: string }[]
+    peopleplacesthingsevents?: { text: string }[]
+    quotations?: { text: string }[]
+    details?: { text: string }[]
+    sourceCategory?: any
   }
 }
 
@@ -95,7 +106,7 @@ export async function fetchAtomById(pineconeId: string): Promise<AtomData | null
       where: {
         pineconeId: { equals: pineconeId },
       },
-      depth: 1, // Include one level of relationships (for source)
+      depth: 3, // Increased depth to include full source data
     })
 
     // If no atom found with this pineconeId
@@ -114,12 +125,35 @@ export async function fetchAtomById(pineconeId: string): Promise<AtomData | null
       supportingInfo: Array.isArray(atom.supportingInfo)
         ? atom.supportingInfo.map((info) => ({ text: info.text || '' }))
         : undefined,
-      source: atom.source
-        ? {
-            id: typeof atom.source === 'object' ? atom.source.id.toString() : '',
-            title: typeof atom.source === 'object' ? atom.source.title || undefined : undefined,
-          }
-        : undefined,
+      source:
+        atom.source && typeof atom.source === 'object'
+          ? {
+              id: atom.source.id?.toString() || '',
+              title: atom.source.title || undefined,
+              url: atom.source.url || undefined,
+              author: atom.source.author || undefined,
+              publishedDate: atom.source.publishedDate || undefined,
+              tags: Array.isArray(atom.source.tags) ? atom.source.tags : undefined,
+              oneSentenceSummary: atom.source.oneSentenceSummary || undefined,
+              // Handle arrays with proper transformation
+              mainPoints: Array.isArray(atom.source.mainPoints)
+                ? atom.source.mainPoints.map((point) => ({ text: point.text || '' }))
+                : undefined,
+              bulletSummary: Array.isArray(atom.source.bulletSummary)
+                ? atom.source.bulletSummary.map((point) => ({ text: point.text || '' }))
+                : undefined,
+              peopleplacesthingsevents: Array.isArray(atom.source.peopleplacesthingsevents)
+                ? atom.source.peopleplacesthingsevents.map((item) => ({ text: item.text || '' }))
+                : undefined,
+              quotations: Array.isArray(atom.source.quotations)
+                ? atom.source.quotations.map((quote) => ({ text: quote.text || '' }))
+                : undefined,
+              details: Array.isArray(atom.source.details)
+                ? atom.source.details.map((detail) => ({ text: detail.text || '' }))
+                : undefined,
+              sourceCategory: atom.source.sourceCategory || undefined,
+            }
+          : undefined,
     }
   } catch (error) {
     console.error(`Error fetching atom with ID ${pineconeId}:`, error)

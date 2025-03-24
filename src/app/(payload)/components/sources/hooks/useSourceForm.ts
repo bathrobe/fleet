@@ -18,6 +18,30 @@ const initialState = {
   processingStage: null as ProcessingStage,
 }
 
+// Fields that need to be converted from text to arrays of {text: value}
+const ARRAY_FIELDS = [
+  'mainPoints',
+  'bulletSummary',
+  'peopleplacesthingsevents',
+  'quotations',
+  'details',
+]
+
+/**
+ * Converts a string text field into an array of {text: string} objects
+ * @param text Text to convert to array format
+ */
+const convertTextToArrayFormat = (text: string): { text: string }[] => {
+  if (!text || typeof text !== 'string') return []
+
+  // Split by newlines and filter out empty lines
+  return text
+    .split('\n')
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0)
+    .map((line) => ({ text: line }))
+}
+
 export function useSourceForm() {
   const [content, setContent] = useState('')
   const [frontmatterData, setFrontmatterData] = useState<any>(null)
@@ -69,6 +93,24 @@ export function useSourceForm() {
     // Add the sourceCategory
     newFormData.append('sourceCategory', selectedCategory)
 
+    // Process frontmatter data
+    if (frontmatterData) {
+      // Convert string fields that should be arrays into proper format
+      for (const field in frontmatterData) {
+        if (ARRAY_FIELDS.includes(field) && frontmatterData[field]) {
+          // For array fields, convert text to array of {text: string} objects
+          const arrayData = convertTextToArrayFormat(frontmatterData[field])
+
+          // Stringify the array data for transport in FormData
+          newFormData.append(field, JSON.stringify(arrayData))
+          console.log(`Converted field ${field} to array format:`, arrayData)
+        } else {
+          // Keep other fields as is
+          newFormData.append(field, frontmatterData[field])
+        }
+      }
+    }
+
     // Set processing state before starting
     Object.assign(state, {
       ...initialState,
@@ -78,6 +120,7 @@ export function useSourceForm() {
 
     // Log what we're submitting
     console.log('Submitting form with categoryId:', selectedCategory)
+    console.log('Form data fields:', Array.from(newFormData.keys()))
 
     // Submit the form data
     formAction(newFormData)

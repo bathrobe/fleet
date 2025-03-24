@@ -9,6 +9,15 @@ import fs from 'fs/promises'
 import path from 'path'
 import os from 'os'
 
+// List of fields that need to be processed as arrays of {text: string} objects
+const ARRAY_FIELDS = [
+  'mainPoints',
+  'bulletSummary',
+  'peopleplacesthingsevents',
+  'quotations',
+  'details',
+]
+
 // Main server action exported for form handling
 export async function processSourceAction(prevState: any, formData: FormData) {
   try {
@@ -19,6 +28,9 @@ export async function processSourceAction(prevState: any, formData: FormData) {
       content: content ? 'yes (too large to show)' : 'no',
       sourceCategory,
     })
+
+    // Log all form data keys for debugging
+    console.log('Form data fields:', Array.from(formData.keys()))
 
     if (!content) {
       return {
@@ -106,9 +118,47 @@ export async function processSourceAction(prevState: any, formData: FormData) {
         console.warn(`LLM response missing fields: ${missingLlmFields.join(', ')}`)
       }
 
+      // Process array fields from LLM response
+      ARRAY_FIELDS.forEach((field) => {
+        // If the field exists in the parsedResult and is a string, convert it to array format
+        if (parsedResult[field] && typeof parsedResult[field] === 'string') {
+          const textValue = parsedResult[field]
+          parsedResult[field] = textValue
+            .split('\n')
+            .map((line) => line.trim())
+            .filter((line) => line.length > 0)
+            .map((line) => ({ text: line }))
+
+          console.log(`Converted LLM ${field} from string to array format`)
+        }
+      })
+
       // Map LLM outputs to the expected Payload field names with frontmatter fields
+      // Check for array fields in the formData that were pre-processed
+      const frontmatterFieldsFromForm = { ...extractSourceFields(frontmatterData) }
+
+      // Process any JSON-stringified array fields from the form data
+      ARRAY_FIELDS.forEach((field) => {
+        const fieldValue = formData.get(field)
+        if (fieldValue && typeof fieldValue === 'string') {
+          try {
+            // Try to parse as JSON array
+            const parsedArray = JSON.parse(fieldValue)
+            if (Array.isArray(parsedArray)) {
+              // Use type-safe indexer with explicit any type
+              ;(frontmatterFieldsFromForm as any)[field] = parsedArray
+              console.log(`Using pre-processed array for ${field} from form data`)
+            }
+          } catch (e) {
+            // If parsing fails, leave the field as is
+            console.warn(`Failed to parse ${field} as JSON array, keeping existing value`)
+          }
+        }
+      })
+
+      // Merge front matter data with LLM results
       parsedResult = frontmatterData
-        ? { ...parsedResult, ...extractSourceFields(frontmatterData) }
+        ? { ...parsedResult, ...frontmatterFieldsFromForm }
         : parsedResult
     } catch (parseError) {
       console.error('Failed to parse LLM response as JSON:', parseError)
@@ -205,15 +255,35 @@ export async function processSourceAction(prevState: any, formData: FormData) {
       console.log('Category ID being submitted (as number):', Number(sourceCategory))
       console.log(`Media ID being linked to source: ${mediaDoc.id}`)
 
+      // Log the array field structure to verify format
+      ARRAY_FIELDS.forEach((field) => {
+        if (createData[field]) {
+          console.log(
+            `Field ${field} structure:`,
+            Array.isArray(createData[field])
+              ? `Array with ${createData[field].length} items`
+              : typeof createData[field],
+          )
+        }
+      })
+
       console.log(
         'Creating source with data:',
         JSON.stringify(
           {
-            ...createData,
-            // Don't log the long text fields
-            details: '...',
-            mainPoints: '...',
-            quotations: '...',
+            title: createData.title,
+            url: createData.url,
+            sourceCategory: createData.sourceCategory,
+            // Show just the first item of each array field
+            mainPoints: Array.isArray(createData.mainPoints)
+              ? [createData.mainPoints[0], '...']
+              : '...',
+            bulletSummary: Array.isArray(createData.bulletSummary)
+              ? [createData.bulletSummary[0], '...']
+              : '...',
+            quotations: Array.isArray(createData.quotations)
+              ? [createData.quotations[0], '...']
+              : '...',
           },
           null,
           2,

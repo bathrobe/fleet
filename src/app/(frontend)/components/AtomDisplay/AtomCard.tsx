@@ -1,10 +1,12 @@
 'use client'
 
 /* eslint-disable react/no-unescaped-entities */
+import { useState } from 'react'
 import { AtomData } from '../../components/ConceptGraph/fetchVectors'
 import { Separator } from '../ui/separator'
 import { cn } from '../utils/cn'
-import { BookOpen, Quote, Info, Link } from 'lucide-react'
+import { BookOpen, Quote, Info, Link, ChevronDown, ChevronUp } from 'lucide-react'
+import { SourceCard } from './SourceCard'
 
 type AtomCardProps = {
   atom: AtomData | null
@@ -23,6 +25,12 @@ export function AtomCard({
   position,
   vectorId,
 }: AtomCardProps) {
+  const [showSourceDetails, setShowSourceDetails] = useState(false)
+
+  const toggleSourceDetails = () => {
+    setShowSourceDetails(!showSourceDetails)
+  }
+
   if (loading) {
     return (
       <div
@@ -161,34 +169,39 @@ export function AtomCard({
         {atom.source && (
           <div className="pt-2">
             <Separator className="mb-3" />
-            <div className="flex items-center">
-              <Link className="h-4 w-4 text-gray-500 mr-2" />
-              <h3 className="text-sm font-semibold text-gray-900 dark:text-white uppercase tracking-wider">
-                Source
-              </h3>
-            </div>
-            <a
-              className="mt-2 inline-flex items-center text-sm text-blue-600 dark:text-blue-400 hover:underline"
-              href={`/admin/collections/sources/${atom.source.id}`}
-              target="_blank"
-              rel="noreferrer"
-            >
-              {atom.source.title || 'View original source'}
-              <svg
-                className="ml-1 h-4 w-4"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <Link className="h-4 w-4 text-gray-500 mr-2" />
+                <h3 className="text-sm font-semibold text-gray-900 dark:text-white uppercase tracking-wider">
+                  Source
+                </h3>
+                {atom.source.title && (
+                  <span className="ml-2 text-sm text-gray-500 dark:text-gray-400 truncate max-w-[180px]">
+                    {atom.source.title}
+                  </span>
+                )}
+              </div>
+              <button
+                onClick={toggleSourceDetails}
+                className="text-sm text-blue-600 dark:text-blue-400 hover:underline flex items-center"
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
-                />
-              </svg>
-            </a>
+                {showSourceDetails ? (
+                  <>
+                    Hide Details <ChevronUp className="ml-1 h-4 w-4" />
+                  </>
+                ) : (
+                  <>
+                    View Details <ChevronDown className="ml-1 h-4 w-4" />
+                  </>
+                )}
+              </button>
+            </div>
+
+            {showSourceDetails && (
+              <div className="mt-3">
+                <SourceCard source={atom.source} />
+              </div>
+            )}
           </div>
         )}
       </div>

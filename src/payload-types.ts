@@ -163,11 +163,66 @@ export interface Source {
       }[]
     | null;
   oneSentenceSummary: string;
-  mainPoints: string;
-  bulletSummary: string;
-  peopleplacesthingsevents: string;
-  quotations: string;
-  details: string;
+  /**
+   * Main points from the source
+   */
+  mainPoints?:
+    | {
+        /**
+         * A main point
+         */
+        text?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * List of bullet points summarizing the source
+   */
+  bulletSummary?:
+    | {
+        /**
+         * A bullet point
+         */
+        text?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * List of people, places, things, and events mentioned
+   */
+  peopleplacesthingsevents?:
+    | {
+        /**
+         * A person, place, thing, or event
+         */
+        text?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Important quotations from the source
+   */
+  quotations?:
+    | {
+        /**
+         * A quotation
+         */
+        text?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Additional details about the source
+   */
+  details?:
+    | {
+        /**
+         * A detail
+         */
+        text?: string | null;
+        id?: string | null;
+      }[]
+    | null;
   fullText?: (number | null) | Media;
   updatedAt: string;
   createdAt: string;
@@ -399,11 +454,36 @@ export interface SourcesSelect<T extends boolean = true> {
         id?: T;
       };
   oneSentenceSummary?: T;
-  mainPoints?: T;
-  bulletSummary?: T;
-  peopleplacesthingsevents?: T;
-  quotations?: T;
-  details?: T;
+  mainPoints?:
+    | T
+    | {
+        text?: T;
+        id?: T;
+      };
+  bulletSummary?:
+    | T
+    | {
+        text?: T;
+        id?: T;
+      };
+  peopleplacesthingsevents?:
+    | T
+    | {
+        text?: T;
+        id?: T;
+      };
+  quotations?:
+    | T
+    | {
+        text?: T;
+        id?: T;
+      };
+  details?:
+    | T
+    | {
+        text?: T;
+        id?: T;
+      };
   fullText?: T;
   updatedAt?: T;
   createdAt?: T;

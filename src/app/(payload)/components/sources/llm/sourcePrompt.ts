@@ -20,17 +20,14 @@ One sentence summary here. The summary should only be one complete sentence and 
 - Be sure to cover anything important that was missed by the preceding two sections. 
 
 #### People, Places, and Things 
-List a maximum of 6 proper nouns mentioned in the transcript that would be worth knowing about. Do so in this format:
-
-Name of proper noun - 1-2 sentences explanation of the entity 
-
-Next one - etc.
+List a maximum of 6 proper nouns mentioned in the transcript that would be worth knowing about. Put each on a new line.
 
 #### Interesting Details 
 - Include a maximum of 6 interesting bits of trivia, asides, anecdotes, apocrypha, etc. that have not been picked up in previous sections 
+- Put each detail on a separate line
 
 #### Quotations
-If any of the figures in the transcipt (besides the lecturer) have a unique or memorable quotation, deposit it here with attribution in markdown blockquote format (> quote \n - Attribution)
+If any of the figures in the transcipt (besides the lecturer) have a unique or memorable quotation, deposit it here with attribution, with each quotation on a separate line.
 If there are none, write "None."
 
 ***
@@ -43,11 +40,30 @@ Note: Any frontmatter metadata (like title, url, author, date) may have already 
 Structure your output in valid JSON in the following format:
 {
   "oneSentenceSummary": "string - One sentence summary here. The summary should only be one complete sentence and should be concise and readable.",
-  "mainPoints": "string - 2-5 main points outlining the key ideas in the transcript",
-  "bulletSummary": "string - More indepth summary of the transcript that covers everything in it using a bullet list of 8-12 bullets.",
-  "peopleplacesthingsevents": "string - List of 1-6 proper nouns mentioned in the transcript that would be worth knowing about.",
-  "details": "string - 2-4 interesting bits of trivia, asides, anecdotes, apocrypha, etc. that have not been picked up in previous sections",
-  "quotations": "string - Any unique or memorable quotations from figures in the transcript with attribution. If there are none, write 'None.'"
+  "mainPoints": [
+    {"text": "First main point as a complete sentence"},
+    {"text": "Second main point as a complete sentence"},
+    {"text": "And so on..."}
+  ],
+  "bulletSummary": [
+    {"text": "First bullet point from the summary"},
+    {"text": "Second bullet point from the summary"},
+    {"text": "And so on..."}
+  ],
+  "peopleplacesthingsevents": [
+    {"text": "First person/place/thing and its explanation"},
+    {"text": "Second person/place/thing and its explanation"},
+    {"text": "And so on..."}
+  ],
+  "details": [
+    {"text": "First interesting detail"},
+    {"text": "Second interesting detail"},
+    {"text": "And so on..."}
+  ],
+  "quotations": [
+    {"text": "First quotation with attribution"},
+    {"text": "Second quotation with attribution"}
+  ]
 }
 
 IMPORTANT JSON FORMATTING REQUIREMENTS:
@@ -57,13 +73,14 @@ IMPORTANT JSON FORMATTING REQUIREMENTS:
 4. Ensure all quotes and special characters are properly escaped
 5. All fields are REQUIRED - never leave any fields empty
 6. Each field should contain appropriate content based on your analysis
+7. All fields except "oneSentenceSummary" must be arrays of objects with a "text" property
 </Format>
 
 <Content>
 ${content}
 </Content>
 
-</Output>`
+</o>`
 
   try {
     const response = await getCompletion(prompt, apiKey, {

@@ -54,28 +54,83 @@ export const Sources: CollectionConfig = {
     },
     {
       name: 'mainPoints',
-      type: 'textarea',
-      required: true,
+      type: 'array',
+      admin: {
+        description: 'Main points from the source',
+      },
+      fields: [
+        {
+          name: 'text',
+          type: 'textarea',
+          admin: {
+            description: 'A main point',
+          },
+        },
+      ],
     },
     {
       name: 'bulletSummary',
-      type: 'textarea',
-      required: true,
+      type: 'array',
+      admin: {
+        description: 'List of bullet points summarizing the source',
+      },
+      fields: [
+        {
+          name: 'text',
+          type: 'textarea',
+          admin: {
+            description: 'A bullet point',
+          },
+        },
+      ],
     },
     {
       name: 'peopleplacesthingsevents',
-      type: 'textarea',
-      required: true,
+      type: 'array',
+      admin: {
+        description: 'List of people, places, things, and events mentioned',
+      },
+      fields: [
+        {
+          name: 'text',
+          type: 'textarea',
+          admin: {
+            description: 'A person, place, thing, or event',
+          },
+        },
+      ],
     },
     {
       name: 'quotations',
-      type: 'textarea',
-      required: true,
+      type: 'array',
+      admin: {
+        description: 'Important quotations from the source',
+      },
+      fields: [
+        {
+          name: 'text',
+          type: 'textarea',
+          admin: {
+            description: 'A quotation',
+          },
+        },
+      ],
     },
     {
       name: 'details',
-      type: 'textarea',
-      required: true,
+      type: 'array',
+      admin: {
+        description: 'Additional details about the source',
+      },
+      fields: [
+        {
+          name: 'text',
+          type: 'textarea',
+          admin: {
+            description: 'A detail',
+          },
+        },
+      ],
     },
     {
       name: 'fullText',
