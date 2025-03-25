@@ -19,7 +19,7 @@ export function SimpleAtomCard({ atom, className = '' }: SimpleAtomCardProps) {
 
       {atom.supportingQuote && (
         <blockquote className="pl-4 border-l-4 border-gray-300 dark:border-gray-600 italic text-gray-600 dark:text-gray-400 my-4">
-          "{atom.supportingQuote}"
+          &quot;{atom.supportingQuote}&quot;
         </blockquote>
       )}
 
