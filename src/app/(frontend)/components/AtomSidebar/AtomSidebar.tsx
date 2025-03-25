@@ -9,9 +9,9 @@ import {
   SidebarFooter,
   SidebarTrigger,
   useSidebar,
-} from '../ui/sidebar'
+} from '../../ui/sidebar'
 import { AtomList } from './AtomList'
-import { Separator } from '../ui/separator'
+import { Separator } from '../../ui/separator'
 
 type AtomSidebarProps = {
   onAtomClick: (atomId: string, pineconeId: string) => void

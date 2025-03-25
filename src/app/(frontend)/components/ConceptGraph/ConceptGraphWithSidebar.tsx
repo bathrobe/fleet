@@ -3,11 +3,11 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
 import { AtomSidebar } from '../AtomSidebar/AtomSidebar'
 import { ConceptVectorSpace } from './ConceptVectorSpace'
-import { SidebarProvider } from '../ui/sidebar'
+import { SidebarProvider } from '../../ui/sidebar'
 import type { VectorData } from './fetchVectors'
 import type { ReducedVectorData } from './dimensionReducer'
 import { DetailedAtomCard } from '../AtomDisplay/DetailedAtomCard'
-import { FullWidthLayout } from '../Layout/FullWidthLayout'
+import { FullWidthLayout } from '../../ui/FullWidthLayout'
 import { useAtomLoader } from './hooks/useAtomLoader'
 
 type ConceptGraphWithSidebarProps = {

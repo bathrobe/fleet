@@ -1,10 +1,10 @@
 'use client'
 
 import { useState } from 'react'
-import { Button } from '@/app/(frontend)/components/ui/button'
-import { SimpleAtomCard } from '@/app/(frontend)/components/SimpleAtomCard'
+import { Button } from '@/app/(frontend)/ui/button'
+import { SimpleAtomCard } from '@/app/(frontend)/components/AtomDisplay/SimpleAtomCard'
 import { Atom } from '@/app/(frontend)/lib/atoms'
-import { AtomSynthesizer } from './synthesis/AtomSynthesizer'
+import { AtomSynthesizer } from '../AtomSynthesizer'
 import { getRandomAtomPair } from '@/app/(frontend)/actions'
 
 type AtomPairResponse = {

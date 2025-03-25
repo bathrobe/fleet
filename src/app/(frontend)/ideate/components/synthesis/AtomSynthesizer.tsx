@@ -1,8 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { Button } from '@/app/(frontend)/components/ui/button'
-import { SynthesizedAtomCard } from '@/app/(frontend)/components/SynthesizedAtomCard'
+import { Button } from '@/app/(frontend)/ui/button'
+import { SynthesizedAtomCard } from '@/app/(frontend)/ideate/components/SynthesizedAtomCard'
 import { Atom } from '@/app/(frontend)/lib/atoms'
 import { synthesizeAtoms } from '@/app/(frontend)/actions'
 

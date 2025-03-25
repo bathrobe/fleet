@@ -1,4 +1,4 @@
-import { IdeasWorkspace } from '@/app/(frontend)/components/ideation/IdeasWorkspace'
+import { IdeasWorkspace } from '@/app/(frontend)/ideate/components/IdeasWorkspace'
 
 export default function IdeatePage() {
   return (
