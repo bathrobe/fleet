@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { IdeationMethodSelect } from '@/app/(frontend)/ideate/components/IdeationMethodSelect'
-import { DualDissimilarAtoms } from '@/app/(frontend)/ideate/components/synthesis/methods/DualDissimilarAtoms'
+import { DualDissimilarAtoms } from '@/app/(frontend)/ideate/components/IdeationMethods/DualDissimilarAtoms'
 import { getDefaultMethod, IdeationMethod } from '@/app/(frontend)/lib/ideation-methods'
 
 export function IdeasWorkspace() {
