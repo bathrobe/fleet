@@ -2,8 +2,8 @@
 
 import { useState } from 'react'
 import { Button } from '@/app/(frontend)/components/ui/button'
-import { AtomCard } from '@/app/(frontend)/components/AtomCard'
-import { Atom } from '@/lib/atoms'
+import { SimpleAtomCard } from '@/app/(frontend)/components/SimpleAtomCard'
+import { Atom } from '@/app/(frontend)/lib/atoms'
 import { AtomSynthesizer } from './synthesis/AtomSynthesizer'
 import { getRandomAtomPair } from '@/app/(frontend)/actions'
 
@@ -52,8 +52,8 @@ export function DualDissimilarAtoms() {
           )}
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <AtomCard atom={atoms.firstAtom} />
-            {atoms.secondAtom && <AtomCard atom={atoms.secondAtom} />}
+            <SimpleAtomCard atom={atoms.firstAtom} />
+            {atoms.secondAtom && <SimpleAtomCard atom={atoms.secondAtom} />}
           </div>
 
           {atoms.firstAtom && atoms.secondAtom && (

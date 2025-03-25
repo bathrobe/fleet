@@ -1,8 +1,8 @@
 'use client'
 
 import { Separator } from '../ui/separator'
-import { cn } from '../utils/cn'
-import { Calendar, User, Tag, ExternalLink } from 'lucide-react'
+import { cn } from '@/app/(frontend)/lib/utils'
+import { Calendar, User, Link, Tag, Info } from 'lucide-react'
 
 type SourceData = {
   id: string
@@ -99,7 +99,7 @@ export function SourceCard({ source, className, onClose }: SourceCardProps) {
         {source.url && (
           <div className="space-y-1">
             <div className="flex items-center">
-              <ExternalLink className="h-4 w-4 text-gray-600 mr-2" />
+              <Link className="h-4 w-4 text-gray-600 mr-2" />
               <h3 className="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wide">
                 Source URL
               </h3>

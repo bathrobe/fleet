@@ -3,7 +3,7 @@
 import { getPayload } from 'payload'
 import config from '@payload-config'
 import { Pinecone } from '@pinecone-database/pinecone'
-import { cosineSimilarity, findMostDissimilarVectors } from '@/lib/atoms'
+import { cosineSimilarity, findMostDissimilarVectors } from '@/app/(frontend)/lib/atoms'
 
 /**
  * Server action to fetch atoms with pagination

@@ -1,25 +1,14 @@
 'use client'
 
 import React from 'react'
+import { Atom } from '@/app/(frontend)/lib/atoms'
 
-type Atom = {
-  id: string | number
-  title?: string
-  mainContent: string
-  supportingQuote?: string
-  supportingInfo?: { text: string }[]
-  source?: {
-    id: string | number
-    title?: string
-  }
-}
-
-type AtomCardProps = {
+type SimpleAtomCardProps = {
   atom: Atom
   className?: string
 }
 
-export function AtomCard({ atom, className = '' }: AtomCardProps) {
+export function SimpleAtomCard({ atom, className = '' }: SimpleAtomCardProps) {
   return (
     <div
       className={`p-4 bg-white dark:bg-slate-800 rounded-lg shadow h-full flex flex-col ${className}`}

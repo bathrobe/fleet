@@ -1,7 +1,8 @@
 'use client'
 
 import React from 'react'
-import { Atom } from '@/lib/atoms'
+import { Atom } from '@/app/(frontend)/lib/atoms'
+import { cn } from '@/app/(frontend)/lib/utils'
 
 type SynthesizedAtomCardProps = {
   atom: Atom
@@ -11,7 +12,7 @@ type SynthesizedAtomCardProps = {
 export function SynthesizedAtomCard({ atom, className = '' }: SynthesizedAtomCardProps) {
   return (
     <div
-      className={`p-5 rounded-lg shadow h-full flex flex-col relative ${className}`}
+      className={cn(`p-5 rounded-lg shadow h-full flex flex-col`, className)}
       style={{
         background: 'white',
         boxShadow: '0 4px 14px rgba(0, 0, 0, 0.1)',

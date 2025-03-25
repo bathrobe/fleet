@@ -1,6 +1,6 @@
 'use server'
 
-import { Atom } from '@/lib/atoms'
+import { Atom } from '@/app/(frontend)/lib/atoms'
 import { getCompletion } from '@/utilities/anthropic'
 
 /**

@@ -8,7 +8,7 @@ import { cn } from '@/app/(frontend)/lib/utils'
 import { BookOpen, Quote, Info, Link, ChevronDown, ChevronUp } from 'lucide-react'
 import { SourceCard } from './SourceCard'
 
-type AtomCardProps = {
+type DetailedAtomCardProps = {
   atom: AtomData | null
   loading?: boolean
   className?: string
@@ -17,14 +17,14 @@ type AtomCardProps = {
   vectorId?: string
 }
 
-export function AtomCard({
+export function DetailedAtomCard({
   atom,
   loading = false,
   className,
   onClose,
   position,
   vectorId,
-}: AtomCardProps) {
+}: DetailedAtomCardProps) {
   const [showSourceDetails, setShowSourceDetails] = useState(false)
 
   const toggleSourceDetails = () => {

@@ -6,7 +6,7 @@ import { ConceptVectorSpace } from './ConceptVectorSpace'
 import { SidebarProvider } from '../ui/sidebar'
 import type { VectorData } from './fetchVectors'
 import type { ReducedVectorData } from './dimensionReducer'
-import { AtomCard } from '../AtomDisplay/AtomCard'
+import { DetailedAtomCard } from '../AtomDisplay/DetailedAtomCard'
 import { FullWidthLayout } from '../Layout/FullWidthLayout'
 import { useAtomLoader } from './hooks/useAtomLoader'
 
@@ -136,7 +136,7 @@ export function ConceptGraphWithSidebar({ vectorData, reducedData }: ConceptGrap
   // Prepare the right panel content - only used in desktop mode
   const rightPanelContent =
     showRightPanel && !isMobile ? (
-      <AtomCard
+      <DetailedAtomCard
         atom={atomData}
         loading={isLoading}
         onClose={clearSelection}
@@ -149,7 +149,7 @@ export function ConceptGraphWithSidebar({ vectorData, reducedData }: ConceptGrap
   // Prepare mobile panel content - separate from right panel
   const mobilePanelContent =
     showRightPanel && isMobile ? (
-      <AtomCard
+      <DetailedAtomCard
         atom={atomData}
         loading={isLoading}
         onClose={clearSelection}

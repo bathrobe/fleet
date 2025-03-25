@@ -7,7 +7,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/app/(frontend)/components/ui/select'
-import { ideationMethods, IdeationMethod } from '@/lib/ideation-methods'
+import { ideationMethods, IdeationMethod } from '@/app/(frontend)/lib/ideation-methods'
 
 type IdeationMethodSelectProps = {
   selectedMethod: IdeationMethod

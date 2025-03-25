@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { IdeationMethodSelect } from '@/app/(frontend)/components/IdeationMethodSelect'
 import { DualDissimilarAtoms } from '@/app/(frontend)/components/ideation/DualDissimilarAtoms'
-import { getDefaultMethod, IdeationMethod } from '@/lib/ideation-methods'
+import { getDefaultMethod, IdeationMethod } from '@/app/(frontend)/lib/ideation-methods'
 
 export function IdeasWorkspace() {
   const [selectedMethod, setSelectedMethod] = useState<IdeationMethod>(getDefaultMethod())

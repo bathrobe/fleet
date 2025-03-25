@@ -1,8 +1,9 @@
 'use client'
 
-import * as React from 'react'
+import React, { createContext, useContext, useState, useMemo, ReactNode } from 'react'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { cva, type VariantProps } from 'class-variance-authority'
-import { cn } from '../utils/cn'
+import { cn } from '@/app/(frontend)/lib/utils'
 
 // Constants
 const SIDEBAR_WIDTH = '18rem'
