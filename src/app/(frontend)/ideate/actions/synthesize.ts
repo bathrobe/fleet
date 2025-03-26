@@ -15,7 +15,8 @@ async function generateCombinedAtom(atom1: Atom, atom2: Atom): Promise<Atom> {
     Your task is to create a meaningful combination of these concepts that yields 
     a novel insight - not just explaining how synthesis works in general.
     The combination should be specific and detailed, drawing directly from the 
-    content of both concepts provided.
+    content of both concepts provided. Use divergent thinking techniques. 
+    Don't just combine the concepts, but create something that's more than the sum of its parts.
     </instructions>
 
     <concept1>
@@ -50,16 +51,16 @@ async function generateCombinedAtom(atom1: Atom, atom2: Atom): Promise<Atom> {
     Respond ONLY with a JSON object with these exact fields:
     - title: A catchy, brief title for the new concept (5 words max)
     - mainContent: One or two substantive sentences that clearly express the new synthesized concept
-    - supportingQuote: A relevant quote that supports this idea
     - supportingInfo: An array of 2-3 objects with a "text" field containing bullet points that elaborate on the concept's implications
-    
+    - theoryFiction: A short paragraph, styled as a fictional quote, that imagines a future where the concept is realized.
+
     Ensure your response is properly formatted JSON. Do not include markdown code blocks or any text before or after the JSON.
     
     Example format:
     {
       "title": "Concise Meaningful Title",
       "mainContent": "A substantive sentence that expresses a new idea combining elements from both concepts in a novel way.",
-      "supportingQuote": "A quote that supports or illustrates the new concept.",
+      "theoryFiction": "A short paragraph, styled as a fictional quote, that imagines a future where the concept is realized.",
       "supportingInfo": [
         {"text": "First supporting point that elaborates on the concept."},
         {"text": "Second supporting point that discusses implications."},
@@ -99,7 +100,7 @@ async function generateCombinedAtom(atom1: Atom, atom2: Atom): Promise<Atom> {
       parsedResponse = {
         title: `Synthesized Concept`,
         mainContent: response.content.substring(0, 200) + '...',
-        supportingQuote: 'Error parsing complete response',
+        theoryFiction: 'Error parsing complete response',
         supportingInfo: [{ text: "The LLM response couldn't be properly parsed as JSON." }],
       }
     }

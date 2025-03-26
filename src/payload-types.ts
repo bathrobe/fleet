@@ -74,6 +74,7 @@ export interface Config {
     posts: Post;
     atoms: Atom;
     'source-categories': SourceCategory;
+    synthesizedAtoms: SynthesizedAtom;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
     'payload-migrations': PayloadMigration;
@@ -88,6 +89,7 @@ export interface Config {
     posts: PostsSelect<false> | PostsSelect<true>;
     atoms: AtomsSelect<false> | AtomsSelect<true>;
     'source-categories': SourceCategoriesSelect<false> | SourceCategoriesSelect<true>;
+    synthesizedAtoms: SynthesizedAtomsSelect<false> | SynthesizedAtomsSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
     'payload-migrations': PayloadMigrationsSelect<false> | PayloadMigrationsSelect<true>;
@@ -343,6 +345,38 @@ export interface Atom {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "synthesizedAtoms".
+ */
+export interface SynthesizedAtom {
+  id: number;
+  title: string;
+  /**
+   * The full atomic idea (1-2 sentences)
+   */
+  mainContent: string;
+  /**
+   * Additional information that supports this atom
+   */
+  supportingInfo?:
+    | {
+        /**
+         * Supporting information item
+         */
+        text?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * A short paragraph, styled as a fictional quote, that imagines a future where the concept is realized.
+   */
+  theoryFiction?: string | null;
+  parentAtoms: (number | Atom)[];
+  pineconeId?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-locked-documents".
  */
 export interface PayloadLockedDocument {
@@ -379,6 +413,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'source-categories';
         value: number | SourceCategory;
+      } | null)
+    | ({
+        relationTo: 'synthesizedAtoms';
+        value: number | SynthesizedAtom;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -576,6 +614,25 @@ export interface AtomsSelect<T extends boolean = true> {
 export interface SourceCategoriesSelect<T extends boolean = true> {
   title?: T;
   description?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "synthesizedAtoms_select".
+ */
+export interface SynthesizedAtomsSelect<T extends boolean = true> {
+  title?: T;
+  mainContent?: T;
+  supportingInfo?:
+    | T
+    | {
+        text?: T;
+        id?: T;
+      };
+  theoryFiction?: T;
+  parentAtoms?: T;
+  pineconeId?: T;
   updatedAt?: T;
   createdAt?: T;
 }

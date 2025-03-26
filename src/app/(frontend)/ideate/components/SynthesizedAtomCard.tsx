@@ -5,7 +5,7 @@ import { Atom } from '@/app/(frontend)/lib/atoms'
 import { cn } from '@/app/(frontend)/lib/utils'
 
 type SynthesizedAtomCardProps = {
-  atom: Atom
+  atom: any
   className?: string
 }
 
@@ -28,22 +28,23 @@ export function SynthesizedAtomCard({ atom, className = '' }: SynthesizedAtomCar
 
         <p className="text-gray-700 dark:text-gray-200 mb-4 flex-grow">{atom.mainContent}</p>
 
-        {atom.supportingQuote && (
-          <blockquote className="pl-4 border-l-4 border-purple-300 dark:border-purple-600 italic text-gray-600 dark:text-gray-400 my-4">
-            &quot;{atom.supportingQuote}&quot;
-          </blockquote>
-        )}
-
         {atom.supportingInfo && atom.supportingInfo.length > 0 && (
           <div className="mt-2">
             <h3 className="text-sm font-medium mb-1">Key Insights</h3>
             <ul className="list-disc pl-5 space-y-1 text-sm">
-              {atom.supportingInfo.map((info, index) => (
+              {atom.supportingInfo.map((info: any, index: number) => (
                 <li key={index} className="text-gray-700 dark:text-gray-300">
                   {info.text}
                 </li>
               ))}
             </ul>
+          </div>
+        )}
+
+        {atom.theoryFiction && (
+          <div className="mt-4 p-3 bg-gray-50 dark:bg-gray-700/30 rounded-md border border-gray-100 dark:border-gray-700">
+            <h3 className="text-sm font-medium mb-2">Theory Fiction</h3>
+            <p className="text-gray-700 dark:text-gray-300 italic">{atom.theoryFiction}</p>
           </div>
         )}
       </div>
