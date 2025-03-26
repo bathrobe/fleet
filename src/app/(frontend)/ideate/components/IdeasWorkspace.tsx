@@ -1,12 +1,20 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { IdeationMethodSelect } from '@/app/(frontend)/ideate/components/IdeationMethodSelect'
 import { DualDissimilarAtoms } from '@/app/(frontend)/ideate/components/IdeationMethods/DualDissimilarAtoms'
 import { getDefaultMethod, IdeationMethod } from '@/app/(frontend)/lib/ideation-methods'
 
 export function IdeasWorkspace() {
   const [selectedMethod, setSelectedMethod] = useState<IdeationMethod>(getDefaultMethod())
+  const router = useRouter()
+
+  // Function to navigate to the graph view and focus on a specific atom
+  const handleFocusOnAtom = (atomId: string, pineconeId: string, collection: string) => {
+    // Navigate to the concept graph page with query parameters to focus on the atom
+    router.push(`/concept-graph?atomId=${atomId}&pineconeId=${pineconeId}&collection=${collection}`)
+  }
 
   return (
     <div className="space-y-6">
@@ -29,7 +37,9 @@ export function IdeasWorkspace() {
 
       {/* Ideation method content */}
       <div className="pt-2">
-        {selectedMethod.id === 'dual-dissimilar' && <DualDissimilarAtoms />}
+        {selectedMethod.id === 'dual-dissimilar' && (
+          <DualDissimilarAtoms onFocusParentAtom={handleFocusOnAtom} />
+        )}
         {/* Additional methods will be added here as they are implemented */}
       </div>
     </div>

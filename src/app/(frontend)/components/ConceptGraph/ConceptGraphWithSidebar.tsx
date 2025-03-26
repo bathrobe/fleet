@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState, useEffect, useRef } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { Sidebar, SidebarContent, SidebarProvider } from '@/app/(frontend)/ui/sidebar'
 import { AtomSidebar } from '../AtomSidebar/AtomSidebar'
 import { ConceptVectorSpace } from './ConceptVectorSpace'
@@ -16,18 +17,27 @@ export function ConceptGraphWithSidebar({
   vectorData: any
   reducedData: any
 }) {
+  // Store both the atom's database ID and its pineconeId (vector ID)
   const [selectedAtomId, setSelectedAtomId] = useState<string | null>(null)
+  const [selectedVectorId, setSelectedVectorId] = useState<string | null>(null)
   const [atomData, setAtomData] = useState<any | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [atomType, setAtomType] = useState<'regular' | 'synthesized'>('regular')
   const [dimensions, setDimensions] = useState({ width: 800, height: 600 })
   const containerRef = useRef<HTMLDivElement>(null)
+  const searchParams = useSearchParams()
 
   // Direct atom loading function that handles both collections
   const loadAtom = async (atomId: string, pineconeId: string, collection: string) => {
     try {
       setIsLoading(true)
       setSelectedAtomId(atomId)
+
+      // Also set the vector ID to highlight the node in the scatter plot
+      if (pineconeId) {
+        setSelectedVectorId(pineconeId)
+        console.log('Setting selected vector ID:', pineconeId)
+      }
 
       console.log(`Loading ${collection} atom with ID:`, atomId)
 
@@ -54,6 +64,8 @@ export function ConceptGraphWithSidebar({
     // This should continue using the existing vector-based lookup
     try {
       setIsLoading(true)
+      setSelectedVectorId(vectorId) // Update the selected vector ID
+
       // Keep using fetchAtomById which uses Pinecone to determine the type
       const data = await fetchAtomById(vectorId)
 
@@ -100,6 +112,17 @@ export function ConceptGraphWithSidebar({
     }
   }, [])
 
+  // Handle URL parameters to focus on a specific atom when the page loads
+  useEffect(() => {
+    const atomId = searchParams.get('atomId')
+    const pineconeId = searchParams.get('pineconeId')
+    const collection = searchParams.get('collection') || 'atoms'
+
+    if (atomId && pineconeId) {
+      loadAtom(atomId, pineconeId, collection)
+    }
+  }, [searchParams])
+
   return (
     <SidebarProvider>
       <div className="flex h-screen w-full overflow-hidden">
@@ -109,7 +132,7 @@ export function ConceptGraphWithSidebar({
             width={dimensions.width}
             height={dimensions.height}
             reducedData={reducedData}
-            selectedNodeId={selectedAtomId}
+            selectedNodeId={selectedVectorId} // Use the vector ID for node highlighting
             onNodeClick={handleVectorClick}
           />
         </div>
@@ -119,7 +142,7 @@ export function ConceptGraphWithSidebar({
               <div className="p-4">Loading atom details...</div>
             ) : atomData ? (
               atomType === 'synthesized' ? (
-                <SynthesizedAtomDisplay atom={atomData} />
+                <SynthesizedAtomDisplay atom={atomData} onFocusParentAtom={loadAtom} />
               ) : (
                 <DetailedAtomCard atom={atomData} />
               )

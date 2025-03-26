@@ -13,7 +13,11 @@ type AtomPairResponse = {
   method: 'random' | 'vector' | 'random-fallback'
 }
 
-export function DualDissimilarAtoms() {
+type DualDissimilarAtomsProps = {
+  onFocusParentAtom?: (atomId: string, pineconeId: string, collection: string) => void
+}
+
+export function DualDissimilarAtoms({ onFocusParentAtom }: DualDissimilarAtomsProps) {
   const [atoms, setAtoms] = useState<AtomPairResponse | null>(null)
   const [loading, setLoading] = useState(false)
 
@@ -57,7 +61,11 @@ export function DualDissimilarAtoms() {
           </div>
 
           {atoms.firstAtom && atoms.secondAtom && (
-            <AtomSynthesizer firstAtom={atoms.firstAtom} secondAtom={atoms.secondAtom} />
+            <AtomSynthesizer
+              firstAtom={atoms.firstAtom}
+              secondAtom={atoms.secondAtom}
+              onFocusParentAtom={onFocusParentAtom}
+            />
           )}
         </div>
       )}

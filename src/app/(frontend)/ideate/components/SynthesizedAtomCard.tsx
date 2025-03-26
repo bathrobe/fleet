@@ -7,14 +7,19 @@ import { Button } from '@/app/(frontend)/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/app/(frontend)/ui/card'
 import { Badge } from '@/app/(frontend)/ui/badge'
 import { saveSynthesizedAtom } from '../actions/saveSynthesizedAtom'
-import { CheckCircle, Sparkles } from 'lucide-react'
+import { CheckCircle, Sparkles, Link as LinkIcon, ExternalLink } from 'lucide-react'
 
 type SynthesizedAtomCardProps = {
   atom: any
   className?: string
+  onFocusParentAtom?: (atomId: string, pineconeId: string, collection: string) => void
 }
 
-export function SynthesizedAtomCard({ atom, className = '' }: SynthesizedAtomCardProps) {
+export function SynthesizedAtomCard({
+  atom,
+  className = '',
+  onFocusParentAtom,
+}: SynthesizedAtomCardProps) {
   const [isSaving, setIsSaving] = useState(false)
   const [isSaved, setIsSaved] = useState(false)
 
@@ -27,6 +32,12 @@ export function SynthesizedAtomCard({ atom, className = '' }: SynthesizedAtomCar
       console.error('Failed to save atom:', error)
     } finally {
       setIsSaving(false)
+    }
+  }
+
+  const handleParentAtomClick = (parent: any) => {
+    if (onFocusParentAtom && parent.id && parent.pineconeId) {
+      onFocusParentAtom(parent.id, parent.pineconeId, 'atoms')
     }
   }
 
@@ -58,6 +69,63 @@ export function SynthesizedAtomCard({ atom, className = '' }: SynthesizedAtomCar
           <div className="mt-4 p-3 bg-gray-50 dark:bg-gray-700/30 rounded-md border border-gray-100 dark:border-gray-700">
             <h3 className="text-sm font-medium mb-2">Theory Fiction</h3>
             <p className="text-gray-700 dark:text-gray-300 italic">{atom.theoryFiction}</p>
+          </div>
+        )}
+
+        {atom.parentAtoms && atom.parentAtoms.length > 0 && (
+          <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/10 rounded-md border border-blue-100 dark:border-blue-800">
+            <h3 className="text-sm font-semibold mb-2 flex items-center">
+              <LinkIcon className="h-4 w-4 mr-1.5 text-blue-500" />
+              <span>Parent Atoms</span>
+            </h3>
+            <div className="space-y-3">
+              {atom.parentAtoms.map((parent: any) => (
+                <div
+                  key={parent.id}
+                  className={cn(
+                    'p-3 rounded-md border border-blue-200 dark:border-blue-800 bg-white dark:bg-gray-800',
+                    onFocusParentAtom && parent.pineconeId
+                      ? 'cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-900/20 transition-colors'
+                      : '',
+                  )}
+                  onClick={() =>
+                    onFocusParentAtom && parent.pineconeId && handleParentAtomClick(parent)
+                  }
+                >
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <h4 className="font-medium text-blue-700 dark:text-blue-400">
+                        {parent.title || `Atom ${parent.id}`}
+                      </h4>
+                      <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
+                        {parent.mainContent}
+                      </p>
+                    </div>
+                    {onFocusParentAtom && parent.pineconeId && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6 text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300"
+                        title="Focus on this atom"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          handleParentAtomClick(parent)
+                        }}
+                      >
+                        <ExternalLink className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
+                  {parent.source && (
+                    <div className="mt-2 text-xs text-gray-500 dark:text-gray-400 flex items-center">
+                      <span className="bg-gray-200 dark:bg-gray-700 px-2 py-0.5 rounded">
+                        {parent.source.title || `Source ${parent.source.id}`}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
         )}
 

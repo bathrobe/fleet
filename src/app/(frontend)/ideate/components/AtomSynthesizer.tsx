@@ -9,9 +9,14 @@ import { synthesizeAtoms } from '@/app/(frontend)/actions'
 type AtomSynthesizerProps = {
   firstAtom: Atom
   secondAtom: Atom
+  onFocusParentAtom?: (atomId: string, pineconeId: string, collection: string) => void
 }
 
-export function AtomSynthesizer({ firstAtom, secondAtom }: AtomSynthesizerProps) {
+export function AtomSynthesizer({
+  firstAtom,
+  secondAtom,
+  onFocusParentAtom,
+}: AtomSynthesizerProps) {
   const [synthesizedAtom, setSynthesizedAtom] = useState<Atom | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -59,7 +64,7 @@ export function AtomSynthesizer({ firstAtom, secondAtom }: AtomSynthesizerProps)
 
       {synthesizedAtom && (
         <div className="mt-6">
-          <SynthesizedAtomCard atom={synthesizedAtom} />
+          <SynthesizedAtomCard atom={synthesizedAtom} onFocusParentAtom={onFocusParentAtom} />
         </div>
       )}
     </div>
