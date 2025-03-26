@@ -10,6 +10,13 @@ export type AtomData = {
   mainContent?: string
   supportingQuote?: string
   supportingInfo?: { text: string }[]
+  isSynthesized?: boolean
+  parentAtoms?: Array<{
+    id: string | number
+    title?: string
+    mainContent?: string
+    pineconeId?: string
+  }>
   source?: {
     id: string
     title?: string

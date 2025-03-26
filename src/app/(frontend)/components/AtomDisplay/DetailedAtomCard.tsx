@@ -5,7 +5,7 @@ import { useState } from 'react'
 import { AtomData } from '../../components/ConceptGraph/fetchVectors'
 import { Separator } from '../../ui/separator'
 import { cn } from '@/app/(frontend)/lib/utils'
-import { BookOpen, Quote, Info, Link, ChevronDown, ChevronUp } from 'lucide-react'
+import { BookOpen, Quote, Info, Link, ChevronDown, ChevronUp, Atom } from 'lucide-react'
 import { SourceCard } from './SourceCard'
 
 type DetailedAtomCardProps = {
@@ -78,13 +78,21 @@ export function DetailedAtomCard({
   }
 
   return (
-    <div className={cn('flex flex-col h-full bg-white dark:bg-gray-900', className)}>
+    <div
+      className={cn(
+        'flex flex-col h-full bg-white dark:bg-gray-900 border-2 border-blue-500 dark:border-blue-700 rounded-lg shadow-sm',
+        className,
+      )}
+    >
       {/* Header */}
-      <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-800 flex justify-between items-center">
+      <div className="px-6 py-4 border-b border-blue-500 dark:border-blue-700 flex justify-between items-center bg-blue-50 dark:bg-blue-950">
         <div>
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-white leading-tight">
-            {atom.title || 'Atomic Concept'}
-          </h2>
+          <div className="flex items-center">
+            <Atom className="h-5 w-5 text-blue-600 dark:text-blue-400 mr-2" />
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white leading-tight">
+              {atom.title || 'Atomic Concept'}
+            </h2>
+          </div>
           {atom.source && (
             <div className="mt-1 flex items-center text-sm text-gray-500 dark:text-gray-400">
               <BookOpen className="mr-1 h-4 w-4" />
@@ -132,12 +140,12 @@ export function DetailedAtomCard({
         {atom.supportingQuote && (
           <div className="space-y-2">
             <div className="flex items-center">
-              <Quote className="h-4 w-4 text-gray-500 mr-2" />
+              <Quote className="h-4 w-4 text-blue-600 dark:text-blue-400 mr-2" />
               <h3 className="text-sm font-semibold text-gray-900 dark:text-white uppercase tracking-wider">
                 Supporting Quote
               </h3>
             </div>
-            <div className="p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg border-l-4 border-gray-300 dark:border-gray-700 text-gray-800 dark:text-gray-200 italic">
+            <div className="p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg border-l-4 border-blue-400 dark:border-blue-600 text-gray-800 dark:text-gray-200 italic">
               &ldquo;{atom.supportingQuote}&rdquo;
             </div>
           </div>
@@ -147,7 +155,7 @@ export function DetailedAtomCard({
         {atom.supportingInfo && atom.supportingInfo.length > 0 && (
           <div className="space-y-2">
             <div className="flex items-center">
-              <Info className="h-4 w-4 text-gray-500 mr-2" />
+              <Info className="h-4 w-4 text-blue-600 dark:text-blue-400 mr-2" />
               <h3 className="text-sm font-semibold text-gray-900 dark:text-white uppercase tracking-wider">
                 Supporting Information
               </h3>
@@ -171,7 +179,7 @@ export function DetailedAtomCard({
             <Separator className="mb-3" />
             <div className="flex items-center justify-between">
               <div className="flex items-center">
-                <Link className="h-4 w-4 text-gray-500 mr-2" />
+                <Link className="h-4 w-4 text-blue-600 dark:text-blue-400 mr-2" />
                 <h3 className="text-sm font-semibold text-gray-900 dark:text-white uppercase tracking-wider">
                   Source
                 </h3>
@@ -198,21 +206,10 @@ export function DetailedAtomCard({
             </div>
 
             {showSourceDetails && (
-              <div className="mt-3">
+              <div className="mt-5 mb-2">
                 <SourceCard source={atom.source} />
               </div>
             )}
-          </div>
-        )}
-      </div>
-
-      {/* Footer with metadata */}
-      <div className="px-6 py-3 border-t border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900 text-xs text-gray-500 dark:text-gray-400">
-        <div className="mb-1">Atom ID: {atom.id}</div>
-        {vectorId && <div className="mb-1">Vector ID: {vectorId}</div>}
-        {position && position.length > 0 && (
-          <div className="font-mono">
-            Position: [{position.map((n) => n.toFixed(3)).join(', ')}]
           </div>
         )}
       </div>

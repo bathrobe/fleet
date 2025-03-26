@@ -6,12 +6,10 @@ import {
   Sidebar,
   SidebarContent,
   SidebarHeader,
-  SidebarFooter,
   SidebarTrigger,
   useSidebar,
 } from '../../ui/sidebar'
 import { AtomList } from './AtomList'
-import { Separator } from '../../ui/separator'
 
 type AtomSidebarProps = {
   onAtomClick: (atomId: string, pineconeId: string, collection: string) => void
@@ -36,7 +34,7 @@ export function AtomSidebar({ onAtomClick, selectedAtomId }: AtomSidebarProps) {
   )
 
   return (
-    <Sidebar>
+    <Sidebar className="h-screen">
       <SidebarHeader>
         <div className="flex items-center space-x-2">
           <Database className="h-5 w-5 text-blue-500" />
@@ -47,19 +45,11 @@ export function AtomSidebar({ onAtomClick, selectedAtomId }: AtomSidebarProps) {
         </div>
       </SidebarHeader>
 
-      <SidebarContent>
+      <SidebarContent className="h-full overflow-y-auto">
         <div className="py-2">
           <AtomList onAtomClick={handleAtomClick} selectedAtomId={selectedAtomId} />
         </div>
       </SidebarContent>
-
-      <SidebarFooter>
-        <div className="flex items-center text-xs text-gray-500">
-          <span>{selectedAtomId ? '1 atom selected' : 'No selection'}</span>
-          <Separator orientation="vertical" className="mx-2 h-3" />
-          <span className="ml-auto">Fleet</span>
-        </div>
-      </SidebarFooter>
     </Sidebar>
   )
 }

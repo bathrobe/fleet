@@ -127,7 +127,7 @@ export function ConceptGraphWithSidebar({
     <SidebarProvider>
       <div className="flex h-screen w-full overflow-hidden">
         <AtomSidebar onAtomClick={loadAtom} selectedAtomId={selectedAtomId} />
-        <div className="flex-1 h-screen overflow-hidden" ref={containerRef}>
+        <div className="flex-1 h-screen flex items-center justify-center" ref={containerRef}>
           <ConceptVectorSpace
             width={dimensions.width}
             height={dimensions.height}
@@ -136,15 +136,19 @@ export function ConceptGraphWithSidebar({
             onNodeClick={handleVectorClick}
           />
         </div>
-        <Sidebar className="border-l" side="right" width="65ch">
-          <SidebarContent>
+        <Sidebar className="border-l h-screen" side="right" width="65ch">
+          <SidebarContent className="h-full overflow-y-auto">
             {isLoading ? (
               <div className="p-4">Loading atom details...</div>
             ) : atomData ? (
               atomType === 'synthesized' ? (
-                <SynthesizedAtomDisplay atom={atomData} onFocusParentAtom={loadAtom} />
+                <SynthesizedAtomDisplay
+                  atom={atomData}
+                  onFocusParentAtom={loadAtom}
+                  className="border-radius-0"
+                />
               ) : (
-                <DetailedAtomCard atom={atomData} />
+                <DetailedAtomCard atom={atomData} className="border-radius-0" />
               )
             ) : (
               <div className="p-4 text-gray-500">

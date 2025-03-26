@@ -2,7 +2,7 @@
 
 import { Separator } from '../../ui/separator'
 import { cn } from '@/app/(frontend)/lib/utils'
-import { Calendar, User, Link, Tag, Info } from 'lucide-react'
+import { Calendar, User, Link, Tag, Info, File, Book } from 'lucide-react'
 
 type SourceData = {
   id: string
@@ -18,6 +18,7 @@ type SourceData = {
   quotations?: { text: string }[]
   details?: { text: string }[]
   sourceCategory?: any
+  fullText?: any // Add the fullText field from Sources collection
 }
 
 type SourceCardProps = {
@@ -39,19 +40,22 @@ export function SourceCard({ source, className, onClose }: SourceCardProps) {
   return (
     <div
       className={cn(
-        'flex flex-col bg-gray-50 dark:bg-gray-950 border-2 border-gray-300 dark:border-gray-700 rounded-none',
+        'flex flex-col bg-gray-50 dark:bg-gray-950 border border-amber-300 dark:border-amber-900 rounded-lg shadow-sm',
         className,
       )}
     >
-      {/* Header - more brutalist with sharper edges and bolder borders */}
-      <div className="px-4 py-3 border-b-2 border-gray-300 dark:border-gray-700 flex justify-between items-center bg-gray-100 dark:bg-gray-900">
+      {/* Header with more subtle amber styling */}
+      <div className="px-4 py-3 border-b border-amber-200 dark:border-amber-900 flex justify-between items-center bg-amber-50/50 dark:bg-amber-950/30">
         <div>
-          <h2 className="text-lg font-bold text-gray-800 dark:text-gray-100 uppercase tracking-tight">
-            {source.title || 'Source'}
-          </h2>
+          <div className="flex items-center">
+            <Book className="h-5 w-5 text-amber-500 dark:text-amber-500 mr-2" />
+            <h2 className="text-lg font-bold text-gray-800 dark:text-gray-100 uppercase tracking-tight">
+              {source.title || 'Source'}
+            </h2>
+          </div>
           <div className="mt-1 flex flex-wrap gap-2 text-xs text-gray-600 dark:text-gray-400">
             {source.sourceCategory?.name && (
-              <span className="inline-flex items-center bg-gray-200 dark:bg-gray-800 text-gray-800 dark:text-gray-300 px-2 py-0.5 rounded-none text-xs uppercase font-bold">
+              <span className="inline-flex items-center bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 px-2 py-0.5 rounded-sm text-xs uppercase font-medium">
                 {source.sourceCategory.name}
               </span>
             )}
@@ -93,13 +97,13 @@ export function SourceCard({ source, className, onClose }: SourceCardProps) {
         )}
       </div>
 
-      {/* Content - brutalist with less padding, boxier elements */}
+      {/* Content - more subtle styling */}
       <div className="flex-1 p-4 space-y-4 overflow-y-auto bg-gray-50 dark:bg-gray-950">
         {/* URL */}
         {source.url && (
           <div className="space-y-1">
             <div className="flex items-center">
-              <Link className="h-4 w-4 text-gray-600 mr-2" />
+              <Link className="h-4 w-4 text-gray-500 dark:text-gray-400 mr-2" />
               <h3 className="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wide">
                 Source URL
               </h3>
@@ -121,7 +125,7 @@ export function SourceCard({ source, className, onClose }: SourceCardProps) {
             <h3 className="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wide">
               Summary
             </h3>
-            <div className="p-2 bg-white dark:bg-gray-900 border-l-4 border-blue-400 dark:border-blue-500 text-gray-800 dark:text-gray-200 text-sm">
+            <div className="p-2 bg-white dark:bg-gray-900 border-l-4 border-amber-300 dark:border-amber-700 text-gray-800 dark:text-gray-200 text-sm">
               {source.oneSentenceSummary}
             </div>
           </div>
@@ -219,11 +223,32 @@ export function SourceCard({ source, className, onClose }: SourceCardProps) {
           </div>
         )}
 
+        {/* Full Text link */}
+        {source.fullText && (
+          <div className="space-y-1">
+            <div className="flex items-center">
+              <File className="h-4 w-4 text-gray-500 dark:text-gray-400 mr-2" />
+              <h3 className="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wide">
+                Full Text
+              </h3>
+            </div>
+            <a
+              href={source.fullText.url || '#'}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center text-blue-600 dark:text-blue-400 hover:underline text-sm bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded"
+            >
+              <File className="h-3 w-3 mr-1" />
+              View Full Document
+            </a>
+          </div>
+        )}
+
         {/* Tags */}
         {source.tags && source.tags.length > 0 && (
           <div className="space-y-1">
             <div className="flex items-center">
-              <Tag className="h-4 w-4 text-gray-600 mr-2" />
+              <Tag className="h-4 w-4 text-gray-500 dark:text-gray-400 mr-2" />
               <h3 className="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wide">
                 Tags
               </h3>
@@ -234,7 +259,7 @@ export function SourceCard({ source, className, onClose }: SourceCardProps) {
                   tag.tag && (
                     <span
                       key={idx}
-                      className="inline-flex items-center bg-gray-200 dark:bg-gray-800 text-gray-800 dark:text-gray-200 px-2 py-0.5 text-xs font-mono"
+                      className="inline-flex items-center bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 px-2 py-0.5 text-xs font-mono"
                     >
                       {tag.tag}
                     </span>
@@ -243,11 +268,6 @@ export function SourceCard({ source, className, onClose }: SourceCardProps) {
             </div>
           </div>
         )}
-      </div>
-
-      {/* Footer - blockier with bold font */}
-      <div className="px-4 py-2 border-t-2 border-gray-300 dark:border-gray-700 bg-gray-100 dark:bg-gray-900 text-xs text-gray-600 dark:text-gray-400 font-mono">
-        <div>ID: {source.id}</div>
       </div>
     </div>
   )
