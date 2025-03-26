@@ -101,9 +101,18 @@ const baseSidebarClass =
 
 interface SidebarProps extends React.HTMLAttributes<HTMLDivElement> {
   collapsible?: boolean
+  side?: 'left' | 'right'
+  width?: string
 }
 
-export function Sidebar({ children, className, collapsible = true, ...props }: SidebarProps) {
+export function Sidebar({
+  children,
+  className,
+  collapsible = true,
+  side = 'left',
+  width,
+  ...props
+}: SidebarProps) {
   const { state, isMobile, setOpen } = useSidebar()
 
   // Generate styles based on mobile and state
@@ -111,10 +120,13 @@ export function Sidebar({ children, className, collapsible = true, ...props }: S
     return {
       position: 'fixed',
       top: 0,
-      left: 0,
+      [side]: 0,
       bottom: 0,
-      width: SIDEBAR_WIDTH,
-      transform: state === 'expanded' ? 'translateX(0)' : 'translateX(-100%)',
+      width: width || SIDEBAR_WIDTH,
+      transform:
+        state === 'expanded'
+          ? `translateX(0)`
+          : `translateX(${side === 'left' ? '-100%' : '100%'})`,
       transition: 'transform 0.3s ease-in-out',
       zIndex: 50,
       boxShadow:
@@ -131,7 +143,7 @@ export function Sidebar({ children, className, collapsible = true, ...props }: S
       position: 'relative',
       display: 'flex',
       flexDirection: 'column',
-      width: SIDEBAR_WIDTH,
+      width: width || SIDEBAR_WIDTH,
       height: '100%',
     } as React.CSSProperties
   }
@@ -149,6 +161,7 @@ export function Sidebar({ children, className, collapsible = true, ...props }: S
       <aside
         data-collapsible={isMobile && collapsible ? state : 'none'}
         data-state={isMobile ? state : 'expanded'}
+        data-side={side}
         data-mobile={isMobile}
         className={cn(baseSidebarClass, className)}
         style={sidebarStyles}

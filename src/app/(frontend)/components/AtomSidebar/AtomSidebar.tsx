@@ -14,7 +14,7 @@ import { AtomList } from './AtomList'
 import { Separator } from '../../ui/separator'
 
 type AtomSidebarProps = {
-  onAtomClick: (atomId: string, pineconeId: string) => void
+  onAtomClick: (atomId: string, pineconeId: string, collection: string) => void
   selectedAtomId?: string | null
 }
 
@@ -23,9 +23,9 @@ export function AtomSidebar({ onAtomClick, selectedAtomId }: AtomSidebarProps) {
 
   // Wrap the onAtomClick callback to close the sidebar on mobile when an atom is selected
   const handleAtomClick = useCallback(
-    (atomId: string, pineconeId: string) => {
+    (atomId: string, pineconeId: string, collection: string) => {
       // Call the original onAtomClick
-      onAtomClick(atomId, pineconeId)
+      onAtomClick(atomId, pineconeId, collection)
 
       // Close the sidebar on mobile
       if (isMobile) {

@@ -1,8 +1,13 @@
 'use client'
 
-import React from 'react'
+import React, { useState } from 'react'
 import { Atom } from '@/app/(frontend)/lib/atoms'
 import { cn } from '@/app/(frontend)/lib/utils'
+import { Button } from '@/app/(frontend)/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/app/(frontend)/ui/card'
+import { Badge } from '@/app/(frontend)/ui/badge'
+import { saveSynthesizedAtom } from '../actions/saveSynthesizedAtom'
+import { CheckCircle, Sparkles } from 'lucide-react'
 
 type SynthesizedAtomCardProps = {
   atom: any
@@ -10,22 +15,30 @@ type SynthesizedAtomCardProps = {
 }
 
 export function SynthesizedAtomCard({ atom, className = '' }: SynthesizedAtomCardProps) {
-  return (
-    <div
-      className={cn(`p-5 rounded-lg shadow h-full flex flex-col`, className)}
-      style={{
-        background: 'white',
-        boxShadow: '0 4px 14px rgba(0, 0, 0, 0.1)',
-      }}
-    >
-      <div className="bg-white dark:bg-slate-800 p-4 rounded-lg h-full flex flex-col">
-        <div className="mb-2 flex items-center">
-          <div className="mr-2 px-2 py-1 bg-blue-500 text-white text-xs font-bold rounded">
-            SYNTHESIS
-          </div>
-          {atom.title && <h2 className="text-xl font-semibold">{atom.title}</h2>}
-        </div>
+  const [isSaving, setIsSaving] = useState(false)
+  const [isSaved, setIsSaved] = useState(false)
 
+  const handleSave = async () => {
+    try {
+      setIsSaving(true)
+      await saveSynthesizedAtom(atom)
+      setIsSaved(true)
+    } catch (error) {
+      console.error('Failed to save atom:', error)
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  return (
+    <Card className={cn('h-full', className)}>
+      <CardHeader>
+        <div className="flex items-center gap-2">
+          <Badge variant="secondary">SYNTHESIS</Badge>
+          {atom.title && <CardTitle>{atom.title}</CardTitle>}
+        </div>
+      </CardHeader>
+      <CardContent className="flex flex-col h-full">
         <p className="text-gray-700 dark:text-gray-200 mb-4 flex-grow">{atom.mainContent}</p>
 
         {atom.supportingInfo && atom.supportingInfo.length > 0 && (
@@ -47,7 +60,47 @@ export function SynthesizedAtomCard({ atom, className = '' }: SynthesizedAtomCar
             <p className="text-gray-700 dark:text-gray-300 italic">{atom.theoryFiction}</p>
           </div>
         )}
-      </div>
-    </div>
+
+        {isSaved ? (
+          <div className="mt-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4 shadow-sm animate-in fade-in duration-300">
+            <div className="flex items-center gap-3">
+              <div className="bg-green-100 dark:bg-green-800/30 p-2 rounded-full">
+                <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400" />
+              </div>
+              <div>
+                <h4 className="font-medium text-green-800 dark:text-green-300">Synthesis Saved!</h4>
+                <p className="text-sm text-green-700 dark:text-green-400">
+                  Your synthesized atom has been added to the collection and will appear in the atom
+                  map.
+                </p>
+              </div>
+            </div>
+            <div className="mt-3 border-t border-green-200 dark:border-green-800 pt-3 flex justify-between items-center">
+              <div className="flex items-center text-green-600 dark:text-green-400 gap-1 text-sm">
+                <Sparkles className="h-4 w-4" />
+                <span>New connections are being formed</span>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                className="border-green-200 text-green-700 hover:bg-green-100 dark:border-green-800 dark:text-green-400 dark:hover:bg-green-900/30"
+                onClick={() => setIsSaved(false)}
+              >
+                Create Another
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <Button
+            onClick={handleSave}
+            className="mt-4 cursor-pointer"
+            variant="default"
+            disabled={isSaving}
+          >
+            {isSaving ? 'Saving...' : 'Save Synthesis'}
+          </Button>
+        )}
+      </CardContent>
+    </Card>
   )
 }

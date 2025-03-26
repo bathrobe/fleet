@@ -44,119 +44,104 @@ export type VectorData = {
  * Fetches vectors from the Pinecone 'atoms' namespace
  * and does NOT fetch atom data - only returns vector data
  */
-export async function fetchAllVectors(): Promise<VectorData[]> {
-  if (!process.env.PINECONE_API_KEY) {
-    throw new Error('PINECONE_API_KEY is not set')
-  }
-
-  // Initialize Pinecone client
-  const pc = new Pinecone({ apiKey: process.env.PINECONE_API_KEY })
-
-  // Access the 'fleet' index (no need to specify URL in v5)
-  const index = pc.index('fleet')
-  const atomsNamespace = index.namespace('atoms')
-
+export async function fetchVectors(): Promise<VectorData[]> {
   try {
-    // 1. Fetch all vectors from Pinecone
-    // Create a dummy vector of the right dimension for Llama-text-embed-v2
-    const dimension = 1024 // Changed from 1536 to 1024 for Llama
+    const pc = new Pinecone({ apiKey: process.env.PINECONE_API_KEY || '' })
+    const index = pc.index('fleet')
+    const atomsNamespace = index.namespace('atoms')
+
+    // Query for all vectors, including synthesized ones
+    const dimension = 1024
     const dummyVector = Array(dimension).fill(0)
 
-    // Query with a dummy vector to get all vectors
-    const queryResponse = await atomsNamespace.query({
+    const response = await atomsNamespace.query({
       vector: dummyVector,
-      topK: 1000, // Adjust based on expected number of atoms
+      topK: 1000, // Adjust based on your data size
       includeMetadata: true,
       includeValues: true,
     })
 
-    // Transform the response to our expected format
-    const vectorDataArray: VectorData[] = []
-
-    for (const match of queryResponse.matches) {
-      if (match.values) {
-        vectorDataArray.push({
-          id: match.id,
-          vector: match.values,
-          metadata: match.metadata || {},
-        })
-      }
-    }
-
-    // Return vectors without atom data
-    return vectorDataArray
+    // @ts-expect-error
+    return response.matches.map((match) => ({
+      id: match.id,
+      vector: match.values,
+      metadata: match.metadata,
+      isSynthesized: match.metadata?.type === 'synthesized',
+    }))
   } catch (error) {
     console.error('Error fetching vectors:', error)
-    throw new Error('Failed to fetch vectors')
+    return []
   }
 }
 
 /**
- * Fetches a single atom by its Pinecone ID
+ * Fetches a specific atom by its Pinecone ID
  */
 export async function fetchAtomById(pineconeId: string): Promise<AtomData | null> {
   if (!pineconeId) return null
 
   try {
-    const payload = await getPayload({ config, importMap: {} })
+    // First, get the vector from Pinecone to determine its type
+    const pc = new Pinecone({ apiKey: process.env.PINECONE_API_KEY || '' })
+    const index = pc.index('fleet')
+    const atomsNamespace = index.namespace('atoms')
 
-    // Query for atoms with matching pineconeId
-    const { docs: atoms } = await payload.find({
-      collection: 'atoms',
-      where: {
-        pineconeId: { equals: pineconeId },
-      },
-      depth: 3, // Increased depth to include full source data
-    })
+    const vectorResponse = await atomsNamespace.fetch([pineconeId])
 
-    // If no atom found with this pineconeId
-    if (!atoms || atoms.length === 0) {
-      return null
+    if (!vectorResponse.records[pineconeId]) {
+      throw new Error(`Vector with ID ${pineconeId} not found`)
     }
 
-    const atom = atoms[0]
+    const metadata = vectorResponse.records[pineconeId].metadata
+    const isSynthesized = metadata?.type === 'synthesized'
 
-    // Transform the atom data with proper type handling
+    // For debugging
+    console.log(
+      'Fetching atom by ID:',
+      pineconeId,
+      'Type:',
+      isSynthesized ? 'synthesized' : 'regular',
+    )
+
+    // Get atom data from the CMS based on type
+    const payload = await getPayload({ config })
+    let atomData
+
+    if (isSynthesized) {
+      // For synthesized atoms, the payloadAtomId is stored in metadata
+      const payloadId = metadata?.payloadAtomId
+      if (!payloadId) throw new Error('Missing payload ID for synthesized atom')
+
+      atomData = await payload.findByID({
+        collection: 'synthesizedAtoms',
+        id: payloadId as string,
+        depth: 2, // Include parent atoms
+      })
+    } else {
+      // For regular atoms, we need to find by pineconeId
+      const atomsResponse = await payload.find({
+        collection: 'atoms',
+        where: {
+          pineconeId: { equals: pineconeId },
+        },
+        depth: 2, // Include source and related data
+      })
+
+      if (!atomsResponse.docs || atomsResponse.docs.length === 0) {
+        throw new Error(`No atom found with pineconeId: ${pineconeId}`)
+      }
+
+      atomData = atomsResponse.docs[0]
+    }
+
     return {
-      id: atom.id.toString(),
-      title: atom.title || undefined,
-      mainContent: atom.mainContent || undefined,
-      supportingQuote: atom.supportingQuote || undefined,
-      supportingInfo: Array.isArray(atom.supportingInfo)
-        ? atom.supportingInfo.map((info) => ({ text: info.text || '' }))
-        : undefined,
-      source:
-        atom.source && typeof atom.source === 'object'
-          ? {
-              id: atom.source.id?.toString() || '',
-              title: atom.source.title || undefined,
-              url: atom.source.url || undefined,
-              author: atom.source.author || undefined,
-              publishedDate: atom.source.publishedDate || undefined,
-              tags: Array.isArray(atom.source.tags) ? atom.source.tags : undefined,
-              oneSentenceSummary: atom.source.oneSentenceSummary || undefined,
-              // Handle arrays with proper transformation
-              mainPoints: Array.isArray(atom.source.mainPoints)
-                ? atom.source.mainPoints.map((point) => ({ text: point.text || '' }))
-                : undefined,
-              bulletSummary: Array.isArray(atom.source.bulletSummary)
-                ? atom.source.bulletSummary.map((point) => ({ text: point.text || '' }))
-                : undefined,
-              peopleplacesthingsevents: Array.isArray(atom.source.peopleplacesthingsevents)
-                ? atom.source.peopleplacesthingsevents.map((item) => ({ text: item.text || '' }))
-                : undefined,
-              quotations: Array.isArray(atom.source.quotations)
-                ? atom.source.quotations.map((quote) => ({ text: quote.text || '' }))
-                : undefined,
-              details: Array.isArray(atom.source.details)
-                ? atom.source.details.map((detail) => ({ text: detail.text || '' }))
-                : undefined,
-              sourceCategory: atom.source.sourceCategory || undefined,
-            }
-          : undefined,
+      ...atomData,
+      // @ts-expect-error
+      metadata,
+      isSynthesized,
     }
   } catch (error) {
-    console.error(`Error fetching atom with ID ${pineconeId}:`, error)
+    console.error('Error fetching atom by ID:', error)
     return null
   }
 }

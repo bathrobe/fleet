@@ -1,177 +1,147 @@
 'use client'
 
-import { useState, useCallback, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
+import { Sidebar, SidebarContent, SidebarProvider } from '@/app/(frontend)/ui/sidebar'
 import { AtomSidebar } from '../AtomSidebar/AtomSidebar'
 import { ConceptVectorSpace } from './ConceptVectorSpace'
-import { SidebarProvider } from '../../ui/sidebar'
-import type { VectorData } from './fetchVectors'
-import type { ReducedVectorData } from './dimensionReducer'
 import { DetailedAtomCard } from '../AtomDisplay/DetailedAtomCard'
-import { FullWidthLayout } from '../../ui/FullWidthLayout'
-import { useAtomLoader } from './hooks/useAtomLoader'
+import { SynthesizedAtomDisplay } from '../AtomDisplay/SynthesizedAtomDisplay'
+import { fetchAtom, fetchSynthesizedAtom } from '@/app/(frontend)/actions/atoms'
+import { fetchAtomById } from '@/app/(frontend)/components/ConceptGraph/fetchVectors'
 
-type ConceptGraphWithSidebarProps = {
-  vectorData: VectorData[]
-  reducedData: ReducedVectorData[]
-}
+export function ConceptGraphWithSidebar({
+  vectorData,
+  reducedData,
+}: {
+  vectorData: any
+  reducedData: any
+}) {
+  const [selectedAtomId, setSelectedAtomId] = useState<string | null>(null)
+  const [atomData, setAtomData] = useState<any | null>(null)
+  const [isLoading, setIsLoading] = useState(false)
+  const [atomType, setAtomType] = useState<'regular' | 'synthesized'>('regular')
+  const [dimensions, setDimensions] = useState({ width: 800, height: 600 })
+  const containerRef = useRef<HTMLDivElement>(null)
 
-export function ConceptGraphWithSidebar({ vectorData, reducedData }: ConceptGraphWithSidebarProps) {
-  const [selectedVectorId, setSelectedVectorId] = useState<string | null>(null)
-  const [isMobile, setIsMobile] = useState<boolean>(false)
-  const [sidebarOpen, setSidebarOpen] = useState<boolean>(true)
-  const graphContainerRef = useRef<HTMLDivElement>(null)
-  const [graphDimensions, setGraphDimensions] = useState({ width: 800, height: 600 })
+  // Direct atom loading function that handles both collections
+  const loadAtom = async (atomId: string, pineconeId: string, collection: string) => {
+    try {
+      setIsLoading(true)
+      setSelectedAtomId(atomId)
 
-  // Use our atom loader hook
-  const { selectedAtomId, atomData, isLoading, loadAtomById, clearSelection } = useAtomLoader()
+      console.log(`Loading ${collection} atom with ID:`, atomId)
 
-  // Detect mobile viewport
-  useEffect(() => {
-    const checkIsMobile = () => {
-      const mobile = window.innerWidth <= 768
-      setIsMobile(mobile)
-
-      // Always keep sidebar open regardless of viewport size
-      // Only close on mobile
-      if (mobile) {
-        setSidebarOpen(false)
+      if (collection === 'synthesizedAtoms') {
+        setAtomType('synthesized')
+        const atom = await fetchSynthesizedAtom(atomId)
+        setAtomData(atom)
       } else {
-        // Always keep sidebar open on laptop/desktop
-        setSidebarOpen(true)
+        setAtomType('regular')
+        const atom = await fetchAtom(atomId)
+        setAtomData(atom)
       }
+    } catch (error) {
+      console.error(`Failed to load ${collection} atom:`, error)
+      setAtomData(null)
+    } finally {
+      setIsLoading(false)
     }
+  }
 
-    checkIsMobile()
-    window.addEventListener('resize', checkIsMobile)
+  // Handle click from vector space - this is still using pineconeId
+  const handleVectorClick = async (vectorId: string) => {
+    console.log('Vector clicked:', vectorId)
+    // This should continue using the existing vector-based lookup
+    try {
+      setIsLoading(true)
+      // Keep using fetchAtomById which uses Pinecone to determine the type
+      const data = await fetchAtomById(vectorId)
 
-    return () => {
-      window.removeEventListener('resize', checkIsMobile)
+      if (data) {
+        setAtomData(data)
+        setSelectedAtomId(data.id)
+        // @ts-expect-error
+        setAtomType(data.metadata?.type === 'synthesized' ? 'synthesized' : 'regular')
+      } else {
+        console.warn('No atom data found for vector ID:', vectorId)
+        setAtomData(null)
+      }
+    } catch (error) {
+      console.error('Error loading atom from vector:', error)
+      setAtomData(null)
+    } finally {
+      setIsLoading(false)
     }
-  }, [])
+  }
 
-  // Update graph dimensions on resize
+  // Measure container size for the graph
   useEffect(() => {
-    if (!graphContainerRef.current) return
-
     const updateDimensions = () => {
-      if (graphContainerRef.current) {
-        setGraphDimensions({
-          width: graphContainerRef.current.clientWidth,
-          height: graphContainerRef.current.clientHeight,
-        })
+      if (containerRef.current) {
+        const { width, height } = containerRef.current.getBoundingClientRect()
+        console.log('Container dimensions:', width, height)
+        setDimensions({ width, height })
       }
     }
 
-    // Set initial dimensions
-    updateDimensions()
+    // Set initial dimensions after a short delay to ensure layout is complete
+    const timer = setTimeout(updateDimensions, 100)
 
-    // Set up resize observer
-    const resizeObserver = new ResizeObserver(updateDimensions)
-    resizeObserver.observe(graphContainerRef.current)
+    // Update dimensions on resize
+    window.addEventListener('resize', updateDimensions)
+
+    // Force an additional update after 500ms (helps with layout timing issues)
+    const delayedUpdate = setTimeout(updateDimensions, 500)
 
     return () => {
-      if (graphContainerRef.current) {
-        resizeObserver.unobserve(graphContainerRef.current)
-      }
+      window.removeEventListener('resize', updateDimensions)
+      clearTimeout(timer)
+      clearTimeout(delayedUpdate)
     }
   }, [])
-
-  // Handle clicking an atom in the sidebar
-  const handleAtomClick = useCallback(
-    async (atomId: string, pineconeId: string) => {
-      setSelectedVectorId(pineconeId)
-      await loadAtomById(pineconeId)
-    },
-    [loadAtomById],
-  )
-
-  // Handle clicking a node in the graph
-  const handleNodeClick = useCallback(
-    async (vectorId: string) => {
-      if (!vectorId) {
-        setSelectedVectorId(null)
-        clearSelection()
-        return
-      }
-
-      setSelectedVectorId(vectorId)
-      await loadAtomById(vectorId)
-    },
-    [loadAtomById, clearSelection],
-  )
-
-  // Calculate the position of the selected vector
-  const selectedVectorPosition = selectedVectorId
-    ? reducedData.find((d) => d.id === selectedVectorId)?.position
-    : undefined
-
-  // Sidebar open change handler - modified to only work on mobile
-  const handleSidebarOpenChange = useCallback(
-    (open: boolean) => {
-      // Only allow toggling sidebar on mobile
-      if (isMobile) {
-        setSidebarOpen(open)
-      }
-      // On desktop/laptop widths, sidebar is always open
-    },
-    [isMobile],
-  )
-
-  // Determine if we should show the right panel
-  const showRightPanel = atomData !== null || isLoading
-
-  // Prepare the content for the graph area
-  const graphContent = (
-    <div className="h-full w-full" ref={graphContainerRef}>
-      <ConceptVectorSpace
-        width={graphDimensions.width}
-        height={graphDimensions.height}
-        reducedData={reducedData}
-        selectedNodeId={selectedVectorId}
-        onNodeClick={handleNodeClick}
-      />
-    </div>
-  )
-
-  // Prepare the right panel content - only used in desktop mode
-  const rightPanelContent =
-    showRightPanel && !isMobile ? (
-      <DetailedAtomCard
-        atom={atomData}
-        loading={isLoading}
-        onClose={clearSelection}
-        vectorId={selectedVectorId || undefined}
-        position={selectedVectorPosition}
-        className="h-full w-full"
-      />
-    ) : undefined
-
-  // Prepare mobile panel content - separate from right panel
-  const mobilePanelContent =
-    showRightPanel && isMobile ? (
-      <DetailedAtomCard
-        atom={atomData}
-        loading={isLoading}
-        onClose={clearSelection}
-        vectorId={selectedVectorId || undefined}
-        position={selectedVectorPosition}
-        className="w-full h-full"
-      />
-    ) : undefined
-
-  // Prepare sidebar content
-  const sidebarContent = (
-    <AtomSidebar onAtomClick={handleAtomClick} selectedAtomId={selectedAtomId} />
-  )
 
   return (
-    <SidebarProvider open={sidebarOpen} onOpenChange={handleSidebarOpenChange}>
-      <FullWidthLayout
-        leftSidebar={sidebarContent}
-        mainContent={graphContent}
-        rightPanel={rightPanelContent}
-        mobileBottomPanel={mobilePanelContent}
-      />
+    <SidebarProvider>
+      <div className="flex h-screen w-full overflow-hidden">
+        <AtomSidebar onAtomClick={loadAtom} selectedAtomId={selectedAtomId} />
+        <div className="flex-1 h-screen overflow-hidden" ref={containerRef}>
+          <ConceptVectorSpace
+            width={dimensions.width}
+            height={dimensions.height}
+            reducedData={reducedData}
+            selectedNodeId={selectedAtomId}
+            onNodeClick={handleVectorClick}
+          />
+        </div>
+        <Sidebar className="border-l" side="right" width="65ch">
+          <SidebarContent>
+            {isLoading ? (
+              <div className="p-4">Loading atom details...</div>
+            ) : atomData ? (
+              atomType === 'synthesized' ? (
+                <SynthesizedAtomDisplay atom={atomData} />
+              ) : (
+                <DetailedAtomCard atom={atomData} />
+              )
+            ) : (
+              <div className="p-4 text-gray-500">
+                <h3 className="font-medium text-lg mb-2">Atom Details</h3>
+                <p>Select an atom from the graph to view its details</p>
+                <div className="mt-4 p-4 border border-gray-200 dark:border-gray-700 rounded-md bg-gray-50 dark:bg-gray-800/50">
+                  <h4 className="font-medium mb-2">Navigation Tips</h4>
+                  <ul className="list-disc pl-5 space-y-1 text-sm">
+                    <li>Click on any node in the graph to view its details</li>
+                    <li>Regular atoms appear in blue</li>
+                    <li>Synthesized atoms appear in green</li>
+                    <li>Zoom with the mouse wheel</li>
+                    <li>Pan by dragging the background</li>
+                  </ul>
+                </div>
+              </div>
+            )}
+          </SidebarContent>
+        </Sidebar>
+      </div>
     </SidebarProvider>
   )
 }

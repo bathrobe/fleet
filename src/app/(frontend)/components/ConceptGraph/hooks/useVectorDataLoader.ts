@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { fetchAllVectors } from '../fetchVectors'
+import { fetchVectors } from '../fetchVectors'
 import { reduceVectorDimensions } from '../dimensionReducer'
 import type { VectorData } from '../fetchVectors'
 import type { ReducedVectorData } from '../dimensionReducer'
@@ -15,7 +15,7 @@ export const useVectorDataLoader = () => {
       try {
         setIsLoading(true)
         // Fetch the vector data from Pinecone without atom data
-        const data = await fetchAllVectors()
+        const data = await fetchVectors()
 
         // Reduce dimensions with UMAP
         const reduced = reduceVectorDimensions(data, 2)

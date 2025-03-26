@@ -180,3 +180,62 @@ export async function getRandomAtomPair(poolSize = 5) {
     throw new Error('An error occurred while fetching atoms')
   }
 }
+
+export async function fetchSynthesizedAtom(id: string) {
+  try {
+    const payload = await getPayload({ config })
+
+    const result = await payload.findByID({
+      collection: 'synthesizedAtoms',
+      id,
+      depth: 2, // To include parent atoms
+    })
+
+    return result
+  } catch (error) {
+    console.error('Error fetching synthesized atom:', error)
+    throw new Error('Failed to fetch synthesized atom')
+  }
+}
+
+/**
+ * Server action to fetch synthesized atoms with pagination
+ */
+export async function getSynthesizedAtoms(limit = 50, page = 1) {
+  try {
+    const payload = await getPayload({ config })
+
+    const result = await payload.find({
+      collection: 'synthesizedAtoms',
+      limit,
+      page,
+      sort: '-updatedAt',
+      depth: 1,
+    })
+
+    return result
+  } catch (error) {
+    console.error('Error fetching synthesized atoms:', error)
+    throw new Error('Failed to fetch synthesized atoms')
+  }
+}
+
+/**
+ * Server action to fetch a specific atom by ID
+ */
+export async function fetchAtom(id: string) {
+  try {
+    const payload = await getPayload({ config })
+
+    const result = await payload.findByID({
+      collection: 'atoms',
+      id,
+      depth: 2, // Include source and related data
+    })
+
+    return result
+  } catch (error) {
+    console.error('Error fetching atom:', error)
+    throw new Error('Failed to fetch atom')
+  }
+}

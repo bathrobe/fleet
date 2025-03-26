@@ -105,9 +105,10 @@ async function generateCombinedAtom(atom1: Atom, atom2: Atom): Promise<Atom> {
       }
     }
 
-    // Return the generated atom with an ID
+    // Return the generated atom with an ID and parent atom IDs
     return {
       id: 'generated-' + Date.now(),
+      parentAtoms: [{ id: atom1.id }, { id: atom2.id }],
       ...parsedResponse,
     }
   } catch (error) {

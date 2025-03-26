@@ -1,10 +1,11 @@
 import { useState, useCallback } from 'react'
-import { fetchAtomById, AtomData } from '../fetchVectors'
+import { fetchAtomById } from '../fetchVectors'
 
 export const useAtomLoader = () => {
   const [selectedAtomId, setSelectedAtomId] = useState<string | null>(null)
-  const [atomData, setAtomData] = useState<AtomData | null>(null)
+  const [atomData, setAtomData] = useState<any | null>(null)
   const [isLoading, setIsLoading] = useState<boolean>(false)
+  const [atomType, setAtomType] = useState<'regular' | 'synthesized'>('regular')
 
   const loadAtomById = useCallback(async (pineconeId: string) => {
     if (!pineconeId) {
@@ -16,8 +17,18 @@ export const useAtomLoader = () => {
     try {
       setIsLoading(true)
       const data = await fetchAtomById(pineconeId)
-      setAtomData(data)
-      setSelectedAtomId(pineconeId)
+
+      if (data) {
+        setAtomData(data)
+        setSelectedAtomId(pineconeId)
+        // @ts-expect-error
+        setAtomType(data.metadata?.type === 'synthesized' ? 'synthesized' : 'regular')
+        console.log('Loaded atom data:', data)
+      } else {
+        console.warn('No atom data found for ID:', pineconeId)
+        setAtomData(null)
+      }
+
       return data
     } catch (error) {
       console.error('Error loading atom data:', error)
@@ -36,6 +47,7 @@ export const useAtomLoader = () => {
   return {
     selectedAtomId,
     atomData,
+    atomType,
     isLoading,
     loadAtomById,
     clearSelection,

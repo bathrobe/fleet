@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo, useRef, useEffect } from 'react'
+import { useState, useMemo, useRef, useEffect, useCallback } from 'react'
 import { Zoom } from '@visx/zoom'
 import { localPoint } from '@visx/event'
 import { scaleLinear } from '@visx/scale'
@@ -17,6 +17,13 @@ type ConceptVectorSpaceProps = {
   onNodeClick?: (vectorId: string) => void
 }
 
+// Add color constants for different atom types
+const REGULAR_ATOM_COLOR = '#3B82F6' // Blue
+const SYNTHESIZED_ATOM_COLOR = '#10B981' // Green
+// Update the rendering function to check for synthesized atom type
+const getPointColor = (point: any) => {
+  return point.metadata?.type === 'synthesized' ? SYNTHESIZED_ATOM_COLOR : REGULAR_ATOM_COLOR
+}
 export const ConceptVectorSpace = ({
   width,
   height,
@@ -113,7 +120,7 @@ export const ConceptVectorSpace = ({
       x: xScale(d.position[0]),
       y: yScale(d.position[1]),
       size: d.metadata.text ? 8 : 6, // Larger size for visibility
-      color: d.id === selectedId ? '#ff4040' : '#6a4dff', // Brighter colors
+      color: d.id === selectedId ? '#ff4040' : getPointColor(d), // Brighter colors
       opacity: selectedId && d.id !== selectedId ? 0.6 : 1.0, // Higher opacity
       data: d,
     }))
