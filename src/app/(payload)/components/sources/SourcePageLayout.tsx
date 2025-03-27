@@ -4,7 +4,7 @@ import React from 'react'
 import Link from 'next/link'
 import { Card, CardContent, CardHeader, CardTitle } from '@/app/ui/card'
 import { Button } from '@/app/ui/button'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, Home } from 'lucide-react'
 
 interface SourcePageLayoutProps {
   children: React.ReactNode
@@ -18,9 +18,13 @@ export function SourcePageLayout({ children, sidebar, title }: SourcePageLayoutP
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold tracking-tight">{title}</h1>
         <Link href="/admin">
-          <Button variant="outline" size="sm" className="gap-2">
-            <ArrowLeft className="h-4 w-4" />
-            Back to Admin
+          <Button
+            variant="default"
+            size="lg"
+            className="gap-2 px-6 font-medium shadow-sm hover:shadow"
+          >
+            <Home className="h-5 w-5" />
+            Back to Admin Dashboard
           </Button>
         </Link>
       </div>

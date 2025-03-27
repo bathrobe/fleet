@@ -37,6 +37,7 @@ export default buildConfig({
           path: '/ideate',
         },
       },
+      beforeDashboard: ['/src/app/(payload)/components/common/CustomNavLinks'],
     },
   },
   collections: [

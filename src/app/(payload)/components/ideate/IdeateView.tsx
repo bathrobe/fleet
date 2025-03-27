@@ -3,7 +3,7 @@
 import React from 'react'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/app/ui/card'
 import { Button } from '@/app/ui/button'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, Home } from 'lucide-react'
 import Link from 'next/link'
 import { IdeasWorkspace } from './components'
 
@@ -13,9 +13,13 @@ const IdeateView = () => {
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold tracking-tight">Ideate</h1>
         <Link href="/admin">
-          <Button variant="outline" size="sm" className="gap-2">
-            <ArrowLeft className="h-4 w-4" />
-            Back to Admin
+          <Button
+            variant="default"
+            size="lg"
+            className="gap-2 px-6 font-medium shadow-sm hover:shadow"
+          >
+            <Home className="h-5 w-5" />
+            Back to Admin Dashboard
           </Button>
         </Link>
       </div>
