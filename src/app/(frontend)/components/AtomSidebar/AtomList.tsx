@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react'
 import { Atom, CircleOff, Loader2, Shapes } from 'lucide-react'
-import { SidebarSection, SidebarItem } from '../../ui/sidebar'
+import { SidebarSection, SidebarItem } from '../../../ui/sidebar'
 import { getAtoms, getSynthesizedAtoms } from '@/app/(frontend)/actions/atoms'
 import { cn } from '@/app/(frontend)/lib/utils'
 

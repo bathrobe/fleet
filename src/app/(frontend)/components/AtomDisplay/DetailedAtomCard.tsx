@@ -3,7 +3,7 @@
 /* eslint-disable react/no-unescaped-entities */
 import { useState } from 'react'
 import { AtomData } from '../../components/ConceptGraph/fetchVectors'
-import { Separator } from '../../ui/separator'
+import { Separator } from '../../../ui/separator'
 import { cn } from '@/app/(frontend)/lib/utils'
 import { BookOpen, Quote, Info, Link, ChevronDown, ChevronUp, Atom } from 'lucide-react'
 import { SourceCard } from './SourceCard'

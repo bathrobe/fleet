@@ -8,7 +8,7 @@ import {
   SidebarHeader,
   SidebarTrigger,
   useSidebar,
-} from '../../ui/sidebar'
+} from '../../../ui/sidebar'
 import { AtomList } from './AtomList'
 
 type AtomSidebarProps = {

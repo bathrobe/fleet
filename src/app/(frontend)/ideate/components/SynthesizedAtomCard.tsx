@@ -3,9 +3,9 @@
 import React, { useState } from 'react'
 import { Atom } from '@/app/(frontend)/lib/atoms'
 import { cn } from '@/app/(frontend)/lib/utils'
-import { Button } from '@/app/(frontend)/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/app/(frontend)/ui/card'
-import { Badge } from '@/app/(frontend)/ui/badge'
+import { Button } from '@/app/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/app/ui/card'
+import { Badge } from '@/app/ui/badge'
 import { saveSynthesizedAtom } from '../actions/saveSynthesizedAtom'
 import { CheckCircle, Sparkles, Link as LinkIcon, ExternalLink } from 'lucide-react'
 

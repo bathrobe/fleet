@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react'
 import { useSearchParams } from 'next/navigation'
-import { Sidebar, SidebarContent, SidebarProvider } from '@/app/(frontend)/ui/sidebar'
+import { Sidebar, SidebarContent, SidebarProvider } from '@/app/ui/sidebar'
 import { AtomSidebar } from '../AtomSidebar/AtomSidebar'
 import { ConceptVectorSpace } from './ConceptVectorSpace'
 import { DetailedAtomCard } from '../AtomDisplay/DetailedAtomCard'

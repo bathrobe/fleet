@@ -1,6 +1,6 @@
 'use client'
 
-import { Separator } from '../../ui/separator'
+import { Separator } from '../../../ui/separator'
 import { cn } from '@/app/(frontend)/lib/utils'
 import { Calendar, User, Link, Tag, Info, File, Book } from 'lucide-react'
 

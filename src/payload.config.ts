@@ -32,6 +32,10 @@ export default buildConfig({
           Component: '/src/app/(payload)/components/sources/SourceUploader',
           path: '/source-uploader',
         },
+        ideate: {
+          Component: '/src/app/(payload)/components/ideate/IdeateView',
+          path: '/ideate',
+        },
       },
     },
   },

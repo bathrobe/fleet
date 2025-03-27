@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Button } from '@/app/(frontend)/ui/button'
+import { Button } from '@/app/ui/button'
 import { SimpleAtomCard } from '@/app/(frontend)/components/AtomDisplay/SimpleAtomCard'
 import { Atom } from '@/app/(frontend)/lib/atoms'
 import { AtomSynthesizer } from '../AtomSynthesizer'

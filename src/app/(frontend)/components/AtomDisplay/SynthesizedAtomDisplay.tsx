@@ -1,9 +1,9 @@
 'use client'
 
 import React from 'react'
-import { CardContent, CardHeader, CardTitle } from '@/app/(frontend)/ui/card'
-import { Badge } from '@/app/(frontend)/ui/badge'
-import { Button } from '@/app/(frontend)/ui/button'
+import { CardContent, CardHeader, CardTitle } from '@/app/ui/card'
+import { Badge } from '@/app/ui/badge'
+import { Button } from '@/app/ui/button'
 import { Sparkles, Link as LinkIcon, ExternalLink, Atom } from 'lucide-react'
 import { cn } from '@/app/(frontend)/lib/utils'
 

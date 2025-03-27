@@ -1,12 +1,6 @@
 'use client'
 
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/app/(frontend)/ui/select'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/app/ui/select'
 import { ideationMethods, IdeationMethod } from '@/app/(frontend)/lib/ideation-methods'
 
 type IdeationMethodSelectProps = {
