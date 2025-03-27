@@ -1,7 +1,22 @@
 'use server'
 
-import { Atom } from '@/app/(frontend)/lib/atoms'
 import { getCompletion } from '@/utilities/anthropic'
+import { getPayload } from 'payload'
+import config from '@payload-config'
+import { Pinecone } from '@pinecone-database/pinecone'
+
+// Define the Atom type based on what's needed in this context
+export type Atom = {
+  id: string
+  title?: string
+  mainContent: string
+  supportingQuote?: string
+  supportingInfo?: { text: string }[]
+  theoryFiction?: string
+  parentAtoms?: { id: string; pineconeId?: string }[]
+  source?: { id: string; title?: string }
+  pineconeId?: string
+}
 
 /**
  * Generate a combined atom from two source atoms using Claude
@@ -118,6 +133,58 @@ async function generateCombinedAtom(atom1: Atom, atom2: Atom): Promise<Atom> {
 }
 
 /**
+ * Save the synthesized atom to the database
+ */
+async function saveSynthesizedAtom(atomData: Atom) {
+  try {
+    const payload = await getPayload({ config })
+
+    // Extract relevant data for creating the synthesized atom
+    const { title, mainContent, supportingInfo, theoryFiction, parentAtoms } = atomData
+
+    // Prepare parent atom IDs - Payload relationship fields expect an array of IDs
+    const parentAtomIds = parentAtoms ? parentAtoms.map((parent) => parent.id) : []
+
+    // Create the synthesized atom in the database
+    const createdAtom = await payload.create({
+      collection: 'synthesizedAtoms',
+      data: {
+        title: title || 'Synthesized Concept',
+        mainContent,
+        supportingInfo,
+        theoryFiction,
+        // Use type assertion to tell TypeScript this is the correct type
+        // @ts-ignore - Payload expects string[] for relationship fields
+        parentAtoms: parentAtomIds,
+      },
+    })
+
+    // Check if we need to update Pinecone index
+    if (process.env.PINECONE_API_KEY) {
+      try {
+        // Convert the mainContent to a vector using Payload's existing mechanism
+        // This would typically involve an AI embedding model like OpenAI or Cohere
+        // For now, we'll just log that this would happen in a production setting
+        console.log('In production, would add the synthesized atom to Pinecone here')
+
+        // If you want to implement vector embedding:
+        // 1. Generate an embedding for the atom's content
+        // 2. Store it in Pinecone with the atom's ID
+        // 3. Update the atom record with the Pinecone ID
+      } catch (vectorError) {
+        console.error('Error updating vector database:', vectorError)
+        // We continue even if vector update fails
+      }
+    }
+
+    return createdAtom
+  } catch (error) {
+    console.error('Error saving synthesized atom:', error)
+    throw new Error('Failed to save synthesized atom')
+  }
+}
+
+/**
  * Server action to synthesize two atoms into a new concept
  */
 export async function synthesizeAtoms(atom1: Atom, atom2: Atom) {
@@ -126,8 +193,19 @@ export async function synthesizeAtoms(atom1: Atom, atom2: Atom) {
   }
 
   try {
+    // Generate the combined atom content
     const combinedAtom = await generateCombinedAtom(atom1, atom2)
-    return { combinedAtom }
+
+    // Save the combined atom to the database
+    const savedAtom = await saveSynthesizedAtom(combinedAtom)
+
+    // Return the combined atom with the database ID
+    return {
+      combinedAtom: {
+        ...combinedAtom,
+        id: String(savedAtom.id), // Convert ID to string to match Atom type
+      },
+    }
   } catch (error) {
     console.error('Error synthesizing atoms:', error)
     throw new Error('Failed to synthesize atoms')

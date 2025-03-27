@@ -1,30 +1,29 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { IdeationMethodSelect } from '@/app/(frontend)/ideate/components/IdeationMethodSelect'
-import { DualDissimilarAtoms } from '@/app/(frontend)/ideate/components/IdeationMethods/DualDissimilarAtoms'
-import { getDefaultMethod, IdeationMethod } from '@/app/(frontend)/lib/ideation-methods'
+import { IdeationMethodSelect } from './IdeationMethodSelect'
+import { DualDissimilarAtoms } from './IdeationMethods/DualDissimilarAtoms'
+import { getDefaultMethod, IdeationMethod } from '../lib/ideation-methods'
 
 export function IdeasWorkspace() {
   const [selectedMethod, setSelectedMethod] = useState<IdeationMethod>(getDefaultMethod())
-  const router = useRouter()
 
   // Function to navigate to the graph view and focus on a specific atom
   const handleFocusOnAtom = (atomId: string, pineconeId: string, collection: string) => {
-    // Navigate to the concept graph page with query parameters to focus on the atom
-    router.push(`/concept-graph?atomId=${atomId}&pineconeId=${pineconeId}&collection=${collection}`)
+    // For admin, we'll just log this for now (or could open in new tab/window)
+    console.log(`Focus on atom: ${atomId}, ${pineconeId}, ${collection}`)
+
+    // Could open in new window:
+    // window.open(`/admin/collections/atoms/${atomId}`, '_blank')
   }
 
   return (
     <div className="space-y-6">
       {/* Header with method selection */}
-      <div className="flex flex-col sm:flex-row sm:items-center gap-4 justify-between pb-4 border-b">
-        <div>
-          <h2 className="text-xl font-semibold">Ideation Method</h2>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            {selectedMethod.description}
-          </p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-gray-200 dark:border-gray-800">
+        <div className="mb-3 sm:mb-0">
+          <h2 className="text-base font-medium tracking-tight">Ideation Method</h2>
+          <p className="text-sm text-muted-foreground mt-1">{selectedMethod.description}</p>
         </div>
 
         <div className="flex-shrink-0">

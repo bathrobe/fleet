@@ -2,9 +2,9 @@
 
 import { useState } from 'react'
 import { Button } from '@/app/ui/button'
-import { SynthesizedAtomCard } from '@/app/(frontend)/ideate/components/SynthesizedAtomCard'
-import { Atom } from '@/app/(frontend)/lib/atoms'
-import { synthesizeAtoms } from '@/app/(frontend)/actions'
+import { SynthesizedAtomCard } from './SynthesizedAtomCard'
+import { Atom, synthesizeAtoms } from '../actions/synthesize'
+import { Sparkles } from 'lucide-react'
 
 type AtomSynthesizerProps = {
   firstAtom: Atom
@@ -39,25 +39,27 @@ export function AtomSynthesizer({
   }
 
   return (
-    <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
+    <div className="mt-8 pt-6 border-t border-border">
       <div className="flex justify-between items-center mb-4">
-        <h3 className="text-lg font-semibold">Synthesize Concepts</h3>
+        <h3 className="text-base font-medium tracking-tight">Synthesize Concepts</h3>
         <Button
           onClick={handleSynthesize}
           disabled={loading || !firstAtom || !secondAtom}
           variant="outline"
-          className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white border-0 hover:opacity-90"
+          size="sm"
+          className="bg-gradient-to-r from-indigo-500 to-purple-500 text-white border-0 hover:opacity-90"
         >
+          <Sparkles className="h-3.5 w-3.5 mr-2" />
           {loading ? 'Generating...' : 'Create Synthesis'}
         </Button>
       </div>
 
-      <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">
+      <p className="text-xs text-muted-foreground mb-4">
         Click the button to generate a new concept that synthesizes the two atoms above using AI.
       </p>
 
       {error && (
-        <div className="p-4 mb-4 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 rounded-md">
+        <div className="p-3 mb-4 bg-destructive/10 text-destructive rounded-md text-sm">
           {error}
         </div>
       )}

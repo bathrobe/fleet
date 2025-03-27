@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from 'react'
 import { useFormStatus } from 'react-dom'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/app/ui/select'
+import { Label } from '@/app/ui/label'
 
 type Category = {
   id: string
@@ -49,36 +51,34 @@ export const CategoryDropdown = ({
     fetchCategories()
   }, [])
 
-  const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const value = e.target.value
+  const handleChange = (value: string) => {
     console.log('Selected category ID:', value) // Debug log
     onCategoryChange(value)
   }
 
-  if (isLoading) return <div className="text-slate-300 text-sm">Loading categories...</div>
-  if (error) return <div className="text-red-500 text-sm">{error}</div>
+  if (isLoading) return <div className="text-muted-foreground text-sm">Loading categories...</div>
+  if (error) return <div className="text-destructive text-sm">{error}</div>
 
   return (
-    <div className="mb-6 pb-6 border-b border-slate-700">
-      <label htmlFor="category" className="block mb-2 text-slate-300 text-sm font-medium">
-        Source Category {required && <span className="text-red-500">*</span>}
-      </label>
-      <select
-        name="sourceCategory"
-        id="category"
-        value={selectedCategory}
-        onChange={handleChange}
-        className="w-full p-2 border border-slate-700 rounded bg-slate-800 text-slate-100 text-sm"
-        disabled={pending}
-        required={required}
-      >
-        <option value="">Select a category</option>
-        {categories.map((category) => (
-          <option key={category.id} value={category.id}>
-            {category.title}
-          </option>
-        ))}
-      </select>
+    <div className="mb-6 pb-6 border-b">
+      <div className="mb-2">
+        <Label htmlFor="category" className="text-sm font-medium">
+          Source Category {required && <span className="text-destructive">*</span>}
+        </Label>
+      </div>
+
+      <Select value={selectedCategory} onValueChange={handleChange} disabled={pending}>
+        <SelectTrigger id="category" className="w-full" data-required={required}>
+          <SelectValue placeholder="Select a category" />
+        </SelectTrigger>
+        <SelectContent>
+          {categories.map((category) => (
+            <SelectItem key={category.id} value={category.id}>
+              {category.title}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
     </div>
   )
 }

@@ -1,45 +1,40 @@
 'use client'
 
 import React from 'react'
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardContent,
-  CardFooter,
-} from '@/app/ui/card'
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/app/ui/card'
 import { Button } from '@/app/ui/button'
-import { Sparkles } from 'lucide-react'
+import { ArrowLeft } from 'lucide-react'
+import Link from 'next/link'
+import { IdeasWorkspace } from './components'
 
 const IdeateView = () => {
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-6">Ideate</h1>
+    <div className="p-6 max-w-6xl mx-auto">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-3xl font-bold tracking-tight">Ideate</h1>
+        <Link href="/admin">
+          <Button variant="outline" size="sm" className="gap-2">
+            <ArrowLeft className="h-4 w-4" />
+            Back to Admin
+          </Button>
+        </Link>
+      </div>
 
-      <Card className="max-w-2xl">
-        <CardHeader>
-          <CardTitle>Ideate with ShadCN</CardTitle>
+      <p className="text-muted-foreground mb-6">
+        Use different ideation methods to explore your knowledge base and generate new ideas. Select
+        a method from the dropdown and begin exploring.
+      </p>
+
+      <Card className="border-0 shadow-sm bg-background">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-xl">Ideation Workspace</CardTitle>
           <CardDescription>
-            This is a demo of the Ideate view using ShadCN UI components in the Payload admin panel.
+            Generate new connections between existing concepts in your knowledge base.
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <p className="mb-4">
-            Welcome to the Ideate tool! This interface will help you explore your knowledge base and
-            generate new ideas using different ideation methods.
-          </p>
-          <p className="text-sm text-muted-foreground">
-            Select a method from below to get started.
-          </p>
+          <IdeasWorkspace />
         </CardContent>
-        <CardFooter className="flex justify-between">
-          <Button variant="outline">Cancel</Button>
-          <Button>
-            <Sparkles className="h-4 w-4" />
-            Generate Ideas
-          </Button>
-        </CardFooter>
       </Card>
     </div>
   )

@@ -2,6 +2,9 @@
 
 import React from 'react'
 import { useTransition } from 'react'
+import { Button } from '@/app/ui/button'
+import { Textarea } from '@/app/ui/textarea'
+import { SendIcon } from 'lucide-react'
 
 export const ContentForm = ({
   content,
@@ -35,34 +38,27 @@ export const ContentForm = ({
     })
   }
 
+  const isDisabled = !frontmatterData || isProcessing || !selectedCategory || isPending
+
   // Only use the onSubmit handler, remove the action prop
   return (
-    <form onSubmit={handleSubmit}>
-      <textarea
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <Textarea
         name="content"
         value={content}
-        onChange={(e) => onContentChange(e.target.value)}
+        onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => onContentChange(e.target.value)}
         placeholder="---\ntitle: My Document\ndate: 2023-05-01\ntags: [markdown, frontmatter]\n---\n\n# Content goes here"
-        rows={10}
-        className="w-full mb-4 font-mono"
+        rows={12}
+        className="font-mono text-sm resize-y"
         disabled={isProcessing || isPending}
       />
 
-      <button
-        type="submit"
-        disabled={!frontmatterData || isProcessing || !selectedCategory || isPending}
-        className={`
-          px-4 py-2 text-white font-bold rounded
-          transition-colors duration-200
-          ${
-            frontmatterData && !isProcessing && selectedCategory && !isPending
-              ? 'bg-slate-700 hover:bg-slate-800 cursor-pointer'
-              : 'bg-slate-400 cursor-not-allowed'
-          }
-        `}
-      >
-        {isProcessing || isPending ? 'Processing...' : 'Submit'}
-      </button>
+      <div className="flex justify-end">
+        <Button type="submit" disabled={isDisabled} className="gap-2">
+          <SendIcon className="h-4 w-4" />
+          {isProcessing || isPending ? 'Processing...' : 'Submit'}
+        </Button>
+      </div>
     </form>
   )
 }

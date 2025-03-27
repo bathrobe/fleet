@@ -19,9 +19,6 @@ export default async function RootLayout(props: { children: React.ReactNode }) {
             <Link href="/" className="font-medium hover:text-primary">
               Home
             </Link>
-            <Link href="/ideate" className="font-medium hover:text-primary">
-              Ideate
-            </Link>
           </nav>
         </header>
         <main>{children}</main>

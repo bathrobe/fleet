@@ -1,36 +1,49 @@
 'use client'
 
 import React from 'react'
+import { Check } from 'lucide-react'
 
-export const FrontmatterDisplay = ({ data }: { data: any }) => {
-  if (!data) return null
+type FrontmatterDisplayProps = {
+  data: Record<string, any>
+}
+
+export const FrontmatterDisplay = ({ data }: FrontmatterDisplayProps) => {
+  // Format the frontmatter data for display (pretty-print keys and values)
+  const formatData = () => {
+    return Object.entries(data).map(([key, value]) => {
+      // Format the key for display (capitalize, replace underscores with spaces)
+      const formattedKey = key
+        .replace(/([A-Z])/g, ' $1')
+        .replace(/_/g, ' ')
+        .replace(/^\w/, (c) => c.toUpperCase())
+
+      // Format the value (stringify objects/arrays, limit length for display)
+      let formattedValue = typeof value === 'string' ? value : JSON.stringify(value)
+
+      // Truncate long values
+      if (formattedValue.length > 100) {
+        formattedValue = formattedValue.substring(0, 100) + '...'
+      }
+
+      return { key: formattedKey, value: formattedValue }
+    })
+  }
 
   return (
-    <div className="p-4 bg-emerald-950 border border-emerald-800 rounded-md mb-4 text-emerald-100 shadow-sm">
-      <h3 className="text-emerald-300 mt-0 text-lg">Frontmatter Validator</h3>
-      <div className="text-sm mb-2 py-1 border-b border-emerald-800">
-        <span
-          className={`inline-block px-2 py-0.5 rounded mr-1.5 ${
-            Object.keys(data).includes('title')
-              ? 'bg-emerald-900 text-emerald-300'
-              : 'bg-red-900 text-red-300'
-          }`}
-        >
-          title
-        </span>
-        <span
-          className={`inline-block px-2 py-0.5 rounded ${
-            Object.keys(data).includes('url')
-              ? 'bg-emerald-900 text-emerald-300'
-              : 'bg-red-900 text-red-300'
-          }`}
-        >
-          url
-        </span>
+    <div className="my-4">
+      <div className="flex items-center gap-2 text-sm text-primary mb-3">
+        <Check className="h-4 w-4" />
+        <span className="font-medium">Frontmatter Validated</span>
       </div>
-      <pre className="text-emerald-50 text-sm max-h-[400px] overflow-y-auto p-2 bg-black/20 rounded">
-        {JSON.stringify(data, null, 2)}
-      </pre>
+
+      <div className="space-y-2 text-sm">
+        {formatData().map(({ key, value }) => (
+          <div key={key} className="flex flex-col">
+            <span className="text-xs font-medium text-muted-foreground">{key}:</span>
+            <span className="truncate">{value}</span>
+          </div>
+        ))}
+      </div>
     </div>
   )
 }

@@ -10,15 +10,16 @@ import { useSourceForm } from './hooks/useSourceForm'
 import { AtomsDisplay } from './atoms/AtomsDisplay'
 import { LoadingIndicator } from './LoadingIndicator'
 import { CategoryDropdown } from './CategoryDropdown'
+import { Card, CardContent, CardHeader, CardTitle } from '@/app/ui/card'
 
 // Sidebar wrapper component for consistent styling
 const Sidebar = ({ children }: { children: React.ReactNode }) => (
-  <div className="bg-slate-900 p-6 rounded-lg border border-slate-700">
-    <h3 className="m-0 mb-5 text-lg text-slate-100 border-b border-slate-700 pb-3">
-      Document Info
-    </h3>
-    {children}
-  </div>
+  <Card className="border bg-card/50 shadow-sm">
+    <CardHeader className="pb-3 border-b">
+      <CardTitle className="text-lg font-medium">Document Info</CardTitle>
+    </CardHeader>
+    <CardContent className="p-5">{children}</CardContent>
+  </Card>
 )
 
 export default function SourceUploader() {
@@ -72,7 +73,7 @@ export default function SourceUploader() {
 
   return (
     <SourcePageLayout title="Source Uploader" sidebar={sidebar}>
-      <p className="my-8">Paste markdown content with frontmatter below:</p>
+      <p className="text-muted-foreground mb-6">Paste markdown content with frontmatter below:</p>
 
       <ContentForm
         content={content}
