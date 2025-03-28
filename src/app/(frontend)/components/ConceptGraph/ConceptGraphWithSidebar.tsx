@@ -10,16 +10,24 @@ import { SynthesizedAtomDisplay } from '../AtomDisplay/SynthesizedAtomDisplay'
 import { fetchAtom, fetchSynthesizedAtom } from '@/app/(frontend)/actions/atoms'
 import { fetchAtomById } from '@/app/(frontend)/components/ConceptGraph/fetchVectors'
 
+type ConceptGraphWithSidebarProps = {
+  vectorData: any
+  reducedData: any
+  initialAtomId?: string
+  initialPineconeId?: string
+  initialCollection?: string
+}
+
 export function ConceptGraphWithSidebar({
   vectorData,
   reducedData,
-}: {
-  vectorData: any
-  reducedData: any
-}) {
+  initialAtomId,
+  initialPineconeId,
+  initialCollection,
+}: ConceptGraphWithSidebarProps) {
   // Store both the atom's database ID and its pineconeId (vector ID)
-  const [selectedAtomId, setSelectedAtomId] = useState<string | null>(null)
-  const [selectedVectorId, setSelectedVectorId] = useState<string | null>(null)
+  const [selectedAtomId, setSelectedAtomId] = useState<string | null>(initialAtomId || null)
+  const [selectedVectorId, setSelectedVectorId] = useState<string | null>(initialPineconeId || null)
   const [atomData, setAtomData] = useState<any | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [atomType, setAtomType] = useState<'regular' | 'synthesized'>('regular')
@@ -71,9 +79,12 @@ export function ConceptGraphWithSidebar({
 
       if (data) {
         setAtomData(data)
-        setSelectedAtomId(data.id)
-        // @ts-expect-error
-        setAtomType(data.metadata?.type === 'synthesized' ? 'synthesized' : 'regular')
+        setSelectedAtomId(String(data.id))
+
+        // Check metadata type for atom type determination
+        const isSynthesized =
+          data.isSynthesized || (data.metadata && data.metadata.type === 'synthesized')
+        setAtomType(isSynthesized ? 'synthesized' : 'regular')
       } else {
         console.warn('No atom data found for vector ID:', vectorId)
         setAtomData(null)
@@ -112,16 +123,25 @@ export function ConceptGraphWithSidebar({
     }
   }, [])
 
-  // Handle URL parameters to focus on a specific atom when the page loads
+  // Load initial atom from props if provided
   useEffect(() => {
-    const atomId = searchParams.get('atomId')
-    const pineconeId = searchParams.get('pineconeId')
-    const collection = searchParams.get('collection') || 'atoms'
-
-    if (atomId && pineconeId) {
-      loadAtom(atomId, pineconeId, collection)
+    if (initialAtomId && initialPineconeId) {
+      loadAtom(initialAtomId, initialPineconeId, initialCollection || 'atoms')
     }
-  }, [searchParams])
+  }, [initialAtomId, initialPineconeId, initialCollection])
+
+  // Handle URL parameters only if no initial props were provided
+  useEffect(() => {
+    if (!initialAtomId && !initialPineconeId) {
+      const atomId = searchParams.get('atomId')
+      const pineconeId = searchParams.get('pineconeId')
+      const collection = searchParams.get('collection') || 'atoms'
+
+      if (atomId && pineconeId) {
+        loadAtom(atomId, pineconeId, collection)
+      }
+    }
+  }, [searchParams, initialAtomId, initialPineconeId])
 
   return (
     <SidebarProvider>

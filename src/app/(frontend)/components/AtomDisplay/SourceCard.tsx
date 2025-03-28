@@ -5,18 +5,18 @@ import { cn } from '@/app/(frontend)/lib/utils'
 import { Calendar, User, Link, Tag, Info, File, Book } from 'lucide-react'
 
 type SourceData = {
-  id: string
-  title?: string
-  url?: string
-  author?: string
-  publishedDate?: string
-  tags?: any[]
-  oneSentenceSummary?: string
-  mainPoints?: { text: string }[]
-  bulletSummary?: { text: string }[]
-  peopleplacesthingsevents?: { text: string }[]
-  quotations?: { text: string }[]
-  details?: { text: string }[]
+  id: string | number
+  title?: string | null
+  url?: string | null
+  author?: string | null
+  publishedDate?: string | null
+  tags?: any[] | null
+  oneSentenceSummary?: string | null
+  mainPoints?: { text: string }[] | null
+  bulletSummary?: { text: string }[] | null
+  peopleplacesthingsevents?: { text: string }[] | null
+  quotations?: { text: string }[] | null
+  details?: { text: string }[] | null
   sourceCategory?: any
   fullText?: any // Add the fullText field from Sources collection
 }
@@ -98,10 +98,10 @@ export function SourceCard({ source, className, onClose }: SourceCardProps) {
       </div>
 
       {/* Content - more subtle styling */}
-      <div className="flex-1 p-4 space-y-4 overflow-y-auto bg-gray-50 dark:bg-gray-950">
+      <div className="flex-1 p-4 space-y-6 overflow-y-auto bg-gray-50 dark:bg-gray-950">
         {/* URL */}
         {source.url && (
-          <div className="space-y-1">
+          <div className="space-y-2">
             <div className="flex items-center">
               <Link className="h-4 w-4 text-gray-500 dark:text-gray-400 mr-2" />
               <h3 className="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wide">
@@ -112,7 +112,7 @@ export function SourceCard({ source, className, onClose }: SourceCardProps) {
               href={source.url}
               target="_blank"
               rel="noreferrer"
-              className="text-blue-600 dark:text-blue-400 hover:underline hover:bg-blue-50 dark:hover:bg-blue-900/20 px-1 break-all text-sm"
+              className="text-blue-600 dark:text-blue-400 hover:underline hover:bg-blue-50/50 dark:hover:bg-blue-900/10 px-1 break-all text-sm"
             >
               {source.url}
             </a>
@@ -121,11 +121,11 @@ export function SourceCard({ source, className, onClose }: SourceCardProps) {
 
         {/* One Sentence Summary */}
         {source.oneSentenceSummary && (
-          <div className="space-y-1">
+          <div className="space-y-2">
             <h3 className="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wide">
               Summary
             </h3>
-            <div className="p-2 bg-white dark:bg-gray-900 border-l-4 border-amber-300 dark:border-amber-700 text-gray-800 dark:text-gray-200 text-sm">
+            <div className="p-3 bg-white dark:bg-gray-900 rounded-md border border-gray-200 dark:border-gray-800 text-gray-800 dark:text-gray-200 text-sm">
               {source.oneSentenceSummary}
             </div>
           </div>
@@ -133,15 +133,15 @@ export function SourceCard({ source, className, onClose }: SourceCardProps) {
 
         {/* Main Points */}
         {source.mainPoints && source.mainPoints.length > 0 && (
-          <div className="space-y-1">
+          <div className="space-y-2">
             <h3 className="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wide">
               Main Points
             </h3>
-            <div className="space-y-2">
+            <div className="space-y-3">
               {source.mainPoints.map((point, idx) => (
                 <div
                   key={idx}
-                  className="p-2 bg-white dark:bg-gray-900 border-l-4 border-gray-400 dark:border-gray-500 text-gray-800 dark:text-gray-200 text-sm"
+                  className="p-3 bg-white dark:bg-gray-900 rounded-md border border-gray-200 dark:border-gray-800 text-gray-800 dark:text-gray-200 text-sm"
                 >
                   {point.text}
                 </div>
@@ -152,11 +152,11 @@ export function SourceCard({ source, className, onClose }: SourceCardProps) {
 
         {/* Bullet Summary */}
         {source.bulletSummary && source.bulletSummary.length > 0 && (
-          <div className="space-y-1">
+          <div className="space-y-2">
             <h3 className="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wide">
               Key Points
             </h3>
-            <div className="p-2 bg-white dark:bg-gray-900 border-l-4 border-gray-400 dark:border-gray-500 text-gray-800 dark:text-gray-200">
+            <div className="p-3 bg-white dark:bg-gray-900 rounded-md border border-gray-200 dark:border-gray-800 text-gray-800 dark:text-gray-200">
               <ul className="list-disc pl-5 space-y-1 text-sm">
                 {source.bulletSummary.map((point, idx) => (
                   <li key={idx}>{point.text}</li>
@@ -168,15 +168,15 @@ export function SourceCard({ source, className, onClose }: SourceCardProps) {
 
         {/* People, Places, Things, Events */}
         {source.peopleplacesthingsevents && source.peopleplacesthingsevents.length > 0 && (
-          <div className="space-y-1">
+          <div className="space-y-2">
             <h3 className="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wide">
               People, Places, Things, Events
             </h3>
-            <div className="space-y-2">
+            <div className="space-y-3">
               {source.peopleplacesthingsevents.map((item, idx) => (
                 <div
                   key={idx}
-                  className="p-2 bg-white dark:bg-gray-900 border-l-4 border-orange-400 dark:border-orange-500 text-gray-800 dark:text-gray-200 text-sm"
+                  className="p-3 bg-white dark:bg-gray-900 rounded-md border border-gray-200 dark:border-gray-800 text-gray-800 dark:text-gray-200 text-sm"
                 >
                   {item.text}
                 </div>
@@ -187,17 +187,17 @@ export function SourceCard({ source, className, onClose }: SourceCardProps) {
 
         {/* Quotations */}
         {source.quotations && source.quotations.length > 0 && (
-          <div className="space-y-1">
+          <div className="space-y-2">
             <h3 className="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wide">
               Quotations
             </h3>
-            <div className="space-y-2">
+            <div className="space-y-3">
               {source.quotations.map((quote, idx) => (
                 <div
                   key={idx}
-                  className="p-2 bg-white dark:bg-gray-900 border-l-4 border-purple-400 dark:border-purple-500 text-gray-800 dark:text-gray-200 italic text-sm"
+                  className="p-3 bg-white dark:bg-gray-900 rounded-md border border-gray-200 dark:border-gray-800 text-gray-800 dark:text-gray-200 italic text-sm"
                 >
-                  {quote.text}
+                  &ldquo;{quote.text}&rdquo;
                 </div>
               ))}
             </div>
@@ -206,15 +206,15 @@ export function SourceCard({ source, className, onClose }: SourceCardProps) {
 
         {/* Details */}
         {source.details && source.details.length > 0 && (
-          <div className="space-y-1">
+          <div className="space-y-2">
             <h3 className="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wide">
               Details
             </h3>
-            <div className="space-y-2">
+            <div className="space-y-3">
               {source.details.map((detail, idx) => (
                 <div
                   key={idx}
-                  className="p-2 bg-white dark:bg-gray-900 border-l-4 border-teal-400 dark:border-teal-500 text-gray-800 dark:text-gray-200 text-sm"
+                  className="p-3 bg-white dark:bg-gray-900 rounded-md border border-gray-200 dark:border-gray-800 text-gray-800 dark:text-gray-200 text-sm"
                 >
                   {detail.text}
                 </div>
@@ -223,30 +223,9 @@ export function SourceCard({ source, className, onClose }: SourceCardProps) {
           </div>
         )}
 
-        {/* Full Text link */}
-        {source.fullText && (
-          <div className="space-y-1">
-            <div className="flex items-center">
-              <File className="h-4 w-4 text-gray-500 dark:text-gray-400 mr-2" />
-              <h3 className="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wide">
-                Full Text
-              </h3>
-            </div>
-            <a
-              href={source.fullText.url || '#'}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex items-center text-blue-600 dark:text-blue-400 hover:underline text-sm bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded"
-            >
-              <File className="h-3 w-3 mr-1" />
-              View Full Document
-            </a>
-          </div>
-        )}
-
         {/* Tags */}
         {source.tags && source.tags.length > 0 && (
-          <div className="space-y-1">
+          <div className="space-y-2">
             <div className="flex items-center">
               <Tag className="h-4 w-4 text-gray-500 dark:text-gray-400 mr-2" />
               <h3 className="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wide">
@@ -259,7 +238,7 @@ export function SourceCard({ source, className, onClose }: SourceCardProps) {
                   tag.tag && (
                     <span
                       key={idx}
-                      className="inline-flex items-center bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 px-2 py-0.5 text-xs font-mono"
+                      className="inline-flex items-center bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 px-2 py-0.5 rounded text-xs font-mono"
                     >
                       {tag.tag}
                     </span>

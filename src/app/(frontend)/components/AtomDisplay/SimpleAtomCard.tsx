@@ -13,7 +13,16 @@ export function SimpleAtomCard({ atom, className = '' }: SimpleAtomCardProps) {
     <div
       className={`p-4 bg-white dark:bg-slate-800 rounded-lg shadow h-full flex flex-col ${className}`}
     >
-      {atom.title && <h2 className="text-xl font-semibold mb-2">{atom.title}</h2>}
+      {atom.title && (
+        <h2 className="text-xl font-semibold mb-2">
+          <a
+            href={`/atoms/${atom.id}`}
+            className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+          >
+            {atom.title}
+          </a>
+        </h2>
+      )}
 
       <p className="text-gray-700 dark:text-gray-200 mb-4 flex-grow">{atom.mainContent}</p>
 

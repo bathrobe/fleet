@@ -7,6 +7,7 @@ import { Separator } from '../../../ui/separator'
 import { cn } from '@/app/(frontend)/lib/utils'
 import { BookOpen, Quote, Info, Link, ChevronDown, ChevronUp, Atom } from 'lucide-react'
 import { SourceCard } from './SourceCard'
+import { ViewInGraphButton } from '../ViewInGraphButton'
 
 type DetailedAtomCardProps = {
   atom: AtomData | null
@@ -100,28 +101,39 @@ export function DetailedAtomCard({
             </div>
           )}
         </div>
-        {onClose && (
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ml-2 flex-shrink-0"
-            aria-label="Close"
-          >
-            <svg
-              className="h-5 w-5"
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
+        <div className="flex items-center gap-2">
+          {(vectorId || atom.pineconeId) && (
+            <ViewInGraphButton
+              atomId={atom.id}
+              pineconeId={vectorId || atom.pineconeId || ''}
+              collection={atom.isSynthesized ? 'synthesizedAtoms' : 'atoms'}
+              size="sm"
+              variant="ghost"
+            />
+          )}
+          {onClose && (
+            <button
+              onClick={onClose}
+              className="text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ml-2 flex-shrink-0"
+              aria-label="Close"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M6 18L18 6M6 6l12 12"
-              />
-            </svg>
-          </button>
-        )}
+              <svg
+                className="h-5 w-5"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Content - make sure it fills available space */}

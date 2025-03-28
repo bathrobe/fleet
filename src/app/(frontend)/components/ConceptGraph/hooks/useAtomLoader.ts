@@ -21,7 +21,6 @@ export const useAtomLoader = () => {
       if (data) {
         setAtomData(data)
         setSelectedAtomId(pineconeId)
-        // @ts-expect-error
         setAtomType(data.metadata?.type === 'synthesized' ? 'synthesized' : 'regular')
         console.log('Loaded atom data:', data)
       } else {

@@ -79,7 +79,11 @@ export interface Config {
     'payload-preferences': PayloadPreference;
     'payload-migrations': PayloadMigration;
   };
-  collectionsJoins: {};
+  collectionsJoins: {
+    sources: {
+      relatedAtoms: 'atoms';
+    };
+  };
   collectionsSelect: {
     users: UsersSelect<false> | UsersSelect<true>;
     sources: SourcesSelect<false> | SourcesSelect<true>;
@@ -226,6 +230,14 @@ export interface Source {
       }[]
     | null;
   fullText?: (number | null) | Media;
+  /**
+   * Atoms derived from this source
+   */
+  relatedAtoms?: {
+    docs?: (number | Atom)[];
+    hasNextPage?: boolean;
+    totalDocs?: number;
+  };
   updatedAt: string;
   createdAt: string;
 }
@@ -259,6 +271,47 @@ export interface Media {
   height?: number | null;
   focalX?: number | null;
   focalY?: number | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "atoms".
+ */
+export interface Atom {
+  id: number;
+  /**
+   * The title of the atom
+   */
+  title?: string | null;
+  /**
+   * The ID of the atom in Pinecone
+   */
+  pineconeId?: string | null;
+  /**
+   * The full atomic idea (1-2 sentences)
+   */
+  mainContent: string;
+  /**
+   * A quote from the Source that supports this atom
+   */
+  supportingQuote?: string | null;
+  /**
+   * Additional information that supports this atom
+   */
+  supportingInfo?:
+    | {
+        /**
+         * Supporting information item
+         */
+        text?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * The source this atom is derived from
+   */
+  source: number | Source;
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -299,47 +352,6 @@ export interface Post {
     posted?: boolean | null;
     url?: string | null;
   };
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "atoms".
- */
-export interface Atom {
-  id: number;
-  /**
-   * The title of the atom
-   */
-  title?: string | null;
-  /**
-   * The ID of the atom in Pinecone
-   */
-  pineconeId?: string | null;
-  /**
-   * The full atomic idea (1-2 sentences)
-   */
-  mainContent: string;
-  /**
-   * A quote from the Source that supports this atom
-   */
-  supportingQuote?: string | null;
-  /**
-   * Additional information that supports this atom
-   */
-  supportingInfo?:
-    | {
-        /**
-         * Supporting information item
-         */
-        text?: string | null;
-        id?: string | null;
-      }[]
-    | null;
-  /**
-   * The source this atom is derived from
-   */
-  source: number | Source;
   updatedAt: string;
   createdAt: string;
 }
@@ -523,6 +535,7 @@ export interface SourcesSelect<T extends boolean = true> {
         id?: T;
       };
   fullText?: T;
+  relatedAtoms?: T;
   updatedAt?: T;
   createdAt?: T;
 }

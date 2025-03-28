@@ -138,6 +138,16 @@ export const Sources: CollectionConfig = {
       relationTo: 'media',
       hasMany: false,
     },
+    {
+      name: 'relatedAtoms',
+      type: 'join',
+      collection: 'atoms',
+      on: 'source',
+      admin: {
+        description: 'Atoms derived from this source',
+        defaultColumns: ['title', 'mainContent', 'createdAt'],
+      },
+    },
   ],
 }
 

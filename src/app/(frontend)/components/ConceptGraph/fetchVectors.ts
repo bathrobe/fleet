@@ -5,33 +5,35 @@ import { getPayload } from 'payload'
 import config from '@/payload.config'
 
 export type AtomData = {
-  id: string
-  title?: string
-  mainContent?: string
-  supportingQuote?: string
-  supportingInfo?: { text: string }[]
+  id: string | number
+  title?: string | null
+  mainContent?: string | null
+  supportingQuote?: string | null
+  supportingInfo?: { text: string }[] | null
   isSynthesized?: boolean
+  pineconeId?: string
   parentAtoms?: Array<{
     id: string | number
-    title?: string
-    mainContent?: string
+    title?: string | null
+    mainContent?: string | null
     pineconeId?: string
-  }>
+  }> | null
   source?: {
-    id: string
-    title?: string
-    url?: string
-    author?: string
-    publishedDate?: string
-    tags?: any[]
-    oneSentenceSummary?: string
-    mainPoints?: { text: string }[]
-    bulletSummary?: { text: string }[]
-    peopleplacesthingsevents?: { text: string }[]
-    quotations?: { text: string }[]
-    details?: { text: string }[]
+    id: string | number
+    title?: string | null
+    url?: string | null
+    author?: string | null
+    publishedDate?: string | null
+    tags?: any[] | null
+    oneSentenceSummary?: string | null
+    mainPoints?: { text: string }[] | null
+    bulletSummary?: { text: string }[] | null
+    peopleplacesthingsevents?: { text: string }[] | null
+    quotations?: { text: string }[] | null
+    details?: { text: string }[] | null
     sourceCategory?: any
-  }
+  } | null
+  metadata?: any
 }
 
 export type VectorData = {
@@ -141,9 +143,9 @@ export async function fetchAtomById(pineconeId: string): Promise<AtomData | null
       atomData = atomsResponse.docs[0]
     }
 
+    // @ts-expect-error
     return {
       ...atomData,
-      // @ts-expect-error
       metadata,
       isSynthesized,
     }

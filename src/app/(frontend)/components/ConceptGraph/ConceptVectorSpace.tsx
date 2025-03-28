@@ -53,6 +53,53 @@ export const ConceptVectorSpace = ({
     })
   }, [width, height, reducedData])
 
+  // Set up tooltip
+  const { tooltipData, tooltipLeft, tooltipTop, tooltipOpen, showTooltip, hideTooltip } =
+    useTooltip<ReducedVectorData>()
+
+  // Extract parent atom IDs from the selected synthesized atom
+  const extractParentAtomIds = useCallback((atomData: AtomData) => {
+    if (!atomData || !atomData.isSynthesized || !atomData.parentAtoms) {
+      return []
+    }
+
+    // Extract pineconeIds from parent atoms
+    const parentIds = atomData.parentAtoms
+      .filter((parent: any) => parent && parent.pineconeId)
+      .map((parent: any) => parent.pineconeId)
+
+    console.log('Parent atom IDs:', parentIds)
+    return parentIds
+  }, [])
+
+  // Define loadAtomData as a useCallback
+  const loadAtomData = useCallback(
+    async (pointId: string) => {
+      if (!pointId) return
+
+      try {
+        setIsLoadingAtom(true)
+        const atomData = await fetchAtomById(pointId)
+        setSelectedAtomData(atomData)
+
+        // If this is a synthesized atom, extract parent atom IDs
+        if (atomData && atomData.isSynthesized) {
+          const parentIds = extractParentAtomIds(atomData)
+          setParentAtomIds(parentIds)
+        } else {
+          setParentAtomIds([])
+        }
+      } catch (error) {
+        console.error('Error loading atom data:', error)
+        setSelectedAtomData(null)
+        setParentAtomIds([])
+      } finally {
+        setIsLoadingAtom(false)
+      }
+    },
+    [extractParentAtomIds],
+  )
+
   // Update local state when prop changes
   useEffect(() => {
     if (selectedNodeId !== undefined) {
@@ -71,11 +118,7 @@ export const ConceptVectorSpace = ({
         setParentAtomIds([])
       }
     }
-  }, [selectedNodeId])
-
-  // Set up tooltip
-  const { tooltipData, tooltipLeft, tooltipTop, tooltipOpen, showTooltip, hideTooltip } =
-    useTooltip<ReducedVectorData>()
+  }, [selectedNodeId, loadAtomData, selectedId])
 
   // Determine the bounds to properly display all data points
   const bounds = useMemo(() => {
@@ -133,21 +176,6 @@ export const ConceptVectorSpace = ({
     })
   }, [bounds, vizHeight])
 
-  // Extract parent atom IDs from the selected synthesized atom
-  const extractParentAtomIds = useCallback((atomData: AtomData) => {
-    if (!atomData || !atomData.isSynthesized || !atomData.parentAtoms) {
-      return []
-    }
-
-    // Extract pineconeIds from parent atoms
-    const parentIds = atomData.parentAtoms
-      .filter((parent: any) => parent && parent.pineconeId)
-      .map((parent: any) => parent.pineconeId)
-
-    console.log('Parent atom IDs:', parentIds)
-    return parentIds
-  }, [])
-
   // Points to render - make larger and brighter
   const points = useMemo(() => {
     return reducedData.map((d) => {
@@ -200,31 +228,6 @@ export const ConceptVectorSpace = ({
     }),
     [],
   )
-
-  // Load atom data when a point is clicked
-  const loadAtomData = async (pointId: string) => {
-    if (!pointId) return
-
-    try {
-      setIsLoadingAtom(true)
-      const atomData = await fetchAtomById(pointId)
-      setSelectedAtomData(atomData)
-
-      // If this is a synthesized atom, extract parent atom IDs
-      if (atomData && atomData.isSynthesized) {
-        const parentIds = extractParentAtomIds(atomData)
-        setParentAtomIds(parentIds)
-      } else {
-        setParentAtomIds([])
-      }
-    } catch (error) {
-      console.error('Error loading atom data:', error)
-      setSelectedAtomData(null)
-      setParentAtomIds([])
-    } finally {
-      setIsLoadingAtom(false)
-    }
-  }
 
   // Handle point click
   const handlePointClick = async (point: (typeof points)[0]) => {

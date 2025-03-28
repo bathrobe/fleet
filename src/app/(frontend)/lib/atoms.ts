@@ -10,6 +10,7 @@ export type Atom = {
     title?: string
   }
   pineconeId?: string
+  [key: string]: any
 }
 
 // Calculate cosine similarity between two vectors

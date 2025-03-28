@@ -6,6 +6,7 @@ import { Badge } from '@/app/ui/badge'
 import { Button } from '@/app/ui/button'
 import { Sparkles, Link as LinkIcon, ExternalLink, Atom } from 'lucide-react'
 import { cn } from '@/app/(frontend)/lib/utils'
+import { ViewInGraphButton } from '../ViewInGraphButton'
 
 type SynthesizedAtomDisplayProps = {
   atom: any
@@ -48,6 +49,16 @@ export function SynthesizedAtomDisplay({
             )}
           </div>
         </div>
+
+        {atom.pineconeId && (
+          <ViewInGraphButton
+            atomId={atom.id}
+            pineconeId={atom.pineconeId}
+            collection="synthesizedAtoms"
+            size="sm"
+            variant="ghost"
+          />
+        )}
       </div>
 
       <div className="flex-1 px-6 py-4 space-y-4 overflow-y-auto">
