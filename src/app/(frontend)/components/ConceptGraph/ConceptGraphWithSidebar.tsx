@@ -7,6 +7,7 @@ import { AtomSidebar } from '../AtomSidebar/AtomSidebar'
 import { ConceptVectorSpace } from './ConceptVectorSpace'
 import { DetailedAtomCard } from '../AtomDisplay/DetailedAtomCard'
 import { SynthesizedAtomDisplay } from '../AtomDisplay/SynthesizedAtomDisplay'
+import { SynthesizedAtomDisplayMobile } from '../AtomDisplay/SynthesizedAtomDisplayMobile'
 import { fetchAtom, fetchSynthesizedAtom } from '@/app/(frontend)/actions/atoms'
 import { fetchAtomById } from '@/app/(frontend)/components/ConceptGraph/fetchVectors'
 
@@ -34,6 +35,21 @@ export function ConceptGraphWithSidebar({
   const [dimensions, setDimensions] = useState({ width: 800, height: 600 })
   const containerRef = useRef<HTMLDivElement>(null)
   const searchParams = useSearchParams()
+  const [isMobile, setIsMobile] = useState(false)
+
+  // Detect mobile devices
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768)
+    }
+
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+
+    return () => {
+      window.removeEventListener('resize', checkMobile)
+    }
+  }, [])
 
   // Direct atom loading function that handles both collections
   const loadAtom = async (atomId: string, pineconeId: string, collection: string) => {
@@ -143,6 +159,43 @@ export function ConceptGraphWithSidebar({
     }
   }, [searchParams, initialAtomId, initialPineconeId])
 
+  // Mobile layout with top/bottom sections
+  if (isMobile) {
+    return (
+      <div className="flex flex-col h-screen w-full">
+        {/* Graph on top */}
+        <div className="h-1/2" ref={containerRef}>
+          <ConceptVectorSpace
+            width={dimensions.width}
+            height={dimensions.height}
+            reducedData={reducedData}
+            selectedNodeId={selectedVectorId}
+            onNodeClick={handleVectorClick}
+          />
+        </div>
+
+        {/* Atom details below */}
+        <div className="h-1/2 overflow-y-auto border-t">
+          {isLoading ? (
+            <div className="p-4">Loading atom details...</div>
+          ) : atomData ? (
+            atomType === 'synthesized' ? (
+              <SynthesizedAtomDisplayMobile atom={atomData} onFocusParentAtom={loadAtom} />
+            ) : (
+              <DetailedAtomCard atom={atomData} />
+            )
+          ) : (
+            <div className="p-4 text-gray-500">
+              <h3 className="font-medium text-lg mb-2">Atom Details</h3>
+              <p>Select an atom from the graph to view its details</p>
+            </div>
+          )}
+        </div>
+      </div>
+    )
+  }
+
+  // Desktop layout with sidebars
   return (
     <SidebarProvider>
       <div className="flex h-screen w-full overflow-hidden">

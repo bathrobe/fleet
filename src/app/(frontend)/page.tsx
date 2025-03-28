@@ -1,11 +1,12 @@
 import { ConceptGraphContainer } from '@/app/(frontend)/components/ConceptGraph/ConceptGraphContainer'
 import { Suspense } from 'react'
 
-export default function HomePage({ searchParams }: any) {
+export default async function HomePage({ searchParams }: any) {
+  const params = await searchParams
   // Extract atom parameters with shorter names
   // v = vector id (pineconeId), a = atom id, t = type (s = synthesized)
   const getParam = (param: string): string | undefined => {
-    const value = searchParams[param]
+    const value = params[param]
     return typeof value === 'string' ? value : Array.isArray(value) ? value[0] : undefined
   }
 
