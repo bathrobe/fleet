@@ -133,6 +133,15 @@ export const Sources: CollectionConfig = {
       ],
     },
     {
+      name: 'relatedSynthesizedAtoms',
+      type: 'relationship',
+      relationTo: 'synthesizedAtoms',
+      hasMany: true,
+      admin: {
+        description: 'Synthesized atoms related to this source',
+      },
+    },
+    {
       name: 'fullText',
       type: 'relationship',
       relationTo: 'media',

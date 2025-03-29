@@ -229,6 +229,10 @@ export interface Source {
         id?: string | null;
       }[]
     | null;
+  /**
+   * Synthesized atoms related to this source
+   */
+  relatedSynthesizedAtoms?: (number | SynthesizedAtom)[] | null;
   fullText?: (number | null) | Media;
   /**
    * Atoms derived from this source
@@ -254,23 +258,49 @@ export interface SourceCategory {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "media".
+ * via the `definition` "synthesizedAtoms".
  */
-export interface Media {
+export interface SynthesizedAtom {
   id: number;
-  alt: string;
-  _key?: string | null;
+  title: string;
+  /**
+   * The full atomic idea (1-2 sentences)
+   */
+  mainContent: string;
+  /**
+   * Additional information that supports this atom
+   */
+  supportingInfo?:
+    | {
+        /**
+         * Supporting information item
+         */
+        text?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * A short paragraph, styled as a fictional quote, that imagines a future where the concept is realized.
+   */
+  theoryFiction?: string | null;
+  parentAtoms: (number | Atom)[];
+  pineconeId?: string | null;
+  posting?: {
+    /**
+     * Has this atom been posted to social media?
+     */
+    isPosted?: boolean | null;
+    /**
+     * URL to the Twitter post
+     */
+    twitterUrl?: string | null;
+    /**
+     * URL to the Bluesky post
+     */
+    bskyUrl?: string | null;
+  };
   updatedAt: string;
   createdAt: string;
-  url?: string | null;
-  thumbnailURL?: string | null;
-  filename?: string | null;
-  mimeType?: string | null;
-  filesize?: number | null;
-  width?: number | null;
-  height?: number | null;
-  focalX?: number | null;
-  focalY?: number | null;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -315,6 +345,26 @@ export interface Atom {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "media".
+ */
+export interface Media {
+  id: number;
+  alt: string;
+  _key?: string | null;
+  updatedAt: string;
+  createdAt: string;
+  url?: string | null;
+  thumbnailURL?: string | null;
+  filename?: string | null;
+  mimeType?: string | null;
+  filesize?: number | null;
+  width?: number | null;
+  height?: number | null;
+  focalX?: number | null;
+  focalY?: number | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "journals".
  */
 export interface Journal {
@@ -341,49 +391,22 @@ export interface Task {
  */
 export interface Post {
   id: number;
-  content: string;
+  content: {
+    text: string;
+    media?: (number | null) | Media;
+    id?: string | null;
+  }[];
   timeCreated?: string | null;
-  task?: (number | null) | Task;
-  blueskyPost?: {
-    posted?: boolean | null;
-    url?: string | null;
-  };
   twitterPost?: {
     posted?: boolean | null;
     url?: string | null;
+    postId?: string | null;
   };
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "synthesizedAtoms".
- */
-export interface SynthesizedAtom {
-  id: number;
-  title: string;
-  /**
-   * The full atomic idea (1-2 sentences)
-   */
-  mainContent: string;
-  /**
-   * Additional information that supports this atom
-   */
-  supportingInfo?:
-    | {
-        /**
-         * Supporting information item
-         */
-        text?: string | null;
-        id?: string | null;
-      }[]
-    | null;
-  /**
-   * A short paragraph, styled as a fictional quote, that imagines a future where the concept is realized.
-   */
-  theoryFiction?: string | null;
-  parentAtoms: (number | Atom)[];
-  pineconeId?: string | null;
+  bskyPost?: {
+    posted?: boolean | null;
+    url?: string | null;
+    postId?: string | null;
+  };
   updatedAt: string;
   createdAt: string;
 }
@@ -534,6 +557,7 @@ export interface SourcesSelect<T extends boolean = true> {
         text?: T;
         id?: T;
       };
+  relatedSynthesizedAtoms?: T;
   fullText?: T;
   relatedAtoms?: T;
   updatedAt?: T;
@@ -583,20 +607,27 @@ export interface TasksSelect<T extends boolean = true> {
  * via the `definition` "posts_select".
  */
 export interface PostsSelect<T extends boolean = true> {
-  content?: T;
-  timeCreated?: T;
-  task?: T;
-  blueskyPost?:
+  content?:
     | T
     | {
-        posted?: T;
-        url?: T;
+        text?: T;
+        media?: T;
+        id?: T;
       };
+  timeCreated?: T;
   twitterPost?:
     | T
     | {
         posted?: T;
         url?: T;
+        postId?: T;
+      };
+  bskyPost?:
+    | T
+    | {
+        posted?: T;
+        url?: T;
+        postId?: T;
       };
   updatedAt?: T;
   createdAt?: T;
@@ -646,6 +677,13 @@ export interface SynthesizedAtomsSelect<T extends boolean = true> {
   theoryFiction?: T;
   parentAtoms?: T;
   pineconeId?: T;
+  posting?:
+    | T
+    | {
+        isPosted?: T;
+        twitterUrl?: T;
+        bskyUrl?: T;
+      };
   updatedAt?: T;
   createdAt?: T;
 }
@@ -688,12 +726,7 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
 export interface Agent {
   id: number;
   name: string;
-  bio?:
-    | {
-        content?: string | null;
-        id?: string | null;
-      }[]
-    | null;
+  bio?: string | null;
   agenda?:
     | {
         content?: string | null;
@@ -723,12 +756,7 @@ export interface Agent {
  */
 export interface AgentSelect<T extends boolean = true> {
   name?: T;
-  bio?:
-    | T
-    | {
-        content?: T;
-        id?: T;
-      };
+  bio?: T;
   agenda?:
     | T
     | {

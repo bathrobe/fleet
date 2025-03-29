@@ -36,6 +36,10 @@ export default buildConfig({
           Component: '/src/app/(payload)/components/ideate/IdeateView',
           path: '/ideate',
         },
+        postMaker: {
+          Component: '/src/app/(payload)/components/postMaker/PostMakerView',
+          path: '/post-maker',
+        },
       },
       beforeDashboard: ['/src/app/(payload)/components/common/CustomNavLinks'],
     },

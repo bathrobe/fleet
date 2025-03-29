@@ -19,15 +19,8 @@ export const Agent: GlobalConfig = {
             },
             {
               name: 'bio',
-              type: 'array',
+              type: 'textarea',
               label: 'Bio',
-              fields: [
-                {
-                  name: 'content',
-                  type: 'textarea',
-                  label: 'Content',
-                },
-              ],
             },
             {
               name: 'agenda',

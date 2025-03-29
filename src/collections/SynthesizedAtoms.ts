@@ -2,6 +2,9 @@ import { CollectionConfig } from 'payload'
 
 export const SynthesizedAtoms: CollectionConfig = {
   slug: 'synthesizedAtoms',
+  access: {
+    read: () => true,
+  },
   admin: {
     useAsTitle: 'title',
     defaultColumns: ['title', 'parentAtoms', 'createdAt'],
@@ -66,6 +69,34 @@ export const SynthesizedAtoms: CollectionConfig = {
       admin: {
         readOnly: true,
       },
+    },
+    {
+      name: 'posting',
+      type: 'group',
+      fields: [
+        {
+          name: 'isPosted',
+          type: 'checkbox',
+          defaultValue: false,
+          admin: {
+            description: 'Has this atom been posted to social media?',
+          },
+        },
+        {
+          name: 'twitterUrl',
+          type: 'text',
+          admin: {
+            description: 'URL to the Twitter post',
+          },
+        },
+        {
+          name: 'bskyUrl',
+          type: 'text',
+          admin: {
+            description: 'URL to the Bluesky post',
+          },
+        },
+      ],
     },
   ],
 }
