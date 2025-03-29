@@ -40,7 +40,7 @@ export function ConceptGraphWithSidebar({
   // Detect mobile devices
   useEffect(() => {
     const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768)
+      setIsMobile(window.innerWidth < 1224)
     }
 
     checkMobile()
