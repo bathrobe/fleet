@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useUnpostedAtoms } from './hooks/useUnpostedAtoms'
+import { generatePost } from './actions/generatePost'
 import type { SynthesizedAtom, GeneratedPost } from './types'
 
 const PostMakerView = () => {
@@ -21,19 +22,9 @@ const PostMakerView = () => {
     try {
       setIsGenerating(true)
 
-      // Mock post generation (will be replaced later with real API call)
-      const mockPost: GeneratedPost = {
-        content: [
-          {
-            text: `${selectedAtom.title}: ${selectedAtom.mainContent?.substring(0, 200) || ''}${selectedAtom.mainContent && selectedAtom.mainContent.length > 200 ? '...' : ''}`,
-          },
-          {
-            text: `This idea synthesizes concepts from ${selectedAtom.parentAtoms?.length || 0} sources.`,
-          },
-        ],
-      }
-
-      setPost(mockPost)
+      // Call the real LLM-powered generation
+      const generatedPost = await generatePost(selectedAtom)
+      setPost(generatedPost)
     } catch (error) {
       console.error('Error generating post:', error)
     } finally {
@@ -229,6 +220,21 @@ const PostMakerView = () => {
                     </div>
                   </div>
                 ))}
+
+                {/* Show generation details if available */}
+                {post.usage && (
+                  <div className="mt-4 p-3 border border-gray-700 rounded bg-gray-800">
+                    <h3 className="text-sm font-medium text-gray-300 mb-1">Generation Details</h3>
+                    <div className="text-xs text-gray-400">
+                      <p>Model: {post.model || 'Unknown'}</p>
+                      <p>
+                        Tokens: {post.usage.totalTokens} ({post.usage.promptTokens} prompt,{' '}
+                        {post.usage.completionTokens} completion)
+                      </p>
+                      {post.error && <p className="text-yellow-400 mt-1">Note: {post.error}</p>}
+                    </div>
+                  </div>
+                )}
 
                 <div className="text-xs text-gray-500 text-center mt-4">
                   This is a preview. The post will be published to Twitter and Bluesky when
