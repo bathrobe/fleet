@@ -23,30 +23,6 @@ export const Agent: GlobalConfig = {
               label: 'Bio',
             },
             {
-              name: 'agenda',
-              type: 'array',
-              label: 'Agenda',
-              fields: [
-                {
-                  name: 'content',
-                  type: 'textarea',
-                  label: 'Content',
-                },
-              ],
-            },
-            {
-              name: 'lenses',
-              type: 'array',
-              label: 'Lenses',
-              fields: [
-                {
-                  name: 'content',
-                  type: 'textarea',
-                  label: 'Content',
-                },
-              ],
-            },
-            {
               name: 'styles',
               type: 'textarea',
               label: 'Styles',

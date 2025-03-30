@@ -17,8 +17,8 @@ export async function fetchUnpostedAtomsWithPayload(
       },
       limit: 100,
       sort: '-createdAt',
-      depth: 1,
-      // These options reflect best practices from the documentation
+      depth: 2, // Set to 0 since we're using explicit population
+
       overrideAccess: true,
       showHiddenFields: false,
     })
@@ -29,21 +29,7 @@ export async function fetchUnpostedAtomsWithPayload(
     }))
   } catch (error: any) {
     console.error('Error fetching unposted atoms:', error.message)
-
-    // Create a fallback that matches SynthesizedAtom interface
-    const now = new Date().toISOString()
-    return [
-      {
-        id: '1',
-        title: 'Error Fetching Data',
-        mainContent: `An error occurred: ${error.message}`,
-        supportingInfo: [{ text: 'Check server logs for details' }],
-        parentAtoms: [],
-        posting: { isPosted: false },
-        createdAt: now,
-        updatedAt: now,
-      } as SynthesizedAtom,
-    ]
+    throw error // Let the error propagate instead of using fallbacks
   }
 }
 

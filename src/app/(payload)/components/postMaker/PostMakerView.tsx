@@ -23,6 +23,7 @@ const PostMakerView = () => {
       setIsGenerating(true)
 
       // Call the real LLM-powered generation
+      console.log('Generating post for atom:', selectedAtom)
       const generatedPost = await generatePost(selectedAtom)
       setPost(generatedPost)
     } catch (error) {

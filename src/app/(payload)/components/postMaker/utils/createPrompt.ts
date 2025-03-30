@@ -2,6 +2,9 @@
  * Creates a prompt for generating tweets using a synthesized atom and agent data
  */
 export function createPostPrompt(atom: any, agentBio: string, agentStyles: string): string {
+  // console.log('Creating post prompt for atom:', atom)
+  const { parentAtoms, supportingInfo, theoryFiction } = atom
+
   // Format parent atoms for context
   const parentAtomsText =
     atom.parentAtoms && atom.parentAtoms.length > 0
@@ -11,12 +14,52 @@ export function createPostPrompt(atom: any, agentBio: string, agentStyles: strin
             if (typeof parent === 'object' && parent) {
               const title = parent.title || 'Unnamed atom'
               const content = parent.mainContent || 'No content'
-              const url = parent.url || '' // Include URL if available
+              const supportingQuote = parent.supportingQuote || ''
+
+              // Format supporting info from parent atom
+              const parentSupportingInfo =
+                parent.supportingInfo && parent.supportingInfo.length > 0
+                  ? parent.supportingInfo
+                      .map((info: any) => `<supporting_point>${info.text}</supporting_point>`)
+                      .join('\n')
+                  : '<no_supporting_info>No supporting information available</no_supporting_info>'
+
+              // Extract URL from parent atom if available
+              // First check if there's a direct URL property
+              let url = parent.url || ''
+
+              // Then check if there's a posting group with URLs
+              if (!url && parent.posting) {
+                // Try to get Twitter URL first, then Bluesky URL as fallback
+                url = parent.posting.twitterUrl || parent.posting.bskyUrl || ''
+              }
+
+              // Extract simplified source information if available
+              const sourceInfo = parent.source
+                ? `<source>
+    <title>${parent.source.title || 'Untitled Source'}</title>
+    <url>${parent.source.url || ''}</url>
+    <author>${parent.source.author || ''}</author>
+    <summary>${parent.source.oneSentenceSummary || ''}</summary>
+    ${
+      parent.source.bulletSummary && parent.source.bulletSummary.length > 0
+        ? `<bullet_summary>
+      ${parent.source.bulletSummary.map((b: any) => `<bullet>${b.text}</bullet>`).join('\n      ')}
+    </bullet_summary>`
+        : ''
+    }
+  </source>`
+                : ''
 
               return `<parent_atom>
   <title>${title}</title>
   <content>${content}</content>
+  ${supportingQuote ? `<supporting_quote>${supportingQuote}</supporting_quote>` : ''}
+  <supporting_info>
+${parentSupportingInfo}
+  </supporting_info>
   ${url ? `<url>${url}</url>` : ''}
+  ${sourceInfo}
 </parent_atom>`
             }
             return ''
@@ -42,8 +85,6 @@ ${atom.theoryFiction}
 
   // Construct the prompt with XML-style sections
   return `<instruction>
-You are a social media content creator for an AI agent. Your job is to create engaging tweet threads that showcase synthesized concepts.
-
 <agent_bio>
 ${agentBio}
 </agent_bio>
@@ -52,7 +93,9 @@ ${agentBio}
 ${agentStyles}
 </style_guide>
 
-I need you to write a two-tweet thread about the following synthesized concept:
+<task>
+Write a two-tweet thread exploring the ideas underlying the concept below.
+</task>
 
 <concept>
   <title>${atom.title}</title>
@@ -70,10 +113,11 @@ ${parentAtomsText}
 </concept>
 
 <output_requirements>
-- Tweet 1: Present the concept in your distinctive voice. Be conversational and engaging.
-- Tweet 2: Mention that this idea synthesizes concepts from the parent atoms. Include source URLs if available.
+- Tweet 1: Present the concept in your distinctive voice. 
+- Tweet 2: Cite the parent atom sources in your own voice, providing URLs for both if available.
 - Each tweet must be under 280 characters.
 - Maintain the agent's unique voice and style throughout.
+- Do not include any explanations or comments outside the JSON object.
 </output_requirements>
 
 Your response MUST be valid JSON containing an array of tweet content, formatted like this:

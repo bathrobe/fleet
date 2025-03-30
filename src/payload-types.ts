@@ -727,18 +727,6 @@ export interface Agent {
   id: number;
   name: string;
   bio?: string | null;
-  agenda?:
-    | {
-        content?: string | null;
-        id?: string | null;
-      }[]
-    | null;
-  lenses?:
-    | {
-        content?: string | null;
-        id?: string | null;
-      }[]
-    | null;
   styles?: string | null;
   scheduling?: {
     postingInterval?: number | null;
@@ -757,18 +745,6 @@ export interface Agent {
 export interface AgentSelect<T extends boolean = true> {
   name?: T;
   bio?: T;
-  agenda?:
-    | T
-    | {
-        content?: T;
-        id?: T;
-      };
-  lenses?:
-    | T
-    | {
-        content?: T;
-        id?: T;
-      };
   styles?: T;
   scheduling?:
     | T

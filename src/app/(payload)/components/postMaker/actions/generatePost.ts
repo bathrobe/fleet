@@ -12,8 +12,6 @@ export async function generatePostWithPayload(
   atom: SynthesizedAtom,
 ): Promise<GeneratedPost> {
   try {
-    console.log('Generating post for atom:', atom.id)
-
     // 1. Fetch the agent global data using Local API
     const agent = await payloadInstance.findGlobal({
       slug: 'agent',
@@ -46,6 +44,7 @@ export async function generatePostWithPayload(
       throw new Error('ANTHROPIC_API_KEY not found in environment variables')
     }
 
+    console.log('Prompt:', prompt)
     // 4. Call Anthropic with higher temperature for creativity
     const response = await getCompletion(prompt, apiKey, {
       temperature: 0.8,
