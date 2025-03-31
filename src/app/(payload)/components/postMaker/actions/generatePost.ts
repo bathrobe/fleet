@@ -64,6 +64,7 @@ export async function generatePostWithPayload(
       }
 
       // Generate the source tweet
+      // @ts-ignore
       const sourceTweet = createSourceTweet(atom)
 
       // Add source tweet to content array
