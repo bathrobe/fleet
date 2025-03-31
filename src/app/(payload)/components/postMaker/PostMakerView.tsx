@@ -10,6 +10,7 @@ const PostMakerView = () => {
   const [selectedAtom, setSelectedAtom] = useState<SynthesizedAtom | null>(null)
   const [post, setPost] = useState<GeneratedPost | null>(null)
   const [isGenerating, setIsGenerating] = useState(false)
+  const [isPosting, setIsPosting] = useState(false)
 
   const handleAtomSelect = (atom: SynthesizedAtom) => {
     setSelectedAtom(atom)
@@ -31,6 +32,13 @@ const PostMakerView = () => {
     } finally {
       setIsGenerating(false)
     }
+  }
+
+  const handlePostToSocials = () => {
+    setIsPosting(true)
+    // For now, just show an alert
+    alert('Posted to Twitter!')
+    setIsPosting(false)
   }
 
   return (
@@ -236,6 +244,21 @@ const PostMakerView = () => {
                     </div>
                   </div>
                 )}
+
+                {/* Post to Socials button */}
+                <div className="flex justify-center mt-4">
+                  <button
+                    onClick={handlePostToSocials}
+                    disabled={isPosting}
+                    className={`px-6 py-2 rounded-md text-white font-medium transition ${
+                      isPosting
+                        ? 'bg-gray-700 cursor-not-allowed'
+                        : 'bg-green-600 hover:bg-green-700'
+                    }`}
+                  >
+                    {isPosting ? 'Posting...' : 'Post to Socials'}
+                  </button>
+                </div>
 
                 <div className="text-xs text-gray-500 text-center mt-4">
                   This is a preview. The post will be published to Twitter and Bluesky when

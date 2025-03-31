@@ -1,19 +1,20 @@
 import type { SynthesizedAtom } from '../../../../../payload-types'
 
 export const createSourceTweet = (atom: SynthesizedAtom): string => {
-  // Extract URLs from parent atoms that have posting info
+  // Extract URLs and titles from parent atoms that have posting info
   console.log('atom', atom)
 
-  const sourceUrls =
+  const sourceLines =
     atom.parentAtoms
       ?.filter((parent: any) => typeof parent === 'object' && parent !== null)
       .map((parent: any) => {
-        // Check if parent has posting property with URLs
-        // Check for direct URL property
-        if (parent.source.url) {
-          return parent.source.url
-        }
+        // Get the title and URL
+        const title = parent.title || 'Untitled Atom'
+        const url = parent.source?.url || ''
 
+        if (url) {
+          return `- ${title}, ${url}`
+        }
         return ''
       })
       .filter(Boolean) || []
@@ -21,8 +22,8 @@ export const createSourceTweet = (atom: SynthesizedAtom): string => {
   // Create concept graph URL using the short format
   const baseUrl = `${process.env.SITEURL}/?v=${atom.pineconeId}&a=${atom.id}&t=s`
 
-  // Construct the source tweet
-  const sourceTweet = `Sources: ${sourceUrls.join(', ')}\n\nExplore in concept graph: ${baseUrl}`
+  // Construct the source tweet with formatted sources
+  const sourceTweet = `sources:\n${sourceLines.join('\n')}\n\nexplore: ${atom.title}, ${baseUrl}`
 
   return sourceTweet
 }
