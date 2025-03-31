@@ -5,6 +5,7 @@ import { getCompletion } from '../../../../../utilities/anthropic'
 import { createPostPrompt } from '../utils/createPrompt'
 import type { SynthesizedAtom, GeneratedPost } from '../types'
 import payloadConfig from '../../../../../payload.config'
+import { createSourceTweet } from '../utils/createSourceTweet'
 
 // Function that takes a payload instance
 export async function generatePostWithPayload(
@@ -62,9 +63,15 @@ export async function generatePostWithPayload(
         throw new Error('Expected array of tweets in response')
       }
 
+      // Generate the source tweet
+      const sourceTweet = createSourceTweet(atom)
+
+      // Add source tweet to content array
+      const contentWithSource = [...parsedContent, { text: sourceTweet, isSourceTweet: true }]
+
       // 6. Return formatted tweets with usage data
       return {
-        content: parsedContent,
+        content: contentWithSource,
         usage: response.usage,
         model: response.model,
       }

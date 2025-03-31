@@ -216,7 +216,7 @@ const PostMakerView = () => {
 
                     {/* Tweet footer */}
                     <div className="flex items-center justify-between text-gray-500 text-sm pt-2 border-t border-gray-700">
-                      <div>{index === 0 ? 'Main tweet' : `Reply ${index}`}</div>
+                      <div>{tweet.isSourceTweet ? 'Source tweet' : 'Main tweet'}</div>
                       <div>{new Date().toLocaleDateString()}</div>
                     </div>
                   </div>

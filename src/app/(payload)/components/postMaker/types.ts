@@ -10,6 +10,7 @@ export interface SynthesizedAtom extends Omit<PayloadSynthesizedAtom, 'id'> {
 export interface PostContent {
   text: string
   media?: string | null
+  isSourceTweet?: boolean
   [key: string]: any // Allow any additional properties
 }
 

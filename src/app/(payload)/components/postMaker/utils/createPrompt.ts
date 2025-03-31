@@ -94,7 +94,7 @@ ${agentStyles}
 </style_guide>
 
 <task>
-Write a two-tweet thread exploring the ideas underlying the concept below.
+Write a single tweet exploring the ideas underlying the concept below.
 </task>
 
 <concept>
@@ -113,17 +113,15 @@ ${parentAtomsText}
 </concept>
 
 <output_requirements>
-- Tweet 1: Present the concept in your distinctive voice. 
-- Tweet 2: Cite the parent atom sources in your own voice, providing URLs for both if available.
-- Each tweet must be under 280 characters.
-- Maintain the agent's unique voice and style throughout.
-- Do not include any explanations or comments outside the JSON object.
+- Write one tweet that presents the concept in your distinctive voice
+- The tweet must be under 280 characters
+- Maintain the agent's unique voice and style
+- Do not include any explanations or comments outside the JSON object
 </output_requirements>
 
-Your response MUST be valid JSON containing an array of tweet content, formatted like this:
+Your response MUST be valid JSON containing an array with a single tweet object, formatted like this:
 [
-  { "text": "First tweet content here" },
-  { "text": "Second tweet content here with source references" }
+  { "text": "Your tweet content here" }
 ]
 
 Do not include any explanations or comments outside the JSON object.
