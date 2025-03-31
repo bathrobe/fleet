@@ -4,13 +4,14 @@ import { useState } from 'react'
 import { useUnpostedAtoms } from './hooks/useUnpostedAtoms'
 import { generatePost } from './actions/generatePost'
 import type { SynthesizedAtom, GeneratedPost } from './types'
+import { usePostToTwitter } from './hooks/usePostToTwitter'
 
 const PostMakerView = () => {
   const { atoms, loading, error } = useUnpostedAtoms()
   const [selectedAtom, setSelectedAtom] = useState<SynthesizedAtom | null>(null)
   const [post, setPost] = useState<GeneratedPost | null>(null)
   const [isGenerating, setIsGenerating] = useState(false)
-  const [isPosting, setIsPosting] = useState(false)
+  const { handlePost, isPosting, result, error: postError } = usePostToTwitter()
 
   const handleAtomSelect = (atom: SynthesizedAtom) => {
     setSelectedAtom(atom)
@@ -34,11 +35,22 @@ const PostMakerView = () => {
     }
   }
 
-  const handlePostToSocials = () => {
-    setIsPosting(true)
-    // For now, just show an alert
-    alert('Posted to Twitter!')
-    setIsPosting(false)
+  const handlePostToSocials = async () => {
+    if (!post) return
+
+    try {
+      console.log('Starting post to socials process')
+      const postResult = await handlePost(post)
+
+      if (postResult.success) {
+        alert(`Posted to Twitter successfully! Tweet IDs: ${postResult.tweetIds.join(', ')}`)
+      } else {
+        alert('Failed to post to Twitter. Check console for details.')
+      }
+    } catch (error) {
+      console.error('Error in post handler:', error)
+      alert('Error posting to Twitter')
+    }
   }
 
   return (
@@ -256,9 +268,38 @@ const PostMakerView = () => {
                         : 'bg-green-600 hover:bg-green-700'
                     }`}
                   >
-                    {isPosting ? 'Posting...' : 'Post to Socials'}
+                    {isPosting ? (
+                      <span className="flex items-center">
+                        <svg
+                          className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                        >
+                          <circle
+                            className="opacity-25"
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            strokeWidth="4"
+                          ></circle>
+                          <path
+                            className="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                          ></path>
+                        </svg>
+                        Posting...
+                      </span>
+                    ) : (
+                      'Post to Twitter'
+                    )}
                   </button>
                 </div>
+
+                {/* Add error display if needed */}
+                {postError && <div className="text-red-400 text-sm mt-2">Error: {postError}</div>}
 
                 <div className="text-xs text-gray-500 text-center mt-4">
                   This is a preview. The post will be published to Twitter and Bluesky when

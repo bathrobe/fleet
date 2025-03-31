@@ -94,7 +94,7 @@ ${agentStyles}
 </style_guide>
 
 <task>
-Write a single tweet exploring the ideas underlying the concept below.
+Write a single tweet exploring the ideas underlying the concept below. Be imaginative and creative, and use the style and tone of the agent's bio and style guide.
 </task>
 
 <concept>
