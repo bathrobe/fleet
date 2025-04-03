@@ -4,6 +4,7 @@ export const Agent: GlobalConfig = {
   slug: 'agent',
   access: {
     read: () => true, // Allow anyone to read this global
+    update: () => true, // Allow updates for saving cookies
   },
   fields: [
     {
@@ -73,6 +74,21 @@ export const Agent: GlobalConfig = {
                   defaultValue: true,
                 },
               ],
+            },
+          ],
+        },
+        {
+          label: 'Twitter Auth',
+          fields: [
+            {
+              name: 'twitterCookieData',
+              type: 'textarea', // Use textarea for potentially long JSON string
+              label: 'Twitter Session Cookies (JSON)',
+              admin: {
+                description:
+                  'Session cookies for Twitter, automatically managed. Do not edit manually unless necessary.',
+                readOnly: false, // Make readOnly in production?
+              },
             },
           ],
         },

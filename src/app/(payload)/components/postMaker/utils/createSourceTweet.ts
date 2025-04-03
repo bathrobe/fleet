@@ -1,29 +1,18 @@
-import type { SynthesizedAtom } from '../../../../../payload-types'
+import type { SynthesizedAtom, Atom } from '../../../../../payload-types'
 
 export const createSourceTweet = (atom: SynthesizedAtom): string => {
-  // Extract URLs and titles from parent atoms that have posting info
-  console.log('atom', atom)
+  // Construct URL (ensure protocol and valid IDs)
+  const siteUrl = process.env.SITEURL || ''
+  const baseUrlWithProtocol = siteUrl.startsWith('http') ? siteUrl : `https://${siteUrl}`
+  const pineconeIdStr = typeof atom.pineconeId === 'string' ? atom.pineconeId : 'null'
+  const atomIdStr = typeof atom.id === 'string' ? atom.id : 'null'
+  const exploreUrl = `${baseUrlWithProtocol}/?v=${pineconeIdStr}&a=${atomIdStr}&t=s`
 
-  const sourceLines =
-    atom.parentAtoms
-      ?.filter((parent: any) => typeof parent === 'object' && parent !== null)
-      .map((parent: any) => {
-        // Get the title and URL
-        const title = parent.title || 'Untitled Atom'
-        const url = parent.source?.url || ''
+  // Use atom.title safely
+  const atomTitle = atom.title || 'this concept'
 
-        if (url) {
-          return `- ${title}, ${url}`
-        }
-        return ''
-      })
-      .filter(Boolean) || []
-
-  // Create concept graph URL using the short format
-  const baseUrl = `${process.env.SITEURL}/?v=${atom.pineconeId}&a=${atom.id}&t=s`
-
-  // Construct the source tweet with formatted sources
-  const sourceTweet = `sources:\n${sourceLines.join('\n')}\n\nexplore: ${atom.title}, ${baseUrl}`
+  // Only include the explore link and the atom's title
+  const sourceTweet = `explore: ${atomTitle}, ${exploreUrl}`
 
   return sourceTweet
 }

@@ -1,21 +1,59 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useUnpostedAtoms } from './hooks/useUnpostedAtoms'
 import { generatePost } from './actions/generatePost'
-import type { SynthesizedAtom, GeneratedPost } from './types'
+import type { SynthesizedAtom, GeneratedPost, TweetContent } from './types'
 import { usePostToTwitter } from './hooks/usePostToTwitter'
+
+// Define character limit constant
+const TWITTER_CHAR_LIMIT = 280
+
+// Interface for validation state
+interface TweetValidation {
+  count: number
+  isOverLimit: boolean
+}
 
 const PostMakerView = () => {
   const { atoms, loading, error } = useUnpostedAtoms()
   const [selectedAtom, setSelectedAtom] = useState<SynthesizedAtom | null>(null)
   const [post, setPost] = useState<GeneratedPost | null>(null)
   const [isGenerating, setIsGenerating] = useState(false)
+  const [validationError, setValidationError] = useState<string | null>(null) // State for general validation/posting errors
   const { handlePost, isPosting, result, error: postError } = usePostToTwitter()
+  // New state for individual tweet validations (length checks)
+  const [tweetValidations, setTweetValidations] = useState<TweetValidation[]>([])
+  // State to track overall post validity based on character counts
+  const [isPostValid, setIsPostValid] = useState(true)
+
+  // Effect to update overall validity when individual tweet validations change
+  useEffect(() => {
+    const overallValidity = tweetValidations.every((v) => !v.isOverLimit)
+    setIsPostValid(overallValidity)
+  }, [tweetValidations])
 
   const handleAtomSelect = (atom: SynthesizedAtom) => {
     setSelectedAtom(atom)
     setPost(null) // Clear previous post
+    setValidationError(null) // Clear validation error on new selection
+    setTweetValidations([]) // Clear validations
+    setIsPostValid(true) // Reset validity
+  }
+
+  // Helper function to validate character counts for all tweets in content
+  const validatePostContent = (content: TweetContent[]): TweetValidation[] => {
+    return content.map((tweet) => {
+      // We check all tweets, including source, for consistency.
+      const count = tweet.text.length
+      const isOverLimit = count > TWITTER_CHAR_LIMIT
+      if (isOverLimit) {
+        console.warn(
+          `Validation: Tweet exceeds limit (${count}/${TWITTER_CHAR_LIMIT}): \"${tweet.text.substring(0, 30)}...\"`,
+        )
+      }
+      return { count, isOverLimit }
+    })
   }
 
   const handleGeneratePost = async () => {
@@ -23,33 +61,80 @@ const PostMakerView = () => {
 
     try {
       setIsGenerating(true)
+      setValidationError(null) // Clear previous validation errors
+      setTweetValidations([]) // Clear previous validations
+      setIsPostValid(true) // Assume valid initially
 
       // Call the real LLM-powered generation
       console.log('Generating post for atom:', selectedAtom)
       const generatedPost = await generatePost(selectedAtom)
-      setPost(generatedPost)
+
+      // --- START: Validate generated content ---
+      if (generatedPost && generatedPost.content) {
+        // Perform validation after getting content
+        const validations = validatePostContent(generatedPost.content)
+        setTweetValidations(validations) // Update state with validation results
+      } else {
+        setTweetValidations([]) // Clear if no content
+      }
+      // --- END: Validate generated content ---
+
+      setPost(generatedPost) // Set the post state regardless of validation for preview
     } catch (error) {
       console.error('Error generating post:', error)
+      setValidationError('Failed to generate post. Check console.') // Show generation error
+      setTweetValidations([]) // Clear validations on error
+      setIsPostValid(false) // Mark as invalid on generation error
     } finally {
       setIsGenerating(false)
     }
   }
 
   const handlePostToSocials = async () => {
-    if (!post) return
+    // Validation is now done proactively, just check isPostValid state
+    if (!post || !isPostValid) {
+      console.error('Post is invalid or does not exist, cannot post.')
+      // Set a user-friendly error message based on why it's invalid
+      setValidationError(
+        !post
+          ? 'No post generated yet.'
+          : `Cannot post: One or more tweets exceed the ${TWITTER_CHAR_LIMIT} character limit.`,
+      )
+      return
+    }
+
+    setValidationError(null) // Clear previous validation errors if any before attempting post
 
     try {
       console.log('Starting post to socials process')
-      const postResult = await handlePost(post)
+      const postResult = await handlePost(post) // This uses the hook which calls the action
 
+      // @ts-ignore - Allow checking properties on potentially dynamic result
       if (postResult.success) {
-        alert(`Posted to Twitter successfully! Tweet IDs: ${postResult.tweetIds.join(', ')}`)
+        alert(
+          // @ts-ignore
+          `Posted to Twitter successfully! Tweet IDs: ${postResult.tweetIds.join(', ')}`,
+        )
+        // Reset UI after successful post
+        setSelectedAtom(null)
+        setPost(null)
+        setTweetValidations([])
+        setIsPostValid(true) // Reset validity state
       } else {
-        alert('Failed to post to Twitter. Check console for details.')
+        // Use postError from the hook if available, otherwise provide a generic message
+        const errorMessage =
+          postError || 'Failed to post to Twitter. Check action logs for details.'
+        console.error('Posting failed:', errorMessage, postResult)
+        setValidationError(`Posting Error: ${errorMessage}`) // Display the specific error
+        alert(`Posting failed: ${errorMessage}`)
       }
     } catch (error) {
+      // Catch errors from handlePost itself (e.g., network issues)
       console.error('Error in post handler:', error)
-      alert('Error posting to Twitter')
+      const message =
+        error instanceof Error ? error.message : 'An unknown error occurred during posting.'
+      setValidationError(`Error: ${message}`)
+      alert(`Error posting to Twitter: ${message}`)
     }
   }
 
@@ -218,29 +303,50 @@ const PostMakerView = () => {
           <div className="p-4">
             {post ? (
               <div className="space-y-6">
-                {post.content.map((tweet, index) => (
-                  <div key={index} className="border border-gray-700 rounded-xl p-4 bg-gray-800">
-                    {/* Tweet header */}
-                    <div className="flex items-center mb-3">
-                      <div className="w-10 h-10 bg-blue-900 rounded-full flex items-center justify-center text-blue-400 font-bold">
-                        V
+                {/* Map through generated tweets and display with validation */}
+                {post.content.map((tweet, index) => {
+                  // Get validation status for this specific tweet
+                  const validation = tweetValidations[index] || { count: 0, isOverLimit: false }
+                  // Determine color based on validation status
+                  const countColor = validation.isOverLimit ? 'text-red-400' : 'text-gray-500'
+
+                  return (
+                    <div
+                      key={index}
+                      // Add conditional border color based on validation
+                      className={`border rounded-xl p-4 bg-gray-800 ${
+                        validation.isOverLimit ? 'border-red-600' : 'border-gray-700'
+                      }`}
+                    >
+                      {/* Tweet header */}
+                      <div className="flex items-center mb-3">
+                        <div className="w-10 h-10 bg-blue-900 rounded-full flex items-center justify-center text-blue-400 font-bold">
+                          V {/* Placeholder for profile pic */}
+                        </div>
+                        <div className="ml-3">
+                          <div className="font-bold text-white">Valentine Agent</div>{' '}
+                          {/* Placeholder */}
+                          <div className="text-gray-400 text-sm">@valentinei</div>{' '}
+                          {/* Placeholder */}
+                        </div>
                       </div>
-                      <div className="ml-3">
-                        <div className="font-bold text-white">Valentine Agent</div>
-                        <div className="text-gray-400 text-sm">@valentinei</div>
+
+                      {/* Tweet content */}
+                      <div className="mb-3 whitespace-pre-wrap text-gray-200">{tweet.text}</div>
+
+                      {/* Tweet footer with character count */}
+                      <div className="flex items-center justify-between text-sm pt-2 border-t border-gray-700">
+                        <div className="text-gray-500">
+                          {tweet.isSourceTweet ? 'Source tweet' : `Tweet ${index + 1}`}
+                        </div>
+                        {/* Display character count with dynamic color */}
+                        <div className={countColor}>
+                          {validation.count}/{TWITTER_CHAR_LIMIT}
+                        </div>
                       </div>
                     </div>
-
-                    {/* Tweet content */}
-                    <div className="mb-3 whitespace-pre-wrap text-gray-200">{tweet.text}</div>
-
-                    {/* Tweet footer */}
-                    <div className="flex items-center justify-between text-gray-500 text-sm pt-2 border-t border-gray-700">
-                      <div>{tweet.isSourceTweet ? 'Source tweet' : 'Main tweet'}</div>
-                      <div>{new Date().toLocaleDateString()}</div>
-                    </div>
-                  </div>
-                ))}
+                  )
+                })}
 
                 {/* Show generation details if available */}
                 {post.usage && (
@@ -257,19 +363,37 @@ const PostMakerView = () => {
                   </div>
                 )}
 
-                {/* Post to Socials button */}
+                {/* --- START: Display Validation/Error Messages --- */}
+                {/* General validation/posting error */}
+                {validationError && (
+                  <div className="mt-4 p-3 border border-red-600 bg-red-900/30 rounded text-red-400 text-sm">
+                    {validationError}
+                  </div>
+                )}
+                {/* Specific message if post is invalid due to length and no other error exists */}
+                {!isPostValid && !validationError && (
+                  <div className="mt-4 p-3 border border-red-600 bg-red-900/30 rounded text-red-400 text-sm">
+                    Cannot post: One or more tweets exceed the {TWITTER_CHAR_LIMIT} character limit.
+                    Please regenerate or edit the content.
+                  </div>
+                )}
+                {/* --- END: Display Validation/Error Messages --- */}
+
+                {/* Post to Socials button - updated disabled logic */}
                 <div className="flex justify-center mt-4">
                   <button
                     onClick={handlePostToSocials}
-                    disabled={isPosting}
+                    // Disable if posting, no post exists, OR if the post is invalid (length)
+                    disabled={isPosting || !post || !isPostValid}
                     className={`px-6 py-2 rounded-md text-white font-medium transition ${
-                      isPosting
-                        ? 'bg-gray-700 cursor-not-allowed'
-                        : 'bg-green-600 hover:bg-green-700'
+                      isPosting || !post || !isPostValid
+                        ? 'bg-gray-700 cursor-not-allowed opacity-50' // Disabled style
+                        : 'bg-green-600 hover:bg-green-700' // Enabled style
                     }`}
                   >
                     {isPosting ? (
                       <span className="flex items-center">
+                        {/* Spinner SVG */}
                         <svg
                           className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
                           xmlns="http://www.w3.org/2000/svg"
@@ -298,16 +422,19 @@ const PostMakerView = () => {
                   </button>
                 </div>
 
-                {/* Add error display if needed */}
+                {/* Display posting error from the hook if it occurs */}
                 {postError && <div className="text-red-400 text-sm mt-2">Error: {postError}</div>}
 
+                {/* Informational text */}
                 <div className="text-xs text-gray-500 text-center mt-4">
-                  This is a preview. The post will be published to Twitter and Bluesky when
-                  implemented.
+                  Preview only. Character counts shown. Post will be sent to Twitter if valid.
                 </div>
               </div>
             ) : (
-              <p className="text-gray-400">Generate a post to see preview</p>
+              // Placeholder if no post is generated yet
+              <p className="text-gray-400">
+                Generate a post to see preview and check character limits
+              </p>
             )}
           </div>
         </div>

@@ -1,8 +1,8 @@
 import { getTwitterClient } from './store'
 
-interface TweetResult {
-  id: string
-  [key: string]: any
+interface TweetResultData {
+  id?: string
+  [key: string]: any // Allow other properties
 }
 
 /**
@@ -29,55 +29,62 @@ export const postTweet = async (content: string, inReplyToId?: string): Promise<
       return { id: mockId }
     }
 
-    let tweetId: string | null = null
+    let response: Response | null = null
 
     if (inReplyToId) {
-      // For reply-based thread tweets
       console.log(`Creating thread tweet as reply to ${inReplyToId}`)
-
-      // Send the tweet as a reply without adding username mention
-      const result = (await twitter.sendTweet(content, inReplyToId)) as unknown as TweetResult
+      response = (await twitter.sendTweet(content, inReplyToId)) as Response
       console.log('Thread tweet sent successfully as reply')
-
-      // Check if result has ID
-      if (result && typeof result === 'object' && 'id' in result) {
-        tweetId = result.id
-      }
     } else {
       console.log('Sending new tweet')
-      const result = (await twitter.sendTweet(content)) as unknown as TweetResult
+      response = (await twitter.sendTweet(content)) as Response
       console.log('Tweet sent successfully')
-
-      // Check if result has ID
-      if (result && typeof result === 'object' && 'id' in result) {
-        tweetId = result.id
-      }
     }
 
-    // If we got an ID directly, return it
-    if (tweetId) {
-      console.log('Got tweet ID directly:', tweetId)
+    if (!response || !response.ok) {
+      console.error(
+        'Tweet request failed or response was not OK:',
+        response?.status,
+        response?.statusText,
+      )
+      throw new Error(
+        `Tweet request failed with status: ${response?.status} ${response?.statusText}`,
+      )
+    }
+
+    let responseData: TweetResultData | null = null
+    try {
+      responseData = await response.json()
+      console.log('Parsed response data from sendTweet:', JSON.stringify(responseData, null, 2))
+    } catch (parseError) {
+      console.error('Failed to parse JSON response from sendTweet:', parseError)
+      throw new Error('Failed to parse tweet response body.')
+    }
+
+    const tweetId =
+      responseData?.data?.create_tweet?.tweet_results?.result?.rest_id ??
+      responseData?.data?.tweet_result?.rest_id ??
+      responseData?.rest_id ??
+      responseData?.id
+
+    if (tweetId && typeof tweetId === 'string') {
+      console.log('Extracted tweet ID from response data:', tweetId)
       return { id: tweetId }
+    } else {
+      console.error('Failed to extract tweet ID from parsed response data. Data was:', responseData)
+      throw new Error('Failed to extract tweet ID from API response structure.')
     }
-
-    // Otherwise, get the latest tweet to get its ID
-    const username = process.env.TWITTER_USERNAME
-    if (!username) {
-      throw new Error('Twitter username not found in environment variables')
-    }
-
-    console.log('Fetching latest tweet to get ID')
-    const latestTweet = await twitter.getLatestTweet(username as string)
-
-    if (!latestTweet) {
-      console.error('Failed to get tweet ID after posting')
-      throw new Error('Failed to get tweet ID after posting')
-    }
-
-    console.log('Successfully got tweet ID:', latestTweet.id)
-    return { id: latestTweet.id as string }
   } catch (error) {
-    console.error('Error posting tweet:', error)
-    throw error
+    if (
+      error instanceof Error &&
+      (error.message.startsWith('Failed to extract tweet ID') ||
+        error.message.startsWith('Failed to parse tweet response') ||
+        error.message.startsWith('Tweet request failed'))
+    ) {
+      // Error already logged
+    } else {
+      console.error('Error during tweet posting process:', error)
+    }
+    throw error // Re-throw
   }
 }

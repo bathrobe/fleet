@@ -735,6 +735,10 @@ export interface Agent {
     jitter?: number | null;
     enabled?: boolean | null;
   };
+  /**
+   * Session cookies for Twitter, automatically managed. Do not edit manually unless necessary.
+   */
+  twitterCookieData?: string | null;
   updatedAt?: string | null;
   createdAt?: string | null;
 }
@@ -755,6 +759,7 @@ export interface AgentSelect<T extends boolean = true> {
         jitter?: T;
         enabled?: T;
       };
+  twitterCookieData?: T;
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;

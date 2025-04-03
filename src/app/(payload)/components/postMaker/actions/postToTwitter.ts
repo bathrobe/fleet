@@ -1,5 +1,8 @@
 'use server'
 
+import type { Payload } from 'payload'
+import { getPayload } from 'payload'
+import payloadConfig from '../../../../../payload.config'
 import { initTwitter } from '../services/twitter/initialize'
 import { postTweet } from '../services/twitter/post'
 import type { GeneratedPost } from '../types'
@@ -9,11 +12,14 @@ export const postToTwitter = async (
 ): Promise<{ success: boolean; tweetIds: string[] }> => {
   console.log('Starting Twitter post process')
   try {
-    // Initialize Twitter client
-    console.log('Initializing Twitter client')
-    await initTwitter()
+    console.log('Getting Payload client for Twitter init...')
+    const payload = await getPayload({ config: payloadConfig })
+    console.log('Payload client obtained.')
 
-    // Post tweets in a thread (except source tweet)
+    console.log('Initializing Twitter client with Payload instance...')
+    await initTwitter(payload)
+    console.log('Twitter client initialized.')
+
     const mainTweets = post.content.filter((tweet) => !tweet.isSourceTweet)
     const sourceTweet = post.content.find((tweet) => tweet.isSourceTweet)
 
@@ -24,24 +30,20 @@ export const postToTwitter = async (
     const tweetIds: string[] = []
     let lastTweetId: string | undefined = undefined
 
-    // Post the first tweet of the thread
     if (mainTweets.length > 0) {
       console.log('Posting first tweet of thread')
       const firstTweetResult = await postTweet(mainTweets[0].text)
       tweetIds.push(firstTweetResult.id)
       lastTweetId = firstTweetResult.id
 
-      // Post the rest of the tweets in the thread as replies
       for (let i = 1; i < mainTweets.length; i++) {
         console.log(`Posting tweet ${i + 1}/${mainTweets.length} in thread`)
-        // Use the previous tweet ID to create a thread
         const result = await postTweet(mainTweets[i].text, lastTweetId)
         tweetIds.push(result.id)
         lastTweetId = result.id
       }
     }
 
-    // Post source tweet as a reply to the last main tweet
     if (sourceTweet) {
       console.log('Posting source tweet')
       const result = await postTweet(sourceTweet.text, lastTweetId)
@@ -52,6 +54,8 @@ export const postToTwitter = async (
     return { success: true, tweetIds }
   } catch (error) {
     console.error('Error posting to Twitter:', error)
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error during posting'
+    console.error(`Posting Action Failed: ${errorMessage}`)
     return { success: false, tweetIds: [] }
   }
 }

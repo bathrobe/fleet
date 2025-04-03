@@ -1,0 +1,25 @@
+import { getTwitterClient } from './store'
+
+export const postTweet = async (content: string, inReplyToId?: string): Promise<{ id: string }> => {
+  console.log('Posting tweet')
+  const twitter = getTwitterClient()
+
+  try {
+    if (process.env.TWITTER_DRY_RUN === 'true') {
+      return { id: `mock_${Date.now()}` }
+    }
+
+    const result = inReplyToId
+      ? await twitter.sendTweet(content, inReplyToId)
+      : await twitter.sendTweet(content)
+
+    if (result && typeof result === 'object' && 'id' in result) {
+      return { id: result.id }
+    } else {
+      throw new Error('Failed to get tweet ID')
+    }
+  } catch (error) {
+    console.error('Error posting tweet:', error)
+    throw error
+  }
+}

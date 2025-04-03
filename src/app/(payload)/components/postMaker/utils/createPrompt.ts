@@ -114,7 +114,7 @@ ${parentAtomsText}
 
 <output_requirements>
 - Write one tweet that presents the concept in your distinctive voice
-- The tweet must be under 280 characters
+- The tweet MUST be under 280 characters
 - Maintain the agent's unique voice and style
 - Do not include any explanations or comments outside the JSON object
 </output_requirements>
@@ -125,5 +125,6 @@ Your response MUST be valid JSON containing an array with a single tweet object,
 ]
 
 Do not include any explanations or comments outside the JSON object.
+REMEMBER: The tweet MUST be under 280 characters. DO NOT EXCEED THIS LIMIT.
 </instruction>`
 }
