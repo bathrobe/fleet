@@ -33,11 +33,11 @@ export const postTweet = async (content: string, inReplyToId?: string): Promise<
 
     if (inReplyToId) {
       console.log(`Creating thread tweet as reply to ${inReplyToId}`)
-      response = (await twitter.sendTweet(content, inReplyToId)) as Response
+      response = (await twitter?.sendTweet?.(content, inReplyToId)) as Response
       console.log('Thread tweet sent successfully as reply')
     } else {
       console.log('Sending new tweet')
-      response = (await twitter.sendTweet(content)) as Response
+      response = (await twitter?.sendTweet?.(content)) as Response
       console.log('Tweet sent successfully')
     }
 
