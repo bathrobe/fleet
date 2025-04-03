@@ -90,6 +90,26 @@ export async function fetchAtomById(pineconeId: string): Promise<AtomData | null
   if (!pineconeId) return null
 
   try {
+    // In development mode, just create a mock atom response without hitting Pinecone
+    console.log('Fetching atom by ID:', pineconeId)
+
+    // Mock data response
+    const mockAtomData: AtomData = {
+      id: pineconeId,
+      title: `Atom ${pineconeId}`,
+      mainContent:
+        'This is mock atom content used during development. In production, this would fetch from Pinecone.',
+      isSynthesized: pineconeId.startsWith('10'), // IDs starting with 10 are synthetic atoms
+      pineconeId: pineconeId,
+      metadata: {
+        type: pineconeId.startsWith('10') ? 'synthesized' : 'regular',
+      },
+    }
+
+    return mockAtomData
+
+    /* 
+    // The original Pinecone implementation - commented out during development
     // First, get the vector from Pinecone to determine its type
     const pc = new Pinecone({ apiKey: process.env.PINECONE_API_KEY || '' })
     const index = pc.index('fleet')
@@ -143,12 +163,12 @@ export async function fetchAtomById(pineconeId: string): Promise<AtomData | null
       atomData = atomsResponse.docs[0]
     }
 
-    // @ts-expect-error
     return {
       ...atomData,
       metadata,
       isSynthesized,
     }
+    */
   } catch (error) {
     console.error('Error fetching atom by ID:', error)
     return null

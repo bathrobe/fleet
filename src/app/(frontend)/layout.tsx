@@ -1,28 +1,19 @@
 import React from 'react'
 import '@/styles/globals.css'
-import Link from 'next/link'
 import { Toaster } from '@/app/ui/sonner'
 
 export const metadata = {
-  description: 'A blank template using Payload in a Next.js app.',
-  title: 'Payload Blank Template',
+  description: 'Concept Vector Explorer',
+  title: 'Concept Vector Explorer',
 }
 
-export default async function RootLayout(props: { children: React.ReactNode }) {
-  const { children } = props
-
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body>
-        <header className="w-full py-4 px-6 border-b border-gray-200 bg-white dark:bg-slate-900 flex items-center justify-between">
-          <div className="font-bold text-2xl">Concept Vector Explorer</div>
-          <nav className="flex space-x-6">
-            <Link href="/" className="font-medium hover:text-primary">
-              Home
-            </Link>
-          </nav>
-        </header>
-        <main>{children}</main>
+      <body className="dark:bg-slate-900 text-gray-900 dark:text-gray-100">
+        <div className="flex flex-col h-screen">
+          <main className="flex-1 overflow-auto">{children}</main>
+        </div>
         <Toaster />
       </body>
     </html>

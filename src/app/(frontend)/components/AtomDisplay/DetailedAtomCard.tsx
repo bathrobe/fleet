@@ -7,7 +7,6 @@ import { Separator } from '../../../ui/separator'
 import { cn } from '@/app/(frontend)/lib/utils'
 import { BookOpen, Quote, Info, Link, ChevronDown, ChevronUp, Atom } from 'lucide-react'
 import { SourceCard } from './SourceCard'
-import { ViewInGraphButton } from '../ViewInGraphButton'
 
 type DetailedAtomCardProps = {
   atom: AtomData | null
@@ -102,15 +101,6 @@ export function DetailedAtomCard({
           )}
         </div>
         <div className="flex items-center gap-2">
-          {(vectorId || atom.pineconeId) && (
-            <ViewInGraphButton
-              atomId={atom.id}
-              pineconeId={vectorId || atom.pineconeId || ''}
-              collection={atom.isSynthesized ? 'synthesizedAtoms' : 'atoms'}
-              size="sm"
-              variant="ghost"
-            />
-          )}
           {onClose && (
             <button
               onClick={onClose}

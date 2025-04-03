@@ -1,36 +1,16 @@
-import { ConceptGraphContainer } from '@/app/(frontend)/components/ConceptGraph/ConceptGraphContainer'
-import { Suspense } from 'react'
-
-export default async function HomePage({ searchParams }: any) {
-  const params = await searchParams
-  // Extract atom parameters with shorter names
-  // v = vector id (pineconeId), a = atom id, t = type (s = synthesized)
-  const getParam = (param: string): string | undefined => {
-    const value = params[param]
-    return typeof value === 'string' ? value : Array.isArray(value) ? value[0] : undefined
-  }
-
-  const vectorId = getParam('v')
-  const atomId = getParam('a')
-  const type = getParam('t')
-
-  // Determine collection from type parameter (s = synthesizedAtoms, otherwise atoms)
-  const collection = type === 's' ? 'synthesizedAtoms' : 'atoms'
-
+export default function HomePage() {
   return (
-    <div className="flex h-screen">
-      <main className="flex-1 p-4 overflow-auto">
-        {/* Concept Graph */}
-        <div className="overflow-hidden bg-white dark:bg-slate-900 mb-2">
-          <Suspense fallback={<div className="p-4">Loading concept graph...</div>}>
-            <ConceptGraphContainer
-              initialAtomId={atomId}
-              initialPineconeId={vectorId}
-              initialCollection={collection}
-            />
-          </Suspense>
-        </div>
-      </main>
+    <div className="flex items-center justify-center h-screen">
+      <div className="text-center">
+        <h1 className="text-4xl font-bold mb-4">Hello World</h1>
+        <p className="text-xl">Welcome to the Concept Vector Explorer</p>
+        <a
+          href="/graph"
+          className="inline-block mt-6 px-6 py-3 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors"
+        >
+          View Concept Graph
+        </a>
+      </div>
     </div>
   )
 }
