@@ -239,3 +239,25 @@ export async function fetchAtom(id: string) {
     throw new Error('Failed to fetch atom')
   }
 }
+
+/**
+ * Server action to fetch sources with pagination
+ */
+export async function getSources(limit = 50, page = 1) {
+  try {
+    const payload = await getPayload({ config })
+
+    const result = await payload.find({
+      collection: 'sources',
+      limit,
+      page,
+      sort: 'title',
+      depth: 1,
+    })
+
+    return result
+  } catch (error) {
+    console.error('Error fetching sources:', error)
+    throw new Error('Failed to fetch sources')
+  }
+}

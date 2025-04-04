@@ -2,6 +2,7 @@
 export interface BaseItem {
   id: string | number
   title?: string | null
+  description?: string | null
 }
 
 // Source-specific types
