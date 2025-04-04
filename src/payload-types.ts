@@ -83,6 +83,9 @@ export interface Config {
     sources: {
       relatedAtoms: 'atoms';
     };
+    atoms: {
+      synthesizedAtoms: 'synthesizedAtoms';
+    };
   };
   collectionsSelect: {
     users: UsersSelect<false> | UsersSelect<true>;
@@ -340,6 +343,14 @@ export interface Atom {
    * The source this atom is derived from
    */
   source: number | Source;
+  /**
+   * Synthesized atoms derived from this atom
+   */
+  synthesizedAtoms?: {
+    docs?: (number | SynthesizedAtom)[];
+    hasNextPage?: boolean;
+    totalDocs?: number;
+  };
   updatedAt: string;
   createdAt: string;
 }
@@ -648,6 +659,7 @@ export interface AtomsSelect<T extends boolean = true> {
         id?: T;
       };
   source?: T;
+  synthesizedAtoms?: T;
   updatedAt?: T;
   createdAt?: T;
 }

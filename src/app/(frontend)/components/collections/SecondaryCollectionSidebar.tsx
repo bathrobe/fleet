@@ -4,9 +4,9 @@ import React, { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Search } from 'lucide-react'
-import { Input } from '@/app/(frontend)/ui/input'
-import { cn } from '@/app/(frontend)/lib/utils'
-import { BaseItem } from '@/app/(frontend)/lib/types'
+import { Input } from '../../ui/input'
+import { cn } from '../../lib/utils'
+import { BaseItem } from '../../lib/types'
 
 interface SecondaryCollectionSidebarProps {
   title: string

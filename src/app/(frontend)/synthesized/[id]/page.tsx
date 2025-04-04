@@ -1,76 +1,26 @@
-'use client'
+import { fetchSynthesizedAtom } from '@/app/(frontend)/actions/atoms'
+import { SynthesizedAtomDetail } from '../../components/synthesized/SynthesizedAtomDetail'
+import { SynthesizedAtomRelatedSidebar } from '../../components/common/RelatedItemsSidebar'
+import { notFound } from 'next/navigation'
 
-import { useState, useEffect } from 'react'
-import { useParams } from 'next/navigation'
-import { getSynthesizedAtomById } from '../../lib/data/synthesizedAtomsData'
-import { SyntheticAtomItem } from '../../lib/types'
+export default async function SynthesizedAtomDetailPage({ params }: { params: { id: string } }) {
+  try {
+    const atom = await fetchSynthesizedAtom(params.id)
 
-export default function SynthesizedAtomDetailPage() {
-  const { id } = useParams()
-  const [atom, setAtom] = useState<SyntheticAtomItem | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-
-  useEffect(() => {
-    const loadAtom = async () => {
-      if (!id) return
-
-      setIsLoading(true)
-      try {
-        const atomId = Array.isArray(id) ? id[0] : id
-        const data = await getSynthesizedAtomById(atomId)
-        setAtom(data)
-      } catch (error) {
-        console.error(`Error loading synthesized atom ${id}:`, error)
-      } finally {
-        setIsLoading(false)
-      }
+    if (!atom) {
+      notFound()
     }
 
-    loadAtom()
-  }, [id])
-
-  if (isLoading) {
     return (
-      <div className="flex h-full w-full items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-gray-300 border-t-indigo-600" />
+      <div className="flex h-full overflow-hidden">
+        <div className="flex-1 overflow-auto">
+          <SynthesizedAtomDetail atom={atom} />
+        </div>
+        <SynthesizedAtomRelatedSidebar synthesizedAtom={atom} />
       </div>
     )
+  } catch (error) {
+    console.error(`Error loading synthesized atom ${params.id}:`, error)
+    throw new Error('Failed to load synthesized atom')
   }
-
-  if (!atom) {
-    return (
-      <div className="flex h-full w-full items-center justify-center">
-        <div className="max-w-md text-center">
-          <h2 className="text-2xl font-bold">Synthesized Atom Not Found</h2>
-          <p className="mt-2 text-muted-foreground">
-            The synthesized atom you are looking for could not be found.
-          </p>
-        </div>
-      </div>
-    )
-  }
-
-  return (
-    <div className="mx-auto max-w-3xl p-4">
-      <div className="rounded-lg border border-green-200 bg-card p-6 shadow-sm">
-        <h1 className="mb-4 text-2xl font-bold">{atom.title}</h1>
-
-        <div className="mb-6 rounded-md bg-muted p-4">
-          <h3 className="mb-2 text-sm font-semibold uppercase">Synthesized Content</h3>
-          <p>{atom.mainContent}</p>
-        </div>
-
-        {/* Additional synthesized atom information would go here */}
-        <div className="mt-4 flex flex-col gap-2">
-          <h3 className="text-sm font-semibold uppercase">Atom Information</h3>
-          <div className="grid grid-cols-2 gap-2 text-sm">
-            <div className="text-muted-foreground">ID</div>
-            <div>{atom.id}</div>
-            <div className="text-muted-foreground">Type</div>
-            <div>Synthesized Atom</div>
-          </div>
-        </div>
-      </div>
-    </div>
-  )
 }

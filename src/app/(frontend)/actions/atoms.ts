@@ -261,3 +261,23 @@ export async function getSources(limit = 50, page = 1) {
     throw new Error('Failed to fetch sources')
   }
 }
+
+/**
+ * Server action to fetch a specific source by ID
+ */
+export async function fetchSource(id: string) {
+  try {
+    const payload = await getPayload({ config })
+
+    const result = await payload.findByID({
+      collection: 'sources',
+      id,
+      depth: 2, // Include related atoms data
+    })
+
+    return result
+  } catch (error) {
+    console.error('Error fetching source:', error)
+    throw new Error('Failed to fetch source')
+  }
+}

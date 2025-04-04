@@ -1,41 +1,47 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { SecondaryCollectionSidebar } from '../components/collections/SecondaryCollectionSidebar'
-import { getSynthesizedAtoms } from '../actions/atoms' // Use the real server action
+import { SecondaryCollectionSidebar } from './components/collections/SecondaryCollectionSidebar'
+import { getSynthesizedAtoms } from './actions/atoms' // Use the real server action
+
+interface ItemType {
+  id: string | number
+  title: string
+  description: string
+}
 
 export default function SynthesizedAtomsLayout({ children }: { children: React.ReactNode }) {
-  const [items, setItems] = useState([])
+  const [items, setItems] = useState<ItemType[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
-  useEffect(() => {
-    async function loadData() {
-      setIsLoading(true)
-      try {
-        // Call the real Payload API
-        const result = await getSynthesizedAtoms(100, 1) // Get up to 100 items
-        console.log('Synthesized atoms API result:', result) // Log for debugging
+  const loadData = async () => {
+    setIsLoading(true)
+    try {
+      // Call the real Payload API
+      const result = await getSynthesizedAtoms(100, 1) // Get up to 100 items
+      console.log('Synthesized atoms API result:', result) // Log for debugging
 
-        // Map to the format expected by the sidebar
-        const mappedItems = result.docs.map((atom) => ({
-          id: atom.id,
-          title: atom.title || `Synthesized Atom ${atom.id}`,
-          description: atom.mainContent?.substring(0, 100) || 'No description',
-        }))
+      // Map to the format expected by the sidebar
+      const mappedItems = result.docs.map((atom) => ({
+        id: atom.id,
+        title: atom.title || `Synthesized Atom ${atom.id}`,
+        description: atom.mainContent?.substring(0, 100) || 'No description',
+      }))
 
-        setItems(mappedItems)
-      } catch (error) {
-        console.error('Error loading synthesized atoms:', error)
-      } finally {
-        setIsLoading(false)
-      }
+      setItems(mappedItems)
+    } catch (error) {
+      console.error('Error loading synthesized atoms:', error)
+    } finally {
+      setIsLoading(false)
     }
+  }
 
+  useEffect(() => {
     loadData()
   }, [])
 
   // Simple client-side search
-  const handleSearch = (query) => {
+  const handleSearch = (query: string) => {
     if (!query) {
       loadData()
       return

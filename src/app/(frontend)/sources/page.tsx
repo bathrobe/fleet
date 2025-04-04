@@ -1,6 +1,6 @@
 'use client'
 
-import { SidebarInset, SidebarTrigger } from '@/app/(frontend)/ui/sidebar'
+import { SidebarInset, SidebarTrigger } from '../ui/sidebar'
 
 export default function SourcesPage() {
   return (

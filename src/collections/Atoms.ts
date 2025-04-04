@@ -75,5 +75,15 @@ export const Atoms: CollectionConfig = {
         description: 'The source this atom is derived from',
       },
     },
+    {
+      name: 'synthesizedAtoms',
+      type: 'join',
+      collection: 'synthesizedAtoms',
+      on: 'parentAtoms',
+      admin: {
+        description: 'Synthesized atoms derived from this atom',
+        defaultColumns: ['title', 'mainContent', 'createdAt'],
+      },
+    },
   ],
 }
