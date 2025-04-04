@@ -3,85 +3,43 @@
 import React from 'react'
 import { formatDate } from '@/app/(frontend)/lib/utils'
 import { SynthesizedAtom } from '@/payload-types'
-import { Badge } from '@/app/ui/badge'
-import { Lightbulb } from 'lucide-react'
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/app/(frontend)/ui/tooltip'
 
 interface SynthesizedAtomDetailProps {
   atom: SynthesizedAtom
 }
 
-// Extend SynthesizedAtom type for runtime properties
-interface ExtendedSynthesizedAtom extends SynthesizedAtom {
-  posting?: {
-    isPosted?: boolean
-    twitterUrl?: string
-    bskyUrl?: string
-  }
-}
-
 export function SynthesizedAtomDetail({ atom }: SynthesizedAtomDetailProps) {
-  // Use type assertion to handle runtime properties
-  const extendedAtom = atom as ExtendedSynthesizedAtom
-
   return (
     <div className="mx-auto max-w-4xl p-6">
       <div className="rounded-lg border border-green-200 bg-card p-6 shadow-sm">
         <h1 className="mb-6 text-2xl font-bold leading-tight">
-          {extendedAtom.title || 'Untitled Synthesized Atom'}
+          {atom.title || 'Untitled Synthesized Atom'}
         </h1>
-
-        {/* Display synthesis method if available */}
-        {extendedAtom.synthesisMethod && (
-          <div className="mb-4">
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Badge
-                  variant="outline"
-                  className="border-purple-300 dark:border-purple-700 flex items-center gap-1"
-                >
-                  <Lightbulb className="h-3 w-3 text-purple-500 dark:text-purple-400" />
-                  <span className="text-xs text-purple-600 dark:text-purple-400">
-                    {typeof extendedAtom.synthesisMethod === 'object'
-                      ? extendedAtom.synthesisMethod.title
-                      : 'Synthesized'}
-                  </span>
-                </Badge>
-              </TooltipTrigger>
-              <TooltipContent className="max-w-xs bg-purple-50 dark:bg-purple-900 border border-purple-200 dark:border-purple-700 text-purple-800 dark:text-purple-200 py-2 px-3 rounded-md shadow-md">
-                {typeof extendedAtom.synthesisMethod === 'object' &&
-                extendedAtom.synthesisMethod.description
-                  ? extendedAtom.synthesisMethod.description
-                  : 'A method for synthesizing atoms'}
-              </TooltipContent>
-            </Tooltip>
-          </div>
-        )}
 
         <div className="mb-8 rounded-md bg-muted p-5">
           <h3 className="mb-3 text-sm font-semibold uppercase">Synthesized Content</h3>
           <p className="whitespace-pre-wrap text-base leading-relaxed" style={{ maxWidth: '65ch' }}>
-            {extendedAtom.mainContent}
+            {atom.mainContent}
           </p>
         </div>
 
-        {extendedAtom.theoryFiction && (
+        {atom.theoryFiction && (
           <div className="mb-8">
             <h3 className="mb-3 text-sm font-semibold uppercase">Theory Fiction</h3>
             <blockquote
               className="border-l-4 border-green-300 pl-5 py-2 italic bg-gray-50 dark:bg-gray-800 p-4 rounded text-base leading-relaxed"
               style={{ maxWidth: '65ch' }}
             >
-              {extendedAtom.theoryFiction}
+              {atom.theoryFiction}
             </blockquote>
           </div>
         )}
 
-        {extendedAtom.supportingInfo && extendedAtom.supportingInfo.length > 0 && (
+        {atom.supportingInfo && atom.supportingInfo.length > 0 && (
           <div className="mb-8">
             <h3 className="mb-3 text-sm font-semibold uppercase">Supporting Information</h3>
             <ul className="ml-6 list-disc space-y-3" style={{ maxWidth: '65ch' }}>
-              {extendedAtom.supportingInfo.map((info, index) => (
+              {atom.supportingInfo.map((info, index) => (
                 <li key={index} className="text-base leading-relaxed">
                   {info.text}
                 </li>
@@ -90,20 +48,20 @@ export function SynthesizedAtomDetail({ atom }: SynthesizedAtomDetailProps) {
           </div>
         )}
 
-        {extendedAtom.posting && (
+        {atom.posting && (
           <div className="mb-8">
             <h3 className="mb-3 text-sm font-semibold uppercase">Posting Status</h3>
             <div className="rounded-md bg-muted p-4">
               <div className="flex items-center">
                 <div
-                  className={`h-2 w-2 rounded-full mr-2 ${extendedAtom.posting.isPosted ? 'bg-green-500' : 'bg-gray-300'}`}
+                  className={`h-2 w-2 rounded-full mr-2 ${atom.posting.isPosted ? 'bg-green-500' : 'bg-gray-300'}`}
                 ></div>
-                <p>{extendedAtom.posting.isPosted ? 'Posted' : 'Not Posted'}</p>
+                <p>{atom.posting.isPosted ? 'Posted' : 'Not Posted'}</p>
               </div>
 
-              {extendedAtom.posting.twitterUrl && (
+              {atom.posting.twitterUrl && (
                 <a
-                  href={extendedAtom.posting.twitterUrl}
+                  href={atom.posting.twitterUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="mt-3 flex items-center text-sm text-blue-600 hover:underline"
@@ -115,9 +73,9 @@ export function SynthesizedAtomDetail({ atom }: SynthesizedAtomDetailProps) {
                 </a>
               )}
 
-              {extendedAtom.posting.bskyUrl && (
+              {atom.posting.bskyUrl && (
                 <a
-                  href={extendedAtom.posting.bskyUrl}
+                  href={atom.posting.bskyUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="mt-3 flex items-center text-sm text-blue-600 hover:underline"
@@ -136,35 +94,11 @@ export function SynthesizedAtomDetail({ atom }: SynthesizedAtomDetailProps) {
           <h3 className="text-sm font-semibold uppercase">Atom Information</h3>
           <div className="grid grid-cols-2 gap-y-3 text-sm">
             <div className="text-muted-foreground">Created</div>
-            <div>{formatDate(extendedAtom.createdAt)}</div>
+            <div>{formatDate(atom.createdAt)}</div>
             <div className="text-muted-foreground">Updated</div>
-            <div>{formatDate(extendedAtom.updatedAt)}</div>
+            <div>{formatDate(atom.updatedAt)}</div>
             <div className="text-muted-foreground">Type</div>
             <div>Synthesized Atom</div>
-
-            {/* Add synthesis method information */}
-            {extendedAtom.synthesisMethod && (
-              <>
-                <div className="text-muted-foreground">Synthesis Method</div>
-                <div>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <span className="text-purple-600 dark:text-purple-400 cursor-help">
-                        {typeof extendedAtom.synthesisMethod === 'object'
-                          ? extendedAtom.synthesisMethod.title
-                          : 'Unknown Method'}
-                      </span>
-                    </TooltipTrigger>
-                    <TooltipContent className="max-w-xs bg-purple-50 dark:bg-purple-900 border border-purple-200 dark:border-purple-700 text-purple-800 dark:text-purple-200 py-2 px-3 rounded-md shadow-md">
-                      {typeof extendedAtom.synthesisMethod === 'object' &&
-                      extendedAtom.synthesisMethod.description
-                        ? extendedAtom.synthesisMethod.description
-                        : 'A method for synthesizing atoms'}
-                    </TooltipContent>
-                  </Tooltip>
-                </div>
-              </>
-            )}
           </div>
         </div>
       </div>

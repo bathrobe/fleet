@@ -3,7 +3,7 @@
 import React, { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Search } from 'lucide-react'
+import { Search, Folder } from 'lucide-react'
 import { Input } from '../../ui/input'
 import { cn } from '../../lib/utils'
 import { BaseItem } from '../../lib/types'
@@ -80,11 +80,16 @@ export function SecondaryCollectionSidebar({
                   <div className="font-medium line-clamp-1">
                     {item.title || `Untitled #${item.id}`}
                   </div>
-                  {item.description && (
-                    <div className="line-clamp-2 text-xs text-muted-foreground">
-                      {item.description}
-                    </div>
-                  )}
+
+                  <div className="space-y-2">
+                    {/* Category badge if available */}
+
+                    {item.description && (
+                      <div className="line-clamp-2 text-xs text-muted-foreground">
+                        {item.description}
+                      </div>
+                    )}
+                  </div>
                 </Link>
               )
             })}

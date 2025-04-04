@@ -4,8 +4,9 @@ import React from 'react'
 import { CardContent, CardHeader, CardTitle } from '@/app/ui/card'
 import { Badge } from '@/app/ui/badge'
 import { Button } from '@/app/ui/button'
-import { Sparkles, Link as LinkIcon, ExternalLink, Atom } from 'lucide-react'
+import { Sparkles, Link as LinkIcon, ExternalLink, Atom, Lightbulb } from 'lucide-react'
 import { cn } from '@/app/(frontend)/lib/utils'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/app/(frontend)/ui/tooltip'
 
 type SynthesizedAtomDisplayProps = {
   atom: any
@@ -51,6 +52,32 @@ export function SynthesizedAtomDisplay({
       </div>
 
       <div className="flex-1 px-6 py-4 space-y-4 overflow-y-auto">
+        {/* Display synthesis method if available */}
+        {atom.synthesisMethod && (
+          <div className="flex items-center">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Badge
+                  variant="outline"
+                  className="border-purple-300 dark:border-purple-700 flex items-center gap-1"
+                >
+                  <Lightbulb className="h-3 w-3 text-purple-500 dark:text-purple-400" />
+                  <span className="text-xs text-purple-600 dark:text-purple-400">
+                    {typeof atom.synthesisMethod === 'object'
+                      ? atom.synthesisMethod.title
+                      : 'Synthesized'}
+                  </span>
+                </Badge>
+              </TooltipTrigger>
+              <TooltipContent className="max-w-xs bg-purple-50 dark:bg-purple-900 border border-purple-200 dark:border-purple-700 text-purple-800 dark:text-purple-200 py-2 px-3 rounded-md shadow-md">
+                {typeof atom.synthesisMethod === 'object' && atom.synthesisMethod.description
+                  ? atom.synthesisMethod.description
+                  : 'A method for synthesizing atoms'}
+              </TooltipContent>
+            </Tooltip>
+          </div>
+        )}
+
         <div className="space-y-2">
           <h3 className="text-sm font-semibold text-gray-900 dark:text-white uppercase tracking-wider">
             Synthesized Concept

@@ -4,6 +4,8 @@ import React from 'react'
 import { formatDate } from '@/app/(frontend)/lib/utils'
 import { Source } from '@/payload-types'
 import Link from 'next/link'
+import { Folder } from 'lucide-react'
+import { Badge } from '@/app/ui/badge'
 
 interface SourceDetailProps {
   source: Source
@@ -13,7 +15,23 @@ export function SourceDetail({ source }: SourceDetailProps) {
   return (
     <div className="mx-auto max-w-4xl p-6">
       <div className="rounded-lg border border-purple-200 bg-card p-6 shadow-sm">
-        <h1 className="mb-4 text-2xl font-bold leading-tight">{source.title}</h1>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4">
+          <h1 className="text-2xl font-bold leading-tight">{source.title}</h1>
+
+          {source.sourceCategory && (
+            <Badge
+              variant="outline"
+              className="mt-2 sm:mt-0 border-purple-300 flex items-center gap-1 max-w-fit"
+            >
+              <Folder className="h-3 w-3 text-purple-500" />
+              <span className="text-xs">
+                {typeof source.sourceCategory === 'object' && source.sourceCategory.title
+                  ? source.sourceCategory.title
+                  : 'Uncategorized'}
+              </span>
+            </Badge>
+          )}
+        </div>
 
         {source.author && <p className="mb-4 text-muted-foreground">By {source.author}</p>}
 
@@ -117,6 +135,16 @@ export function SourceDetail({ source }: SourceDetailProps) {
               <>
                 <div className="text-muted-foreground">Published</div>
                 <div>{formatDate(source.publishedDate)}</div>
+              </>
+            )}
+            {source.sourceCategory && (
+              <>
+                <div className="text-muted-foreground">Category</div>
+                <div>
+                  {typeof source.sourceCategory === 'object' && source.sourceCategory.title
+                    ? source.sourceCategory.title
+                    : 'Uncategorized'}
+                </div>
               </>
             )}
           </div>

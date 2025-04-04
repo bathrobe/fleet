@@ -23,12 +23,38 @@ export default function SourcesLayout({ children }: { children: React.ReactNode 
       }
 
       // Map the payload data to the format expected by the sidebar
-      const mappedItems = result.docs.map((source) => ({
-        id: source.id,
-        title: source.title || `Source ${source.id}`,
-        description:
-          source.oneSentenceSummary || (source.author ? `By ${source.author}` : 'No description'),
-      }))
+      const mappedItems = result.docs.map((source) => {
+        // Extract category information if available
+        let categoryInfo = ''
+        if (source.sourceCategory) {
+          if (typeof source.sourceCategory === 'object' && source.sourceCategory.title) {
+            categoryInfo = `Category: ${source.sourceCategory.title}`
+          } else if (
+            typeof source.sourceCategory === 'string' ||
+            typeof source.sourceCategory === 'number'
+          ) {
+            categoryInfo = 'Categorized'
+          }
+        }
+
+        // Just show the author
+        const description = source.author ? `By ${source.author}` : ''
+
+        return {
+          id: source.id,
+          title: source.title || `Source ${source.id}`,
+          description: description || 'No author specified',
+          // Add optional badge for the category
+          metadata: source.sourceCategory
+            ? {
+                category:
+                  typeof source.sourceCategory === 'object' && source.sourceCategory.title
+                    ? source.sourceCategory.title
+                    : 'Categorized',
+              }
+            : undefined,
+        }
+      })
 
       setItems(mappedItems)
     } catch (error) {

@@ -19,11 +19,7 @@ export function IdeasWorkspace() {
 
   // Function to navigate to the graph view and focus on a specific atom
   const handleFocusOnAtom = (atomId: string, pineconeId: string, collection: string) => {
-    // For admin, we'll just log this for now (or could open in new tab/window)
     console.log(`Focus on atom: ${atomId}, ${pineconeId}, ${collection}`)
-
-    // Could open in new window:
-    // window.open(`/admin/collections/atoms/${atomId}`, '_blank')
   }
 
   return (

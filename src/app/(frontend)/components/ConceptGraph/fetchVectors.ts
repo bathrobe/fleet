@@ -9,9 +9,10 @@ export type AtomData = {
   title?: string | null
   mainContent?: string | null
   supportingQuote?: string | null
-  supportingInfo?: { text: string }[] | null
+  supportingInfo?: { text: string }[] | { text?: string | null; id?: string | null }[] | null
   isSynthesized?: boolean
-  pineconeId?: string
+  isSource?: boolean
+  pineconeId?: string | null
   parentAtoms?: Array<{
     id: string | number
     title?: string | null
@@ -34,6 +35,7 @@ export type AtomData = {
     sourceCategory?: any
   } | null
   metadata?: any
+  [key: string]: any // Allow additional properties
 }
 
 export type VectorData = {
@@ -50,7 +52,7 @@ export type VectorData = {
 }
 
 /**
- * Fetches vectors from the Pinecone 'atoms' namespace
+ * Fetches vectors from both the Pinecone 'atoms' and 'sources' namespaces
  * and does NOT fetch atom data - only returns vector data
  */
 export async function fetchVectors(): Promise<VectorData[]> {
@@ -58,25 +60,75 @@ export async function fetchVectors(): Promise<VectorData[]> {
     const pc = new Pinecone({ apiKey: process.env.PINECONE_API_KEY || '' })
     const index = pc.index('fleet')
     const atomsNamespace = index.namespace('atoms')
+    const sourcesNamespace = index.namespace('sources')
 
-    // Query for all vectors, including synthesized ones
+    // Query dimensions
     const dimension = 1024
     const dummyVector = Array(dimension).fill(0)
 
-    const response = await atomsNamespace.query({
+    // Maximum vectors to fetch from each namespace
+    const maxResults = 500
+
+    // Fetch from atoms namespace (includes synthesized and regular atoms)
+    const atomsResponse = await atomsNamespace.query({
       vector: dummyVector,
-      topK: 1000, // Adjust based on your data size
+      topK: maxResults,
       includeMetadata: true,
       includeValues: true,
     })
 
-    // @ts-expect-error
-    return response.matches.map((match) => ({
-      id: match.id,
-      vector: match.values,
-      metadata: match.metadata,
-      isSynthesized: match.metadata?.type === 'synthesized',
-    }))
+    // Log for debugging
+    console.log('Atoms namespace response:', {
+      matches: atomsResponse.matches.length,
+      sampleMetadata: atomsResponse.matches.slice(0, 3).map((m) => m.metadata),
+    })
+
+    // Fetch from sources namespace
+    const sourcesResponse = await sourcesNamespace.query({
+      vector: dummyVector,
+      topK: maxResults,
+      includeMetadata: true,
+      includeValues: true,
+    })
+
+    // Log for debugging
+    console.log('Sources namespace response:', {
+      matches: sourcesResponse.matches.length,
+      sampleMetadata: sourcesResponse.matches.slice(0, 3).map((m) => m.metadata),
+    })
+
+    // Combine and process atom results
+    const atomVectors = atomsResponse.matches
+      .filter((match) => match.values) // Ensure values exist
+      .map((match) => ({
+        id: match.id,
+        vector: match.values as number[],
+        metadata: {
+          ...(match.metadata || {}),
+          // Ensure we properly mark the source of this vector
+          vectorSource: 'atoms',
+        },
+        isSynthesized: match.metadata?.type === 'synthesized',
+      }))
+
+    // Process source results
+    const sourceVectors = sourcesResponse.matches
+      .filter((match) => match.values) // Ensure values exist
+      .map((match) => ({
+        id: match.id,
+        vector: match.values as number[],
+        metadata: {
+          ...(match.metadata || {}),
+          // Ensure we properly mark the source of this vector
+          vectorSource: 'sources',
+          // If it's from the sources namespace, it should be treated as a source
+          payloadSourceId:
+            (match.metadata?.payloadId as string) || (match.metadata?.payloadSourceId as string),
+        },
+      }))
+
+    // Combine all vectors
+    return [...atomVectors, ...sourceVectors]
   } catch (error) {
     console.error('Error fetching vectors:', error)
     return []
@@ -90,54 +142,50 @@ export async function fetchAtomById(pineconeId: string): Promise<AtomData | null
   if (!pineconeId) return null
 
   try {
-    // In development mode, just create a mock atom response without hitting Pinecone
-    console.log('Fetching atom by ID:', pineconeId)
-
-    // Mock data response
-    const mockAtomData: AtomData = {
-      id: pineconeId,
-      title: `Atom ${pineconeId}`,
-      mainContent:
-        'This is mock atom content used during development. In production, this would fetch from Pinecone.',
-      isSynthesized: pineconeId.startsWith('10'), // IDs starting with 10 are synthetic atoms
-      pineconeId: pineconeId,
-      metadata: {
-        type: pineconeId.startsWith('10') ? 'synthesized' : 'regular',
-      },
-    }
-
-    return mockAtomData
-
-    /* 
-    // The original Pinecone implementation - commented out during development
-    // First, get the vector from Pinecone to determine its type
+    // First attempt to fetch from atoms namespace
     const pc = new Pinecone({ apiKey: process.env.PINECONE_API_KEY || '' })
     const index = pc.index('fleet')
     const atomsNamespace = index.namespace('atoms')
 
-    const vectorResponse = await atomsNamespace.fetch([pineconeId])
+    let vectorResponse = await atomsNamespace.fetch([pineconeId])
+    let isFromSourcesNamespace = false
 
+    // If not found in atoms, try sources namespace
     if (!vectorResponse.records[pineconeId]) {
-      throw new Error(`Vector with ID ${pineconeId} not found`)
+      const sourcesNamespace = index.namespace('sources')
+      vectorResponse = await sourcesNamespace.fetch([pineconeId])
+
+      if (!vectorResponse.records[pineconeId]) {
+        throw new Error(`Vector with ID ${pineconeId} not found in any namespace`)
+      }
+
+      isFromSourcesNamespace = true
     }
 
     const metadata = vectorResponse.records[pineconeId].metadata
     const isSynthesized = metadata?.type === 'synthesized'
 
-    // For debugging
-    console.log(
-      'Fetching atom by ID:',
-      pineconeId,
-      'Type:',
-      isSynthesized ? 'synthesized' : 'regular',
-    )
-
     // Get atom data from the CMS based on type
     const payload = await getPayload({ config })
-    let atomData
+    let atomData: any
 
-    if (isSynthesized) {
-      // For synthesized atoms, the payloadAtomId is stored in metadata
+    // If it's from the sources namespace, treat as a source regardless of other metadata
+    if (isFromSourcesNamespace) {
+      const sourceId = metadata?.payloadId || metadata?.payloadSourceId
+
+      if (!sourceId) throw new Error('Missing source ID for source vector')
+
+      atomData = await payload.findByID({
+        collection: 'sources',
+        id: sourceId as string,
+        depth: 1,
+      })
+
+      // Add source flag to help with display
+      atomData.isSource = true
+    }
+    // If it's a synthesized atom
+    else if (isSynthesized) {
       const payloadId = metadata?.payloadAtomId
       if (!payloadId) throw new Error('Missing payload ID for synthesized atom')
 
@@ -146,29 +194,69 @@ export async function fetchAtomById(pineconeId: string): Promise<AtomData | null
         id: payloadId as string,
         depth: 2, // Include parent atoms
       })
-    } else {
-      // For regular atoms, we need to find by pineconeId
-      const atomsResponse = await payload.find({
-        collection: 'atoms',
-        where: {
-          pineconeId: { equals: pineconeId },
-        },
-        depth: 2, // Include source and related data
-      })
+    }
+    // Regular atom or we need to check all collections
+    else {
+      // Try to find by pineconeId in each collection
+      let found = false
 
-      if (!atomsResponse.docs || atomsResponse.docs.length === 0) {
-        throw new Error(`No atom found with pineconeId: ${pineconeId}`)
+      // Helper function to search in a collection
+      const searchInCollection = async (collection: 'atoms' | 'synthesizedAtoms' | 'sources') => {
+        const response = await payload.find({
+          collection,
+          where: {
+            pineconeId: { equals: pineconeId },
+          },
+          depth: 2,
+        })
+        return response.docs && response.docs.length > 0 ? response.docs[0] : null
       }
 
-      atomData = atomsResponse.docs[0]
+      // Special case for IDs that look like source IDs
+      if (pineconeId.startsWith('source-')) {
+        // Try Sources collection first
+        atomData = await searchInCollection('sources')
+        if (atomData) {
+          atomData.isSource = true
+          found = true
+        }
+      } else {
+        // First try Atoms
+        atomData = await searchInCollection('atoms')
+        if (atomData) {
+          found = true
+        }
+      }
+
+      // If not found yet, try other collections
+      if (!found) {
+        // Try SynthesizedAtoms
+        const synthResult = await searchInCollection('synthesizedAtoms')
+        if (synthResult) {
+          atomData = synthResult
+          atomData.isSynthesized = true
+          found = true
+        } else if (!pineconeId.startsWith('source-')) {
+          // Finally try Sources if not a source ID (already tried if it is)
+          const sourceResult = await searchInCollection('sources')
+          if (sourceResult) {
+            atomData = sourceResult
+            atomData.isSource = true
+            found = true
+          }
+        }
+      }
+
+      if (!found) {
+        throw new Error(`No data found with pineconeId: ${pineconeId} in any collection`)
+      }
     }
 
     return {
       ...atomData,
       metadata,
       isSynthesized,
-    }
-    */
+    } as AtomData
   } catch (error) {
     console.error('Error fetching atom by ID:', error)
     return null

@@ -21,13 +21,22 @@ type ConceptVectorSpaceProps = {
 // Add color constants for different atom types
 const REGULAR_ATOM_COLOR = '#3B82F6' // Blue
 const SYNTHESIZED_ATOM_COLOR = '#10B981' // Green
+const SOURCE_ATOM_COLOR = '#8B5CF6' // Purple
 const PARENT_EDGE_COLOR = '#8B5CF6' // Purple
 const PARENT_HIGHLIGHT_COLOR = '#EC4899' // Pink
 
 // Update the rendering function to check for synthesized atom type
 const getPointColor = (point: any, isParentOfSelected: boolean = false) => {
   if (isParentOfSelected) return PARENT_HIGHLIGHT_COLOR
-  return point.metadata?.type === 'synthesized' ? SYNTHESIZED_ATOM_COLOR : REGULAR_ATOM_COLOR
+
+  // Check if it's a source based on vectorSource field (from sources namespace)
+  if (point.metadata?.vectorSource === 'sources') return SOURCE_ATOM_COLOR
+
+  // Check if it's a synthesized atom
+  if (point.metadata?.type === 'synthesized') return SYNTHESIZED_ATOM_COLOR
+
+  // Otherwise it's a regular atom
+  return REGULAR_ATOM_COLOR
 }
 
 export const ConceptVectorSpace = ({

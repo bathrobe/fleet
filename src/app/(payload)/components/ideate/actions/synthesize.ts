@@ -240,77 +240,19 @@ export async function saveSynthesizedAtom(atomData: Atom, synthesisMethodId?: st
     // Extract relevant data for creating the synthesized atom
     const { title, mainContent, supportingInfo, theoryFiction, parentAtoms } = atomData
 
-    console.log('Parent atoms received:', parentAtoms)
+    // Convert parentAtoms to IDs (as numbers when possible)
+    const parentAtomIds =
+      parentAtoms
+        ?.map((parent) => {
+          const id = parent?.id
+          return typeof id === 'string' && id.startsWith('generated-') ? id : Number(id) || null
+        })
+        .filter(Boolean) || []
 
-    // Prepare parent atom IDs - Payload relationship fields expect an array of IDs as numbers
-    const parentAtomIds = parentAtoms
-      ? parentAtoms
-          .map((parent) => {
-            // Validate the parent object
-            if (!parent || parent === null) {
-              console.log('Received null or undefined parent', parent)
-              return null
-            }
+    // Convert synthesis method ID to number if valid
+    const methodId = synthesisMethodId ? Number(synthesisMethodId) : null
 
-            // Get the parent ID, which could be a string or number
-            const parentId = parent.id
-
-            console.log('Processing parent ID:', parentId, 'type:', typeof parentId)
-
-            // Check if parentId is a string before using string methods
-            if (typeof parentId === 'string' && parentId.startsWith('generated-')) {
-              return parentId
-            }
-
-            // Otherwise convert to number (or at least try to)
-            return Number(parentId)
-          })
-          .filter((id) => id !== null) // Remove any null entries
-      : []
-
-    console.log('Attempting to save synthesized atom with synthesis method ID:', synthesisMethodId)
-    console.log('Parent atom IDs:', parentAtomIds)
-
-    // Validate the synthesis method ID if provided
-    let validMethodId = null
-    if (synthesisMethodId) {
-      console.log(
-        'Raw synthesis method ID before validation:',
-        synthesisMethodId,
-        'type:',
-        typeof synthesisMethodId,
-      )
-
-      // Try to parse as number first in case it's not a string
-      const methodIdToCheck =
-        typeof synthesisMethodId === 'string' ? synthesisMethodId : String(synthesisMethodId)
-
-      const isValid = await validateSynthesisMethodId(methodIdToCheck)
-
-      console.log(
-        `Synthesis method ${methodIdToCheck} validation result:`,
-        isValid ? 'valid' : 'invalid',
-      )
-
-      if (isValid) {
-        // Always convert to number for Payload relationship fields
-        validMethodId = Number(methodIdToCheck)
-        console.log(
-          'Final numeric ID for synthesisMethod:',
-          validMethodId,
-          'type:',
-          typeof validMethodId,
-        )
-      }
-    }
-
-    // Create the synthesized atom in the database
-    console.log('Final data for create operation:')
-    console.log('- Title:', title || 'Synthesized Concept')
-    console.log('- parentAtoms:', parentAtomIds)
-    console.log('- synthesisMethod:', validMethodId)
-
-    // Use direct object literal with type assertion to bypass TypeScript issues
+    // Create the atom
     const createdAtom = await payload.create({
       collection: 'synthesizedAtoms',
       data: {
@@ -318,14 +260,10 @@ export async function saveSynthesizedAtom(atomData: Atom, synthesisMethodId?: st
         mainContent,
         supportingInfo,
         theoryFiction,
-        // For hasMany relationships with parent atoms
-        parentAtoms: parentAtomIds.length > 0 ? parentAtomIds : undefined,
-        // For single relationship with synthesis method
-        synthesisMethod: validMethodId,
-      } as any, // Type assertion to bypass TypeScript restrictions
+        parentAtoms: parentAtomIds,
+        synthesisMethod: methodId,
+      } as any,
     })
-
-    console.log('Successfully created synthesized atom:', createdAtom.id)
 
     // Check if we need to update Pinecone index
     if (process.env.PINECONE_API_KEY) {
@@ -341,8 +279,7 @@ export async function saveSynthesizedAtom(atomData: Atom, synthesisMethodId?: st
           parentAtoms: parentAtomIds.map((id) => ({ id })),
         }
 
-        // Use the vector utility to create the embedding and store in Pinecone
-        // Pass the atom ID explicitly to ensure it updates the existing atom
+        // Store in Pinecone
         const vectorResult = await upsertSynthesizedAtomVectors(atomForVector)
 
         if (vectorResult && vectorResult.pineconeAtomId) {
@@ -355,47 +292,18 @@ export async function saveSynthesizedAtom(atomData: Atom, synthesisMethodId?: st
             },
           })
 
-          console.log(
-            `Successfully added vector for synthesized atom ${createdAtom.id} with pineconeId: ${vectorResult.pineconeAtomId}`,
-          )
-
           // Update the return object with the pineconeId
           createdAtom.pineconeId = vectorResult.pineconeAtomId
         }
       } catch (vectorError) {
         console.error('Error updating vector database:', vectorError)
-        // We continue even if vector update fails
+        // Continue even if vector update fails
       }
     }
 
     return createdAtom
   } catch (error) {
     console.error('Error saving synthesized atom:', error)
-
-    // Enhanced error logging
-    if (error instanceof Error) {
-      console.error('Error message:', error.message)
-
-      // Try to log more details about the error
-      const anyError = error as any
-
-      if (anyError.originalError) {
-        console.error('Original error:', anyError.originalError)
-      }
-
-      if (anyError.data) {
-        console.error('Error data:', JSON.stringify(anyError.data, null, 2))
-      }
-
-      if (anyError.errors) {
-        console.error('Validation errors:', JSON.stringify(anyError.errors, null, 2))
-      }
-
-      if (anyError.message && anyError.message.includes('synthesisMethod')) {
-        console.error('Possible issue with synthesisMethod field')
-      }
-    }
-
     throw new Error('Failed to save synthesized atom')
   }
 }

@@ -7,6 +7,6 @@ export { cn } from './utils'
 export type { Atom } from './atoms'
 export { cosineSimilarity, findMostDissimilarVectors } from './atoms'
 
-// Export ideation method types and functions
-export type { IdeationMethod } from './ideation-methods'
-export { ideationMethods, getDefaultMethod, getMethodById } from './ideation-methods'
+// Export synthesis method types from the payload actions
+// This replaces the older ideation-methods exports
+export type { SynthesisMethod } from '@/app/(payload)/components/ideate/actions/synthesisMethods'

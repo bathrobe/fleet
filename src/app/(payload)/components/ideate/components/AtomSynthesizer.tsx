@@ -28,7 +28,6 @@ export function AtomSynthesizer({
   const [saveError, setSaveError] = useState<string | null>(null)
 
   const handleSynthesize = async () => {
-    if (!firstAtom || !secondAtom) return
     if (!synthesisMethod) {
       setError('Please select a synthesis method before proceeding')
       return
@@ -40,12 +39,9 @@ export function AtomSynthesizer({
     setSaveError(null)
 
     try {
-      console.log('Generating synthesis for atoms:', firstAtom.id, secondAtom.id)
       const result = await synthesizeAtoms(firstAtom, secondAtom)
-      console.log('Synthesis result:', result.combinedAtom)
       setSynthesizedAtom(result.combinedAtom)
     } catch (err: any) {
-      console.error('Error synthesizing atoms:', err)
       setError(err.message || 'Failed to generate a synthesized concept. Please try again.')
     } finally {
       setLoading(false)
@@ -53,8 +49,7 @@ export function AtomSynthesizer({
   }
 
   const handleSaveAtom = async () => {
-    if (!synthesizedAtom) return
-    if (!synthesisMethod) {
+    if (!synthesizedAtom || !synthesisMethod) {
       setSaveError('Synthesis method is required')
       return
     }
@@ -63,16 +58,7 @@ export function AtomSynthesizer({
     setSaveError(null)
 
     try {
-      console.log('Selected synthesis method:', {
-        id: synthesisMethod.id,
-        title: synthesisMethod.title,
-        methodKey: synthesisMethod.methodKey,
-      })
-
-      console.log(`Attempting to save atom with synthesis method ID: ${synthesisMethod.id}`)
       const savedAtom = await saveSynthesizedAtom(synthesizedAtom, synthesisMethod.id)
-
-      console.log('Save successful! Result:', savedAtom)
       setSaved(true)
 
       setSynthesizedAtom({
@@ -81,19 +67,7 @@ export function AtomSynthesizer({
         pineconeId: savedAtom.pineconeId || undefined,
       })
     } catch (err: any) {
-      console.error('Error saving synthesized atom:', err)
-
-      let errorMessage = 'Failed to save the synthesized concept. Please try again.'
-
-      if (err.message) {
-        if (err.message.includes('synthesisMethod')) {
-          errorMessage = 'There was an issue with the synthesis method. Please try a different one.'
-        } else {
-          errorMessage = `Error: ${err.message}`
-        }
-      }
-
-      setSaveError(errorMessage)
+      setSaveError(err.message || 'Failed to save the synthesized concept. Please try again.')
     } finally {
       setSaving(false)
     }
@@ -105,7 +79,7 @@ export function AtomSynthesizer({
         <h3 className="text-base font-medium tracking-tight">Synthesize Concepts</h3>
         <Button
           onClick={handleSynthesize}
-          disabled={loading || !firstAtom || !secondAtom || !synthesisMethod}
+          disabled={loading || !synthesisMethod}
           variant="outline"
           size="sm"
           className="bg-gradient-to-r from-indigo-500 to-purple-500 text-white border-0 hover:opacity-90"

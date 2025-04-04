@@ -17,29 +17,13 @@ export type SynthesisMethod = {
 export async function validateSynthesisMethodId(id: string | number): Promise<boolean> {
   try {
     const payload = await getPayload({ config })
-
-    // Convert string to number if needed for consistency
     const methodId = typeof id === 'string' ? Number(id) : id
-
-    // Log what we're checking
-    console.log(`Validating synthesis method with ID: ${methodId} (type: ${typeof methodId})`)
-
-    // Try to find the method by ID, handle potential errors
-    try {
-      const method = await payload.findByID({
-        collection: 'synthesisMethods',
-        id: methodId,
-      })
-
-      const exists = !!method
-      console.log(`Method exists: ${exists}`, exists ? method.title : '')
-      return exists
-    } catch (error) {
-      console.error(`Error validating synthesis method ID ${methodId}:`, error)
-      return false
-    }
+    const method = await payload.findByID({
+      collection: 'synthesisMethods',
+      id: methodId,
+    })
+    return !!method
   } catch (error) {
-    console.error('Error connecting to Payload:', error)
     return false
   }
 }

@@ -47,6 +47,10 @@ export const Sources: CollectionConfig = {
       type: 'text',
     },
     {
+      name: 'publication',
+      type: 'text',
+    },
+    {
       name: 'publishedDate',
       type: 'date',
     },

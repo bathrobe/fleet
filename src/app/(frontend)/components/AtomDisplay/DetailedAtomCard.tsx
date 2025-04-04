@@ -5,7 +5,7 @@ import { useState } from 'react'
 import { AtomData } from '../../components/ConceptGraph/fetchVectors'
 import { Separator } from '../../../ui/separator'
 import { cn } from '@/app/(frontend)/lib/utils'
-import { BookOpen, Quote, Info, Link, ChevronDown, ChevronUp, Atom } from 'lucide-react'
+import { BookOpen, Quote, Info, Link, ChevronDown, ChevronUp, Atom, Folder } from 'lucide-react'
 import { SourceCard } from './SourceCard'
 
 type DetailedAtomCardProps = {
@@ -72,6 +72,100 @@ export function DetailedAtomCard({
           </svg>
           <h3 className="mt-2 text-sm font-medium">No atom data available</h3>
           <p className="mt-1 text-sm">The selected node doesn't have any associated atom data.</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Handle source rendering differently
+  if (atom.isSource) {
+    return (
+      <div
+        className={cn(
+          'flex flex-col h-full bg-white dark:bg-gray-900 border-2 border-purple-500 dark:border-purple-700 rounded-lg shadow-sm',
+          className,
+        )}
+      >
+        {/* Header */}
+        <div className="px-6 py-4 border-b border-purple-500 dark:border-purple-700 flex justify-between items-center bg-purple-50 dark:bg-purple-950">
+          <div>
+            <div className="flex items-center">
+              <BookOpen className="h-5 w-5 text-purple-600 dark:text-purple-400 mr-2" />
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-white leading-tight">
+                {atom.title || 'Source Document'}
+              </h2>
+            </div>
+            {atom.author && (
+              <div className="mt-1 flex items-center text-sm text-gray-500 dark:text-gray-400">
+                <span>By: {atom.author}</span>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Content */}
+        <div className="flex-1 px-6 py-4 space-y-4 overflow-y-auto">
+          {/* URL */}
+          {atom.url && (
+            <div className="space-y-2">
+              <h3 className="text-sm font-semibold text-gray-900 dark:text-white uppercase tracking-wider">
+                URL
+              </h3>
+              <a
+                href={atom.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-600 hover:underline"
+              >
+                {atom.url}
+              </a>
+            </div>
+          )}
+
+          {/* Summary */}
+          {atom.oneSentenceSummary && (
+            <div className="space-y-2">
+              <h3 className="text-sm font-semibold text-gray-900 dark:text-white uppercase tracking-wider">
+                Summary
+              </h3>
+              <div className="p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg border border-purple-100 dark:border-purple-800 text-gray-800 dark:text-gray-200">
+                {atom.oneSentenceSummary}
+              </div>
+            </div>
+          )}
+
+          {/* Main Points */}
+          {atom.mainPoints && atom.mainPoints.length > 0 && (
+            <div className="space-y-2">
+              <h3 className="text-sm font-semibold text-gray-900 dark:text-white uppercase tracking-wider">
+                Main Points
+              </h3>
+              <ul className="ml-6 list-disc space-y-2">
+                {atom.mainPoints.map((point: any, index: number) => (
+                  <li key={index} className="text-sm">
+                    {point.text}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {/* Category */}
+          {atom.sourceCategory && (
+            <div className="space-y-2">
+              <h3 className="text-sm font-semibold text-gray-900 dark:text-white uppercase tracking-wider">
+                Category
+              </h3>
+              <div className="flex items-center">
+                <div className="bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300 px-3 py-1 rounded-full text-sm flex items-center">
+                  <Folder className="h-3.5 w-3.5 mr-1.5" />
+                  {typeof atom.sourceCategory === 'object' && atom.sourceCategory.title
+                    ? atom.sourceCategory.title
+                    : 'Categorized'}
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     )

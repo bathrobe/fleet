@@ -169,6 +169,7 @@ export interface Source {
   sourceCategory?: (number | null) | SourceCategory;
   url: string;
   author?: string | null;
+  publication?: string | null;
   publishedDate?: string | null;
   tags?:
     | {
@@ -557,6 +558,7 @@ export interface SourcesSelect<T extends boolean = true> {
   sourceCategory?: T;
   url?: T;
   author?: T;
+  publication?: T;
   publishedDate?: T;
   tags?:
     | T
