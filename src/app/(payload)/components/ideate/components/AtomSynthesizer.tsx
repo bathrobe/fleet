@@ -5,16 +5,19 @@ import { Button } from '@/app/ui/button'
 import { SynthesizedAtomCard } from './SynthesizedAtomCard'
 import { Atom, synthesizeAtoms, saveSynthesizedAtom } from '../actions/synthesize'
 import { Sparkles, Save, CheckCircle } from 'lucide-react'
+import { SynthesisMethod } from '../actions/synthesisMethods'
 
 type AtomSynthesizerProps = {
   firstAtom: Atom
   secondAtom: Atom
+  synthesisMethod: SynthesisMethod | null
   onFocusParentAtom?: (atomId: string, pineconeId: string, collection: string) => void
 }
 
 export function AtomSynthesizer({
   firstAtom,
   secondAtom,
+  synthesisMethod,
   onFocusParentAtom,
 }: AtomSynthesizerProps) {
   const [synthesizedAtom, setSynthesizedAtom] = useState<Atom | null>(null)
@@ -26,6 +29,10 @@ export function AtomSynthesizer({
 
   const handleSynthesize = async () => {
     if (!firstAtom || !secondAtom) return
+    if (!synthesisMethod) {
+      setError('Please select a synthesis method before proceeding')
+      return
+    }
 
     setLoading(true)
     setError(null)
@@ -47,16 +54,27 @@ export function AtomSynthesizer({
 
   const handleSaveAtom = async () => {
     if (!synthesizedAtom) return
+    if (!synthesisMethod) {
+      setSaveError('Synthesis method is required')
+      return
+    }
 
     setSaving(true)
     setSaveError(null)
 
     try {
-      console.log('Saving synthesized atom to database:', synthesizedAtom)
-      const savedAtom = await saveSynthesizedAtom(synthesizedAtom)
-      console.log('Save result:', savedAtom)
+      console.log('Selected synthesis method:', {
+        id: synthesisMethod.id,
+        title: synthesisMethod.title,
+        methodKey: synthesisMethod.methodKey,
+      })
+
+      console.log(`Attempting to save atom with synthesis method ID: ${synthesisMethod.id}`)
+      const savedAtom = await saveSynthesizedAtom(synthesizedAtom, synthesisMethod.id)
+
+      console.log('Save successful! Result:', savedAtom)
       setSaved(true)
-      // Update the atom with the database ID and pineconeId
+
       setSynthesizedAtom({
         ...synthesizedAtom,
         id: String(savedAtom.id),
@@ -64,7 +82,18 @@ export function AtomSynthesizer({
       })
     } catch (err: any) {
       console.error('Error saving synthesized atom:', err)
-      setSaveError(err.message || 'Failed to save the synthesized concept. Please try again.')
+
+      let errorMessage = 'Failed to save the synthesized concept. Please try again.'
+
+      if (err.message) {
+        if (err.message.includes('synthesisMethod')) {
+          errorMessage = 'There was an issue with the synthesis method. Please try a different one.'
+        } else {
+          errorMessage = `Error: ${err.message}`
+        }
+      }
+
+      setSaveError(errorMessage)
     } finally {
       setSaving(false)
     }
@@ -76,7 +105,7 @@ export function AtomSynthesizer({
         <h3 className="text-base font-medium tracking-tight">Synthesize Concepts</h3>
         <Button
           onClick={handleSynthesize}
-          disabled={loading || !firstAtom || !secondAtom}
+          disabled={loading || !firstAtom || !secondAtom || !synthesisMethod}
           variant="outline"
           size="sm"
           className="bg-gradient-to-r from-indigo-500 to-purple-500 text-white border-0 hover:opacity-90"
@@ -88,6 +117,9 @@ export function AtomSynthesizer({
 
       <p className="text-xs text-muted-foreground mb-4">
         Click the button to generate a new concept that synthesizes the two atoms above using AI.
+        {!synthesisMethod && (
+          <span className="text-yellow-500 ml-1">Select a synthesis method first.</span>
+        )}
       </p>
 
       {error && (
@@ -104,7 +136,7 @@ export function AtomSynthesizer({
             <div className="mt-4 flex justify-center">
               <Button
                 onClick={handleSaveAtom}
-                disabled={saving}
+                disabled={saving || !synthesisMethod}
                 className="bg-green-600 hover:bg-green-700 text-white"
               >
                 {saving ? (

@@ -7,7 +7,7 @@ export const SynthesizedAtoms: CollectionConfig = {
   },
   admin: {
     useAsTitle: 'title',
-    defaultColumns: ['title', 'parentAtoms', 'createdAt'],
+    defaultColumns: ['title', 'parentAtoms', 'synthesisMethod', 'createdAt'],
   },
   fields: [
     {
@@ -59,6 +59,10 @@ export const SynthesizedAtoms: CollectionConfig = {
       type: 'relationship',
       relationTo: 'synthesisMethods',
       hasMany: false,
+      admin: {
+        description: 'The method used to synthesize this atom',
+        position: 'sidebar',
+      },
     },
     {
       name: 'pineconeId',

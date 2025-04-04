@@ -7,6 +7,7 @@ import { AtomSynthesizer } from '../AtomSynthesizer'
 import { getRandomAtomPair } from '../../actions'
 import { Atom } from '../../actions/synthesize'
 import { Sparkles } from 'lucide-react'
+import { SynthesisMethod } from '../../actions/synthesisMethods'
 
 // Updated to match the actual return type from getRandomAtomPair
 type AtomPairResponse = {
@@ -16,10 +17,14 @@ type AtomPairResponse = {
 }
 
 type DualDissimilarAtomsProps = {
+  synthesisMethod: SynthesisMethod | null
   onFocusParentAtom?: (atomId: string, pineconeId: string, collection: string) => void
 }
 
-export function DualDissimilarAtoms({ onFocusParentAtom }: DualDissimilarAtomsProps) {
+export function DualDissimilarAtoms({
+  synthesisMethod,
+  onFocusParentAtom,
+}: DualDissimilarAtomsProps) {
   const [atoms, setAtoms] = useState<AtomPairResponse | null>(null)
   const [loading, setLoading] = useState(false)
 
@@ -41,7 +46,7 @@ export function DualDissimilarAtoms({ onFocusParentAtom }: DualDissimilarAtomsPr
       <div className="flex justify-between items-center mb-6">
         <Button
           onClick={fetchAtoms}
-          disabled={loading}
+          disabled={loading || !synthesisMethod}
           className="flex items-center gap-2"
           size="sm"
         >
@@ -71,6 +76,7 @@ export function DualDissimilarAtoms({ onFocusParentAtom }: DualDissimilarAtomsPr
             <AtomSynthesizer
               firstAtom={atoms.firstAtom}
               secondAtom={atoms.secondAtom}
+              synthesisMethod={synthesisMethod}
               onFocusParentAtom={onFocusParentAtom}
             />
           )}

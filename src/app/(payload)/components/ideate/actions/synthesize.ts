@@ -5,6 +5,7 @@ import { getPayload } from 'payload'
 import config from '@payload-config'
 import { Pinecone } from '@pinecone-database/pinecone'
 import { upsertSynthesizedAtomVectors } from '@/app/(payload)/components/sources/vectors/actions'
+import { validateSynthesisMethodId } from './synthesisMethods'
 
 // Define the Atom type based on what's needed in this context
 export type Atom = {
@@ -232,17 +233,84 @@ export async function synthesizeAtoms(atom1: Atom, atom2: Atom) {
 /**
  * Server action to save a synthesized atom to the database
  */
-export async function saveSynthesizedAtom(atomData: Atom) {
+export async function saveSynthesizedAtom(atomData: Atom, synthesisMethodId?: string) {
   try {
     const payload = await getPayload({ config })
 
     // Extract relevant data for creating the synthesized atom
     const { title, mainContent, supportingInfo, theoryFiction, parentAtoms } = atomData
 
-    // Prepare parent atom IDs - Payload relationship fields expect an array of IDs
-    const parentAtomIds = parentAtoms ? parentAtoms.map((parent) => parent.id) : []
+    console.log('Parent atoms received:', parentAtoms)
+
+    // Prepare parent atom IDs - Payload relationship fields expect an array of IDs as numbers
+    const parentAtomIds = parentAtoms
+      ? parentAtoms
+          .map((parent) => {
+            // Validate the parent object
+            if (!parent || parent === null) {
+              console.log('Received null or undefined parent', parent)
+              return null
+            }
+
+            // Get the parent ID, which could be a string or number
+            const parentId = parent.id
+
+            console.log('Processing parent ID:', parentId, 'type:', typeof parentId)
+
+            // Check if parentId is a string before using string methods
+            if (typeof parentId === 'string' && parentId.startsWith('generated-')) {
+              return parentId
+            }
+
+            // Otherwise convert to number (or at least try to)
+            return Number(parentId)
+          })
+          .filter((id) => id !== null) // Remove any null entries
+      : []
+
+    console.log('Attempting to save synthesized atom with synthesis method ID:', synthesisMethodId)
+    console.log('Parent atom IDs:', parentAtomIds)
+
+    // Validate the synthesis method ID if provided
+    let validMethodId = null
+    if (synthesisMethodId) {
+      console.log(
+        'Raw synthesis method ID before validation:',
+        synthesisMethodId,
+        'type:',
+        typeof synthesisMethodId,
+      )
+
+      // Try to parse as number first in case it's not a string
+      const methodIdToCheck =
+        typeof synthesisMethodId === 'string' ? synthesisMethodId : String(synthesisMethodId)
+
+      const isValid = await validateSynthesisMethodId(methodIdToCheck)
+
+      console.log(
+        `Synthesis method ${methodIdToCheck} validation result:`,
+        isValid ? 'valid' : 'invalid',
+      )
+
+      if (isValid) {
+        // Always convert to number for Payload relationship fields
+        validMethodId = Number(methodIdToCheck)
+        console.log(
+          'Final numeric ID for synthesisMethod:',
+          validMethodId,
+          'type:',
+          typeof validMethodId,
+        )
+      }
+    }
 
     // Create the synthesized atom in the database
+    console.log('Final data for create operation:')
+    console.log('- Title:', title || 'Synthesized Concept')
+    console.log('- parentAtoms:', parentAtomIds)
+    console.log('- synthesisMethod:', validMethodId)
+
+    // Use direct object literal with type assertion to bypass TypeScript issues
     const createdAtom = await payload.create({
       collection: 'synthesizedAtoms',
       data: {
@@ -250,11 +318,14 @@ export async function saveSynthesizedAtom(atomData: Atom) {
         mainContent,
         supportingInfo,
         theoryFiction,
-        // Use type assertion to tell TypeScript this is the correct type
-        // @ts-ignore - Payload expects string[] for relationship fields
-        parentAtoms: parentAtomIds,
-      },
+        // For hasMany relationships with parent atoms
+        parentAtoms: parentAtomIds.length > 0 ? parentAtomIds : undefined,
+        // For single relationship with synthesis method
+        synthesisMethod: validMethodId,
+      } as any, // Type assertion to bypass TypeScript restrictions
     })
+
+    console.log('Successfully created synthesized atom:', createdAtom.id)
 
     // Check if we need to update Pinecone index
     if (process.env.PINECONE_API_KEY) {
@@ -300,6 +371,31 @@ export async function saveSynthesizedAtom(atomData: Atom) {
     return createdAtom
   } catch (error) {
     console.error('Error saving synthesized atom:', error)
+
+    // Enhanced error logging
+    if (error instanceof Error) {
+      console.error('Error message:', error.message)
+
+      // Try to log more details about the error
+      const anyError = error as any
+
+      if (anyError.originalError) {
+        console.error('Original error:', anyError.originalError)
+      }
+
+      if (anyError.data) {
+        console.error('Error data:', JSON.stringify(anyError.data, null, 2))
+      }
+
+      if (anyError.errors) {
+        console.error('Validation errors:', JSON.stringify(anyError.errors, null, 2))
+      }
+
+      if (anyError.message && anyError.message.includes('synthesisMethod')) {
+        console.error('Possible issue with synthesisMethod field')
+      }
+    }
+
     throw new Error('Failed to save synthesized atom')
   }
 }

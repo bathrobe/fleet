@@ -3,7 +3,7 @@
 import React from 'react'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/app/ui/card'
 import { Button } from '@/app/ui/button'
-import { ArrowLeft, Home } from 'lucide-react'
+import { Home } from 'lucide-react'
 import Link from 'next/link'
 import { IdeasWorkspace } from './components'
 
@@ -25,8 +25,8 @@ const IdeateView = () => {
       </div>
 
       <p className="text-muted-foreground mb-6">
-        Use different ideation methods to explore your knowledge base and generate new ideas. Select
-        a method from the dropdown and begin exploring.
+        Use different synthesis methods to explore your knowledge base and generate new ideas.
+        Select a method from the dropdown and begin exploring.
       </p>
 
       <Card className="border-0 shadow-sm bg-background">

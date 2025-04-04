@@ -296,6 +296,9 @@ export interface SynthesizedAtom {
    */
   theoryFiction?: string | null;
   parentAtoms: (number | Atom)[];
+  /**
+   * The method used to synthesize this atom
+   */
   synthesisMethod?: (number | null) | SynthesisMethod;
   pineconeId?: string | null;
   /**
@@ -366,6 +369,10 @@ export interface SynthesisMethod {
   id: number;
   title: string;
   description: string;
+  /**
+   * Unique key to map this method to the front-end implementation (e.g., dual-dissimilar)
+   */
+  methodKey: string;
   updatedAt: string;
   createdAt: string;
 }
@@ -723,6 +730,7 @@ export interface SynthesizedAtomsSelect<T extends boolean = true> {
 export interface SynthesisMethodsSelect<T extends boolean = true> {
   title?: T;
   description?: T;
+  methodKey?: T;
   updatedAt?: T;
   createdAt?: T;
 }

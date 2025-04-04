@@ -7,7 +7,7 @@ export const SynthesisMethods: CollectionConfig = {
   },
   admin: {
     useAsTitle: 'title',
-    defaultColumns: ['title', 'description'],
+    defaultColumns: ['title', 'description', 'methodKey'],
   },
   fields: [
     {
@@ -19,6 +19,16 @@ export const SynthesisMethods: CollectionConfig = {
       name: 'description',
       type: 'textarea',
       required: true,
+    },
+    {
+      name: 'methodKey',
+      type: 'text',
+      required: true,
+      defaultValue: 'dual-dissimilar',
+      admin: {
+        description:
+          'Unique key to map this method to the front-end implementation (e.g., dual-dissimilar)',
+      },
     },
   ],
 }
