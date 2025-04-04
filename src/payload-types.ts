@@ -75,6 +75,7 @@ export interface Config {
     atoms: Atom;
     'source-categories': SourceCategory;
     synthesizedAtoms: SynthesizedAtom;
+    synthesisMethods: SynthesisMethod;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
     'payload-migrations': PayloadMigration;
@@ -85,6 +86,9 @@ export interface Config {
     };
     atoms: {
       synthesizedAtoms: 'synthesizedAtoms';
+    };
+    synthesizedAtoms: {
+      posts: 'posts';
     };
   };
   collectionsSelect: {
@@ -97,6 +101,7 @@ export interface Config {
     atoms: AtomsSelect<false> | AtomsSelect<true>;
     'source-categories': SourceCategoriesSelect<false> | SourceCategoriesSelect<true>;
     synthesizedAtoms: SynthesizedAtomsSelect<false> | SynthesizedAtomsSelect<true>;
+    synthesisMethods: SynthesisMethodsSelect<false> | SynthesisMethodsSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
     'payload-migrations': PayloadMigrationsSelect<false> | PayloadMigrationsSelect<true>;
@@ -291,20 +296,15 @@ export interface SynthesizedAtom {
    */
   theoryFiction?: string | null;
   parentAtoms: (number | Atom)[];
+  synthesisMethod?: (number | null) | SynthesisMethod;
   pineconeId?: string | null;
-  posting?: {
-    /**
-     * Has this atom been posted to social media?
-     */
-    isPosted?: boolean | null;
-    /**
-     * URL to the Twitter post
-     */
-    twitterUrl?: string | null;
-    /**
-     * URL to the Bluesky post
-     */
-    bskyUrl?: string | null;
+  /**
+   * Posts created from this atom
+   */
+  posts?: {
+    docs?: (number | Post)[];
+    hasNextPage?: boolean;
+    totalDocs?: number;
   };
   updatedAt: string;
   createdAt: string;
@@ -360,6 +360,43 @@ export interface Atom {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "synthesisMethods".
+ */
+export interface SynthesisMethod {
+  id: number;
+  title: string;
+  description: string;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "posts".
+ */
+export interface Post {
+  id: number;
+  synthesizedAtom?: (number | null) | SynthesizedAtom;
+  content: {
+    text: string;
+    media?: (number | null) | Media;
+    id?: string | null;
+  }[];
+  timeCreated?: string | null;
+  twitterPost?: {
+    posted?: boolean | null;
+    url?: string | null;
+    postId?: string | null;
+  };
+  bskyPost?: {
+    posted?: boolean | null;
+    url?: string | null;
+    postId?: string | null;
+  };
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "media".
  */
 export interface Media {
@@ -397,31 +434,6 @@ export interface Task {
   id: number;
   title?: string | null;
   task?: string | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "posts".
- */
-export interface Post {
-  id: number;
-  content: {
-    text: string;
-    media?: (number | null) | Media;
-    id?: string | null;
-  }[];
-  timeCreated?: string | null;
-  twitterPost?: {
-    posted?: boolean | null;
-    url?: string | null;
-    postId?: string | null;
-  };
-  bskyPost?: {
-    posted?: boolean | null;
-    url?: string | null;
-    postId?: string | null;
-  };
   updatedAt: string;
   createdAt: string;
 }
@@ -467,6 +479,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'synthesizedAtoms';
         value: number | SynthesizedAtom;
+      } | null)
+    | ({
+        relationTo: 'synthesisMethods';
+        value: number | SynthesisMethod;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -623,6 +639,7 @@ export interface TasksSelect<T extends boolean = true> {
  * via the `definition` "posts_select".
  */
 export interface PostsSelect<T extends boolean = true> {
+  synthesizedAtom?: T;
   content?:
     | T
     | {
@@ -693,14 +710,19 @@ export interface SynthesizedAtomsSelect<T extends boolean = true> {
       };
   theoryFiction?: T;
   parentAtoms?: T;
+  synthesisMethod?: T;
   pineconeId?: T;
-  posting?:
-    | T
-    | {
-        isPosted?: T;
-        twitterUrl?: T;
-        bskyUrl?: T;
-      };
+  posts?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "synthesisMethods_select".
+ */
+export interface SynthesisMethodsSelect<T extends boolean = true> {
+  title?: T;
+  description?: T;
   updatedAt?: T;
   createdAt?: T;
 }

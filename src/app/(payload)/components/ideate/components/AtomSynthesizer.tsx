@@ -3,8 +3,8 @@
 import { useState } from 'react'
 import { Button } from '@/app/ui/button'
 import { SynthesizedAtomCard } from './SynthesizedAtomCard'
-import { Atom, synthesizeAtoms } from '../actions/synthesize'
-import { Sparkles } from 'lucide-react'
+import { Atom, synthesizeAtoms, saveSynthesizedAtom } from '../actions/synthesize'
+import { Sparkles, Save, CheckCircle } from 'lucide-react'
 
 type AtomSynthesizerProps = {
   firstAtom: Atom
@@ -19,22 +19,54 @@ export function AtomSynthesizer({
 }: AtomSynthesizerProps) {
   const [synthesizedAtom, setSynthesizedAtom] = useState<Atom | null>(null)
   const [loading, setLoading] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [saved, setSaved] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [saveError, setSaveError] = useState<string | null>(null)
 
   const handleSynthesize = async () => {
     if (!firstAtom || !secondAtom) return
 
     setLoading(true)
     setError(null)
+    setSaved(false)
+    setSaveError(null)
 
     try {
+      console.log('Generating synthesis for atoms:', firstAtom.id, secondAtom.id)
       const result = await synthesizeAtoms(firstAtom, secondAtom)
+      console.log('Synthesis result:', result.combinedAtom)
       setSynthesizedAtom(result.combinedAtom)
     } catch (err: any) {
       console.error('Error synthesizing atoms:', err)
       setError(err.message || 'Failed to generate a synthesized concept. Please try again.')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleSaveAtom = async () => {
+    if (!synthesizedAtom) return
+
+    setSaving(true)
+    setSaveError(null)
+
+    try {
+      console.log('Saving synthesized atom to database:', synthesizedAtom)
+      const savedAtom = await saveSynthesizedAtom(synthesizedAtom)
+      console.log('Save result:', savedAtom)
+      setSaved(true)
+      // Update the atom with the database ID and pineconeId
+      setSynthesizedAtom({
+        ...synthesizedAtom,
+        id: String(savedAtom.id),
+        pineconeId: savedAtom.pineconeId || undefined,
+      })
+    } catch (err: any) {
+      console.error('Error saving synthesized atom:', err)
+      setSaveError(err.message || 'Failed to save the synthesized concept. Please try again.')
+    } finally {
+      setSaving(false)
     }
   }
 
@@ -67,6 +99,38 @@ export function AtomSynthesizer({
       {synthesizedAtom && (
         <div className="mt-6">
           <SynthesizedAtomCard atom={synthesizedAtom} onFocusParentAtom={onFocusParentAtom} />
+
+          {!saved ? (
+            <div className="mt-4 flex justify-center">
+              <Button
+                onClick={handleSaveAtom}
+                disabled={saving}
+                className="bg-green-600 hover:bg-green-700 text-white"
+              >
+                {saving ? (
+                  <>Saving...</>
+                ) : (
+                  <>
+                    <Save className="h-4 w-4 mr-2" />
+                    Save to Database
+                  </>
+                )}
+              </Button>
+            </div>
+          ) : (
+            <div className="mt-4 flex justify-center">
+              <div className="flex items-center text-green-600 bg-green-50 dark:bg-green-900/20 px-4 py-2 rounded-md">
+                <CheckCircle className="h-4 w-4 mr-2" />
+                <span>Saved successfully</span>
+              </div>
+            </div>
+          )}
+
+          {saveError && (
+            <div className="p-3 mt-4 bg-destructive/10 text-destructive rounded-md text-sm">
+              {saveError}
+            </div>
+          )}
         </div>
       )}
     </div>

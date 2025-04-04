@@ -13,6 +13,12 @@ export const Posts: CollectionConfig = {
   },
   fields: [
     {
+      name: 'synthesizedAtom',
+      type: 'relationship',
+      relationTo: 'synthesizedAtoms',
+      hasMany: false,
+    },
+    {
       name: 'content',
       type: 'array',
       required: true,

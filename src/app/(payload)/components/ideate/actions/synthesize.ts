@@ -24,6 +24,45 @@ export type Atom = {
  */
 async function generateCombinedAtom(atom1: Atom, atom2: Atom): Promise<Atom> {
   try {
+    // Fetch additional source information for both atoms
+    const payload = await getPayload({ config })
+
+    // Get source details for atom1
+    let source1Details = {}
+    if (atom1.source?.id) {
+      try {
+        const source1 = await payload.findByID({
+          collection: 'sources',
+          id: atom1.source.id,
+        })
+        source1Details = {
+          title: source1.title || 'Unknown Source',
+          bulletSummary: source1.bulletSummary || [],
+          author: source1.author || 'Unknown Author',
+        }
+      } catch (error) {
+        console.error('Error fetching source for atom1:', error)
+      }
+    }
+
+    // Get source details for atom2
+    let source2Details = {}
+    if (atom2.source?.id) {
+      try {
+        const source2 = await payload.findByID({
+          collection: 'sources',
+          id: atom2.source.id,
+        })
+        source2Details = {
+          title: source2.title || 'Unknown Source',
+          bulletSummary: source2.bulletSummary || [],
+          author: source2.author || 'Unknown Author',
+        }
+      } catch (error) {
+        console.error('Error fetching source for atom2:', error)
+      }
+    }
+
     // Craft a detailed prompt for the LLM
     const prompt = `
     <instructions>
@@ -33,6 +72,8 @@ async function generateCombinedAtom(atom1: Atom, atom2: Atom): Promise<Atom> {
     The combination should be specific and detailed, drawing directly from the 
     content of both concepts provided. Use divergent thinking techniques. 
     Don't just combine the concepts, but create something that's more than the sum of its parts.
+    Draw from each concepts, all of their supporting information, and the sources.
+    Try to make the idea genuinely novel and surprising.
     </instructions>
 
     <concept1>
@@ -47,6 +88,21 @@ async function generateCombinedAtom(atom1: Atom, atom2: Atom): Promise<Atom> {
     `
         : ''
     }
+    ${
+      source1Details && (source1Details as any).title
+        ? `
+    Source: ${(source1Details as any).title} by ${(source1Details as any).author || 'Unknown Author'}
+    ${
+      (source1Details as any).bulletSummary?.length
+        ? `
+    Source Summary:
+    ${(source1Details as any).bulletSummary.map((bullet: any) => `- ${bullet.text}`).join('\n')}
+    `
+        : ''
+    }
+    `
+        : ''
+    }
     </concept1>
 
     <concept2>
@@ -58,6 +114,21 @@ async function generateCombinedAtom(atom1: Atom, atom2: Atom): Promise<Atom> {
         ? `
     Supporting Information:
     ${atom2.supportingInfo.map((info) => `- ${info.text}`).join('\n')}
+    `
+        : ''
+    }
+    ${
+      source2Details && (source2Details as any).title
+        ? `
+    Source: ${(source2Details as any).title} by ${(source2Details as any).author || 'Unknown Author'}
+    ${
+      (source2Details as any).bulletSummary?.length
+        ? `
+    Source Summary:
+    ${(source2Details as any).bulletSummary.map((bullet: any) => `- ${bullet.text}`).join('\n')}
+    `
+        : ''
+    }
     `
         : ''
     }
@@ -134,9 +205,34 @@ async function generateCombinedAtom(atom1: Atom, atom2: Atom): Promise<Atom> {
 }
 
 /**
- * Save the synthesized atom to the database
+ * Server action to synthesize two atoms into a new concept
+ * but does NOT save to database automatically
  */
-async function saveSynthesizedAtom(atomData: Atom) {
+export async function synthesizeAtoms(atom1: Atom, atom2: Atom) {
+  if (!atom1 || !atom2) {
+    throw new Error('Both atoms are required')
+  }
+
+  try {
+    // Generate the combined atom content
+    const combinedAtom = await generateCombinedAtom(atom1, atom2)
+
+    // Return the combined atom without saving
+    return {
+      combinedAtom: {
+        ...combinedAtom,
+      },
+    }
+  } catch (error) {
+    console.error('Error synthesizing atoms:', error)
+    throw new Error('Failed to synthesize atoms')
+  }
+}
+
+/**
+ * Server action to save a synthesized atom to the database
+ */
+export async function saveSynthesizedAtom(atomData: Atom) {
   try {
     const payload = await getPayload({ config })
 
@@ -163,8 +259,20 @@ async function saveSynthesizedAtom(atomData: Atom) {
     // Check if we need to update Pinecone index
     if (process.env.PINECONE_API_KEY) {
       try {
+        // Format the atom data for vector embedding
+        const atomForVector = {
+          id: createdAtom.id,
+          title: createdAtom.title,
+          mainContent: createdAtom.mainContent,
+          supportingInfo: createdAtom.supportingInfo,
+          theoryFiction: createdAtom.theoryFiction,
+          // Include parent atoms for vector context
+          parentAtoms: parentAtomIds.map((id) => ({ id })),
+        }
+
         // Use the vector utility to create the embedding and store in Pinecone
-        const vectorResult = await upsertSynthesizedAtomVectors(createdAtom)
+        // Pass the atom ID explicitly to ensure it updates the existing atom
+        const vectorResult = await upsertSynthesizedAtomVectors(atomForVector)
 
         if (vectorResult && vectorResult.pineconeAtomId) {
           // Update the atom with the pineconeId
@@ -193,33 +301,5 @@ async function saveSynthesizedAtom(atomData: Atom) {
   } catch (error) {
     console.error('Error saving synthesized atom:', error)
     throw new Error('Failed to save synthesized atom')
-  }
-}
-
-/**
- * Server action to synthesize two atoms into a new concept
- */
-export async function synthesizeAtoms(atom1: Atom, atom2: Atom) {
-  if (!atom1 || !atom2) {
-    throw new Error('Both atoms are required')
-  }
-
-  try {
-    // Generate the combined atom content
-    const combinedAtom = await generateCombinedAtom(atom1, atom2)
-
-    // Save the combined atom to the database
-    const savedAtom = await saveSynthesizedAtom(combinedAtom)
-
-    // Return the combined atom with the database ID
-    return {
-      combinedAtom: {
-        ...combinedAtom,
-        id: String(savedAtom.id), // Convert ID to string to match Atom type
-      },
-    }
-  } catch (error) {
-    console.error('Error synthesizing atoms:', error)
-    throw new Error('Failed to synthesize atoms')
   }
 }

@@ -9,6 +9,7 @@ import { createTwitterUrl } from '../utils/twitterUrls'
 
 export const createPostWithTwitter = async (
   post: GeneratedPost,
+  synthesizedAtomId: string,
 ): Promise<{
   success: boolean
   postId?: string
@@ -29,27 +30,31 @@ export const createPostWithTwitter = async (
       return { success: false }
     }
 
+    // Create tweet URLs from the IDs
+    const tweetUrls = twitterResult.tweetIds.map((id) => createTwitterUrl(id))
+
     // Create the post with Twitter info included
     const createdPost = await payload.create({
       collection: 'posts',
-      // @ts-ignore
       data: {
         ...convertGeneratedToPayloadPost(post),
+        synthesizedAtom: synthesizedAtomId,
         twitterPost: {
           posted: true,
           postId: twitterResult.tweetIds[0], // First tweet ID in the thread
-          // @ts-ignore
-          url: twitterResult.tweetUrls[0], // First tweet URL in the thread
+          url: tweetUrls[0], // First tweet URL in the thread
         },
-      },
+      } as any, // Type assertion to fix TypeScript error
     })
 
     return {
       success: true,
-      // @ts-ignore
-      postId: createdPost.id,
-      // @ts-ignore
-      twitterInfo: twitterResult,
+      postId: String(createdPost.id), // Convert to string to match return type
+      twitterInfo: {
+        success: twitterResult.success,
+        tweetIds: twitterResult.tweetIds,
+        tweetUrls: tweetUrls,
+      },
     }
   } catch (error) {
     console.error('Error creating post with Twitter:', error)

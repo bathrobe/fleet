@@ -7,6 +7,7 @@ import { generatePost } from './actions/generatePost'
 import type { Atom } from '../../../../../src/payload-types'
 import type { SynthesizedAtom, GeneratedPost } from './types' // Removed TweetContent import
 import { usePostToTwitter } from './hooks/usePostToTwitter'
+import { createPostWithTwitter } from './actions/createPostWithTwitter'
 
 // --- Define Types Locally ---
 // Define TweetContent locally since it wasn't exported
@@ -401,17 +402,23 @@ const PostMakerView = () => {
   }
 
   const handlePostToSocials = async () => {
-    if (!post || !isPostValid) {
-      setValidationError(!post ? 'No post generated.' : `Cannot post: Tweet exceeds limit.`)
+    if (!post || !isPostValid || !selectedAtom) {
+      setValidationError(
+        !post
+          ? 'No post generated.'
+          : !selectedAtom
+            ? 'No atom selected.'
+            : 'Cannot post: Tweet exceeds limit.',
+      )
       return
     }
     setValidationError(null)
     try {
-      const postResult = await handlePost(post)
-      // @ts-ignore
+      // Pass the synthesizedAtom ID to the createPostWithTwitter function
+      const postResult = await createPostWithTwitter(post, selectedAtom.id)
+
       if (postResult?.success) {
-        // @ts-ignore
-        alert(`Posted! IDs: ${postResult.tweetIds?.join(', ') || 'N/A'}`)
+        alert(`Posted! IDs: ${postResult.twitterInfo?.tweetIds?.join(', ') || 'N/A'}`)
         setSelectedAtom(null)
         setPost(null)
         setTweetValidations([])

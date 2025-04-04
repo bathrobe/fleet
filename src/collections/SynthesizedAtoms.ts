@@ -54,15 +54,12 @@ export const SynthesizedAtoms: CollectionConfig = {
       hasMany: true,
       required: true,
     },
-    // {
-    //   name: 'synthesisMethod',
-    //   type: 'select',
-    //   options: [
-    //     { label: 'Random', value: 'random' },
-    //     { label: 'Vector', value: 'vector' },
-    //     { label: 'Random Fallback', value: 'random-fallback' },
-    //   ],
-    // },
+    {
+      name: 'synthesisMethod',
+      type: 'relationship',
+      relationTo: 'synthesisMethods',
+      hasMany: false,
+    },
     {
       name: 'pineconeId',
       type: 'text',
@@ -71,32 +68,13 @@ export const SynthesizedAtoms: CollectionConfig = {
       },
     },
     {
-      name: 'posting',
-      type: 'group',
-      fields: [
-        {
-          name: 'isPosted',
-          type: 'checkbox',
-          defaultValue: false,
-          admin: {
-            description: 'Has this atom been posted to social media?',
-          },
-        },
-        {
-          name: 'twitterUrl',
-          type: 'text',
-          admin: {
-            description: 'URL to the Twitter post',
-          },
-        },
-        {
-          name: 'bskyUrl',
-          type: 'text',
-          admin: {
-            description: 'URL to the Bluesky post',
-          },
-        },
-      ],
+      name: 'posts',
+      type: 'join',
+      collection: 'posts',
+      on: 'synthesizedAtom',
+      admin: {
+        description: 'Posts created from this atom',
+      },
     },
   ],
 }

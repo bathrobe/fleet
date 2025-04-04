@@ -19,7 +19,7 @@ import { Atoms } from './collections/Atoms'
 import { Agent } from './globals/Agent'
 import { SourceCategory } from './collections/SourceCategory'
 import { SynthesizedAtoms } from './collections/SynthesizedAtoms'
-
+import { SynthesisMethods } from './collections/SynthesisMethods'
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
 
@@ -54,6 +54,7 @@ export default buildConfig({
     Atoms,
     SourceCategory,
     SynthesizedAtoms,
+    SynthesisMethods,
   ],
   globals: [Agent],
   editor: lexicalEditor({}),
