@@ -5,6 +5,7 @@ import { getPayload } from 'payload'
 import config from '@payload-config'
 import { parseFrontmatter, extractSourceFields } from './frontmatterParser'
 import { createAtomsFromSource } from './atoms/atomsProcessor'
+import { upsertSourceVectors } from './vectors/actions'
 import fs from 'fs/promises'
 import path from 'path'
 import os from 'os'
@@ -296,6 +297,35 @@ export async function processSourceAction(prevState: any, formData: FormData) {
         data: createData,
         depth: 0, // No need to populate relationships for creation
       })
+
+      // After creating the source, embed it in Pinecone
+      let embeddingResult = null
+      if (newSource && newSource.id) {
+        try {
+          console.log('Creating vector embedding for source document...')
+          embeddingResult = await upsertSourceVectors(newSource)
+
+          // Update the source document with the pineconeId
+          if (embeddingResult && embeddingResult.pineconeSourceId) {
+            await payload.update({
+              collection: 'sources',
+              id: newSource.id,
+              data: {
+                pineconeId: embeddingResult.pineconeSourceId,
+              },
+            })
+            console.log(
+              `Updated source ${newSource.id} with pineconeId: ${embeddingResult.pineconeSourceId}`,
+            )
+
+            // Add the pineconeId to the newSource object as well
+            newSource.pineconeId = embeddingResult.pineconeSourceId
+          }
+        } catch (embeddingError) {
+          console.error('Error creating vector embedding for source document:', embeddingError)
+          // Continue with atom creation even if embedding fails
+        }
+      }
 
       // After successfully creating the source, create atoms
       let atomsResult = null

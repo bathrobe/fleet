@@ -233,6 +233,10 @@ export interface Source {
       }[]
     | null;
   /**
+   * The ID of the source embedding in Pinecone
+   */
+  pineconeId?: string | null;
+  /**
    * Synthesized atoms related to this source
    */
   relatedSynthesizedAtoms?: (number | SynthesizedAtom)[] | null;
@@ -568,6 +572,7 @@ export interface SourcesSelect<T extends boolean = true> {
         text?: T;
         id?: T;
       };
+  pineconeId?: T;
   relatedSynthesizedAtoms?: T;
   fullText?: T;
   relatedAtoms?: T;

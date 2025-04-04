@@ -18,7 +18,7 @@ const RelatedItem = ({ item }: { item: RelatedItemProps }) => (
   <Link
     href={item.href}
     className={cn(
-      'flex flex-col gap-1 rounded-md px-3 py-2 text-sm transition-colors border',
+      'flex flex-col gap-2 rounded-md px-4 py-3 text-sm transition-colors border',
       item.type === 'atom'
         ? 'border-blue-100 hover:bg-blue-50 dark:border-blue-900 dark:hover:bg-blue-900/30'
         : item.type === 'synthesizedAtom'
@@ -41,40 +41,56 @@ const RelatedItem = ({ item }: { item: RelatedItemProps }) => (
         `${item.type === 'atom' ? 'Atom' : item.type === 'synthesizedAtom' ? 'Synthesized Atom' : 'Source'} ${item.id}`}
     </div>
     {item.description && (
-      <div
-        className={cn(
-          'text-xs text-muted-foreground',
-          // Don't truncate source summaries, but truncate others
-          item.type !== 'source' && 'line-clamp-2',
-        )}
-      >
-        {item.description}
-      </div>
+      <div className="text-xs text-muted-foreground leading-relaxed">{item.description}</div>
     )}
   </Link>
 )
 
 interface SourceSidebarProps {
   source: Source
+  similarSources?: Source[] // Add similar sources property
 }
 
-export function SourceRelatedSidebar({ source }: SourceSidebarProps) {
+export function SourceRelatedSidebar({ source, similarSources = [] }: SourceSidebarProps) {
   // Extract related atoms if populated
   const relatedAtoms = source.relatedAtoms?.docs?.filter((atom) => typeof atom !== 'number') || []
   const relatedSynthesizedAtoms =
     source.relatedSynthesizedAtoms?.filter((atom) => typeof atom !== 'number') || []
 
-  const hasRelatedItems = relatedAtoms.length > 0 || relatedSynthesizedAtoms.length > 0
+  const hasRelatedItems =
+    relatedAtoms.length > 0 || relatedSynthesizedAtoms.length > 0 || similarSources.length > 0
 
   if (!hasRelatedItems) {
     return null
   }
 
   return (
-    <div className="w-80 border-l border-gray-200 dark:border-gray-800 p-4 overflow-y-auto">
+    <div className="w-96 border-l border-gray-200 dark:border-gray-800 p-6 overflow-y-auto">
       <h3 className="font-medium mb-4">Related Items</h3>
 
       <div className="space-y-4">
+        {similarSources.length > 0 && (
+          <div>
+            <h4 className="text-sm uppercase text-muted-foreground font-semibold mb-2">
+              Similar Sources
+            </h4>
+            <div className="space-y-2">
+              {similarSources.map((similarSource) => (
+                <RelatedItem
+                  key={similarSource.id}
+                  item={{
+                    id: similarSource.id,
+                    title: similarSource.title,
+                    description: similarSource.oneSentenceSummary || null,
+                    type: 'source',
+                    href: `/sources/${similarSource.id}`,
+                  }}
+                />
+              ))}
+            </div>
+          </div>
+        )}
+
         {relatedAtoms.length > 0 && (
           <div>
             <h4 className="text-sm uppercase text-muted-foreground font-semibold mb-2">Atoms</h4>
@@ -123,9 +139,15 @@ export function SourceRelatedSidebar({ source }: SourceSidebarProps) {
 
 interface AtomSidebarProps {
   atom: Atom
+  siblingAtoms?: Atom[] // Atoms from the same source
+  similarAtoms?: Atom[] // Similar atoms by vector similarity
 }
 
-export function AtomRelatedSidebar({ atom }: AtomSidebarProps) {
+export function AtomRelatedSidebar({
+  atom,
+  siblingAtoms = [],
+  similarAtoms = [],
+}: AtomSidebarProps) {
   // Get source if populated
   const source = typeof atom.source === 'number' ? null : (atom.source as Source)
 
@@ -136,17 +158,18 @@ export function AtomRelatedSidebar({ atom }: AtomSidebarProps) {
       ? atom.synthesizedAtoms.docs?.filter((item) => typeof item !== 'number') || []
       : []
 
-  const hasRelatedItems = source || synthesizedAtoms.length > 0
+  const hasRelatedItems =
+    source || synthesizedAtoms.length > 0 || siblingAtoms.length > 0 || similarAtoms.length > 0
 
   if (!hasRelatedItems) {
     return null
   }
 
   return (
-    <div className="w-80 border-l border-gray-200 dark:border-gray-800 p-4 overflow-y-auto">
+    <div className="w-96 border-l border-gray-200 dark:border-gray-800 p-6 overflow-y-auto">
       <h3 className="font-medium mb-4">Related Items</h3>
 
-      <div className="space-y-4">
+      <div className="space-y-5">
         {source && (
           <div>
             <h4 className="text-sm uppercase text-muted-foreground font-semibold mb-2">Source</h4>
@@ -183,6 +206,50 @@ export function AtomRelatedSidebar({ atom }: AtomSidebarProps) {
             </div>
           </div>
         )}
+
+        {siblingAtoms.length > 0 && (
+          <div>
+            <h4 className="text-sm uppercase text-muted-foreground font-semibold mb-2">
+              Other Atoms From Same Source
+            </h4>
+            <div className="space-y-2">
+              {siblingAtoms.map((siblingAtom: Atom) => (
+                <RelatedItem
+                  key={siblingAtom.id}
+                  item={{
+                    id: siblingAtom.id,
+                    title: siblingAtom.title,
+                    description: siblingAtom.mainContent,
+                    type: 'atom',
+                    href: `/atoms/${siblingAtom.id}`,
+                  }}
+                />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {similarAtoms.length > 0 && (
+          <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-800">
+            <h4 className="text-sm uppercase text-muted-foreground font-semibold mb-2">
+              Semantically Similar Atoms
+            </h4>
+            <div className="space-y-2">
+              {similarAtoms.map((similarAtom) => (
+                <RelatedItem
+                  key={similarAtom.id}
+                  item={{
+                    id: similarAtom.id,
+                    title: similarAtom.title,
+                    description: similarAtom.mainContent,
+                    type: 'atom',
+                    href: `/atoms/${similarAtom.id}`,
+                  }}
+                />
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )
@@ -190,42 +257,71 @@ export function AtomRelatedSidebar({ atom }: AtomSidebarProps) {
 
 interface SynthesizedAtomSidebarProps {
   synthesizedAtom: SynthesizedAtom
+  similarItems?: Array<(Atom | SynthesizedAtom) & { itemType: 'atom' | 'synthesizedAtom' }>
 }
 
-export function SynthesizedAtomRelatedSidebar({ synthesizedAtom }: SynthesizedAtomSidebarProps) {
+export function SynthesizedAtomRelatedSidebar({
+  synthesizedAtom,
+  similarItems = [],
+}: SynthesizedAtomSidebarProps) {
   // Convert parentAtoms to an array of Atom objects (if they've been populated)
   const parentAtoms = synthesizedAtom.parentAtoms
     .map((parent) => (typeof parent === 'number' ? null : (parent as Atom)))
     .filter(Boolean) as Atom[]
 
-  if (parentAtoms.length === 0) {
+  if (parentAtoms.length === 0 && similarItems.length === 0) {
     return null
   }
 
   return (
-    <div className="w-80 border-l border-gray-200 dark:border-gray-800 p-4 overflow-y-auto">
+    <div className="w-96 border-l border-gray-200 dark:border-gray-800 p-6 overflow-y-auto">
       <h3 className="font-medium mb-4">Related Items</h3>
 
-      <div className="space-y-4">
-        <div>
-          <h4 className="text-sm uppercase text-muted-foreground font-semibold mb-2">
-            Parent Atoms
-          </h4>
-          <div className="space-y-2">
-            {parentAtoms.map((atom) => (
-              <RelatedItem
-                key={atom.id}
-                item={{
-                  id: atom.id,
-                  title: atom.title,
-                  description: atom.mainContent,
-                  type: 'atom',
-                  href: `/atoms/${atom.id}`,
-                }}
-              />
-            ))}
+      <div className="space-y-6">
+        {parentAtoms.length > 0 && (
+          <div>
+            <h4 className="text-sm uppercase bg-blue-50 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 font-semibold mb-3 p-2 rounded-md border border-blue-200 dark:border-blue-800">
+              Parent Atoms
+            </h4>
+            <div className="space-y-3">
+              {parentAtoms.map((atom) => (
+                <div key={atom.id} className="border-l-4 border-blue-400 dark:border-blue-600 pl-3">
+                  <RelatedItem
+                    item={{
+                      id: atom.id,
+                      title: atom.title,
+                      description: atom.mainContent,
+                      type: 'atom',
+                      href: `/atoms/${atom.id}`,
+                    }}
+                  />
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
+
+        {similarItems.length > 0 && (
+          <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-800">
+            <h4 className="text-sm uppercase text-muted-foreground font-semibold mb-2">
+              Semantically Similar Items
+            </h4>
+            <div className="space-y-2">
+              {similarItems.map((item) => (
+                <RelatedItem
+                  key={`${item.itemType}-${item.id}`}
+                  item={{
+                    id: item.id,
+                    title: item.title,
+                    description: item.mainContent,
+                    type: item.itemType,
+                    href: `/${item.itemType === 'atom' ? 'atoms' : 'synthesized'}/${item.id}`,
+                  }}
+                />
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )

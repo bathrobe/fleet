@@ -1,5 +1,6 @@
 import { CollectionConfig } from 'payload'
 import { allowIfApiKeyOrAuthenticated } from '../utilities/accessControl'
+import { deleteVectors } from '../app/(payload)/components/sources/vectors/actions'
 
 export const Sources: CollectionConfig = {
   slug: 'sources',
@@ -11,6 +12,18 @@ export const Sources: CollectionConfig = {
   },
   admin: {
     useAsTitle: 'title',
+  },
+  hooks: {
+    afterDelete: [
+      // @ts-ignore
+      async ({ id, doc }: { id: string; doc: any }) => {
+        // If we have a pineconeId stored on the source, delete it from the vector DB
+        if (doc && doc.pineconeId) {
+          console.log(`Source ${id} deleted, attempting to delete vector ${doc.pineconeId}`)
+          await deleteVectors(doc.pineconeId)
+        }
+      },
+    ],
   },
   fields: [
     {
@@ -131,6 +144,14 @@ export const Sources: CollectionConfig = {
           },
         },
       ],
+    },
+    {
+      name: 'pineconeId',
+      type: 'text',
+      admin: {
+        description: 'The ID of the source embedding in Pinecone',
+        readOnly: true,
+      },
     },
     {
       name: 'relatedSynthesizedAtoms',

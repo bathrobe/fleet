@@ -4,6 +4,7 @@ import { getCompletion } from '@/utilities/anthropic'
 import { getPayload } from 'payload'
 import config from '@payload-config'
 import { Pinecone } from '@pinecone-database/pinecone'
+import { upsertSynthesizedAtomVectors } from '@/app/(payload)/components/sources/vectors/actions'
 
 // Define the Atom type based on what's needed in this context
 export type Atom = {
@@ -162,15 +163,26 @@ async function saveSynthesizedAtom(atomData: Atom) {
     // Check if we need to update Pinecone index
     if (process.env.PINECONE_API_KEY) {
       try {
-        // Convert the mainContent to a vector using Payload's existing mechanism
-        // This would typically involve an AI embedding model like OpenAI or Cohere
-        // For now, we'll just log that this would happen in a production setting
-        console.log('In production, would add the synthesized atom to Pinecone here')
+        // Use the vector utility to create the embedding and store in Pinecone
+        const vectorResult = await upsertSynthesizedAtomVectors(createdAtom)
 
-        // If you want to implement vector embedding:
-        // 1. Generate an embedding for the atom's content
-        // 2. Store it in Pinecone with the atom's ID
-        // 3. Update the atom record with the Pinecone ID
+        if (vectorResult && vectorResult.pineconeAtomId) {
+          // Update the atom with the pineconeId
+          await payload.update({
+            collection: 'synthesizedAtoms',
+            id: createdAtom.id,
+            data: {
+              pineconeId: vectorResult.pineconeAtomId,
+            },
+          })
+
+          console.log(
+            `Successfully added vector for synthesized atom ${createdAtom.id} with pineconeId: ${vectorResult.pineconeAtomId}`,
+          )
+
+          // Update the return object with the pineconeId
+          createdAtom.pineconeId = vectorResult.pineconeAtomId
+        }
       } catch (vectorError) {
         console.error('Error updating vector database:', vectorError)
         // We continue even if vector update fails
