@@ -10,7 +10,8 @@ interface ItemType {
   description: string
 }
 
-export default function SynthesizedAtomsLayout({ children }: { children: React.ReactNode }) {
+// @ts-ignore
+export default function SynthesizedAtomsLayout({ children }: any) {
   const [items, setItems] = useState<ItemType[]>([])
   const [isLoading, setIsLoading] = useState(true)
 

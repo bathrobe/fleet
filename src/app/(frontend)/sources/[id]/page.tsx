@@ -4,7 +4,8 @@ import { SourceRelatedSidebar } from '../../components/common/RelatedItemsSideba
 import { notFound } from 'next/navigation'
 import { Source } from '@/payload-types'
 
-export default async function SourceDetailPage({ params }: { params: { id: string } }) {
+// @ts-ignore
+export default async function SourceDetailPage({ params }: any) {
   try {
     const { id } = await params
     const source = await fetchSource(id)

@@ -14,7 +14,8 @@ type SimilarItem = (Atom | SynthesizedAtom) & {
   itemType: 'atom' | 'synthesizedAtom'
 }
 
-export default async function SynthesizedAtomDetailPage({ params }: { params: { id: string } }) {
+// @ts-ignore
+export default async function SynthesizedAtomDetailPage({ params }: any) {
   try {
     const { id } = await params
     console.log(`Loading synthesized atom with ID: ${id}`)

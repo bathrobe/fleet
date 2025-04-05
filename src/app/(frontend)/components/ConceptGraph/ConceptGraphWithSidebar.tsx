@@ -3,7 +3,6 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { Sidebar, SidebarContent, SidebarProvider } from '@/app/ui/sidebar'
-import { AtomSidebar } from '../AtomSidebar/AtomSidebar'
 import { ConceptVectorSpace } from './ConceptVectorSpace'
 import { DetailedAtomCard } from '../AtomDisplay/DetailedAtomCard'
 import { SynthesizedAtomDisplay } from '../AtomDisplay/SynthesizedAtomDisplay'
@@ -199,7 +198,7 @@ export function ConceptGraphWithSidebar({
   return (
     <SidebarProvider>
       <div className="flex h-screen w-full overflow-hidden">
-        <AtomSidebar onAtomClick={loadAtom} selectedAtomId={selectedAtomId} />
+        {/* <AtomSidebar onAtomClick={loadAtom} selectedAtomId={selectedAtomId} /> */}
         <div className="flex-1 h-screen flex items-center justify-center" ref={containerRef}>
           <ConceptVectorSpace
             width={dimensions.width}

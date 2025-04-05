@@ -162,14 +162,17 @@ export async function fetchAtomById(pineconeId: string): Promise<AtomData | null
       isFromSourcesNamespace = true
     }
 
-    const metadata = vectorResponse.records[pineconeId].metadata
+    const metadata = vectorResponse.records[pineconeId].metadata || {}
     const isSynthesized = metadata?.type === 'synthesized'
+
+    // Add vectorSource to metadata so we can use it for logic later
+    metadata.vectorSource = isFromSourcesNamespace ? 'sources' : 'atoms'
 
     // Get atom data from the CMS based on type
     const payload = await getPayload({ config })
     let atomData: any
 
-    // If it's from the sources namespace, treat as a source regardless of other metadata
+    // If it's from the sources namespace, treat as a source
     if (isFromSourcesNamespace) {
       const sourceId = metadata?.payloadId || metadata?.payloadSourceId
 
@@ -195,13 +198,13 @@ export async function fetchAtomById(pineconeId: string): Promise<AtomData | null
         depth: 2, // Include parent atoms
       })
     }
-    // Regular atom or we need to check all collections
+    // Regular atom - only search atoms and synthesizedAtoms collections
     else {
-      // Try to find by pineconeId in each collection
+      // Try to find by pineconeId in atom collections only
       let found = false
 
       // Helper function to search in a collection
-      const searchInCollection = async (collection: 'atoms' | 'synthesizedAtoms' | 'sources') => {
+      const searchInCollection = async (collection: 'atoms' | 'synthesizedAtoms') => {
         const response = await payload.find({
           collection,
           where: {
@@ -212,43 +215,35 @@ export async function fetchAtomById(pineconeId: string): Promise<AtomData | null
         return response.docs && response.docs.length > 0 ? response.docs[0] : null
       }
 
-      // Special case for IDs that look like source IDs
-      if (pineconeId.startsWith('source-')) {
-        // Try Sources collection first
-        atomData = await searchInCollection('sources')
-        if (atomData) {
-          atomData.isSource = true
-          found = true
-        }
-      } else {
-        // First try Atoms
-        atomData = await searchInCollection('atoms')
-        if (atomData) {
-          found = true
-        }
+      // Try collections sequentially - but NEVER sources collection for atoms namespace
+
+      // 1. Try atoms collection first
+      atomData = await searchInCollection('atoms')
+      if (atomData) {
+        found = true
       }
 
-      // If not found yet, try other collections
+      // 2. If not found, try synthesizedAtoms collection
       if (!found) {
-        // Try SynthesizedAtoms
         const synthResult = await searchInCollection('synthesizedAtoms')
         if (synthResult) {
           atomData = synthResult
           atomData.isSynthesized = true
           found = true
-        } else if (!pineconeId.startsWith('source-')) {
-          // Finally try Sources if not a source ID (already tried if it is)
-          const sourceResult = await searchInCollection('sources')
-          if (sourceResult) {
-            atomData = sourceResult
-            atomData.isSource = true
-            found = true
-          }
         }
       }
 
+      // If not found in either collection, create a basic atomData object
       if (!found) {
-        throw new Error(`No data found with pineconeId: ${pineconeId} in any collection`)
+        // Since the vector is from the atoms namespace but not found in collections,
+        // create a minimal atom representation from the vector metadata
+        atomData = {
+          id: pineconeId,
+          title: typeof metadata?.text === 'string' ? metadata.text.substring(0, 50) : 'Atom',
+          mainContent: typeof metadata?.text === 'string' ? metadata.text : 'No content available',
+          pineconeId: pineconeId,
+        }
+        console.warn(`Created temporary atom data for ${pineconeId} - not found in collections`)
       }
     }
 
@@ -256,6 +251,8 @@ export async function fetchAtomById(pineconeId: string): Promise<AtomData | null
       ...atomData,
       metadata,
       isSynthesized,
+      // Ensure vectorSource is correctly set
+      vectorSource: metadata.vectorSource,
     } as AtomData
   } catch (error) {
     console.error('Error fetching atom by ID:', error)

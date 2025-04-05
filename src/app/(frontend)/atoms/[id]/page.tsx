@@ -6,7 +6,7 @@ import { notFound } from 'next/navigation'
 import { Atom } from '@/payload-types'
 import { Pinecone } from '@pinecone-database/pinecone'
 
-export default async function AtomDetailPage({ params }: { params: { id: string } }) {
+export default async function AtomDetailPage({ params }: { params: any }) {
   try {
     const { id } = await params
     console.log(`Loading atom with ID: ${id}`)
