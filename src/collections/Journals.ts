@@ -22,6 +22,9 @@ export const Journals: CollectionConfig = {
     {
       name: 'content',
       type: 'textarea',
+      admin: {
+        description: 'test',
+      },
     },
   ],
 }
